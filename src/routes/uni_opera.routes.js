@@ -1,11 +1,9 @@
 
 const { Router } = require('express');
 const router =Router();
-const controladorRegUniOpera = require('../controllers/unidad_operativa');
+const controllerPlanta = require('../controllers/unidad_operativa');
 
-router.get('/', controladorRegUniOpera.obtenerPlanta);
-router.post('/insertar',controladorRegUniOpera.insertPlanta);
-
-
+router.get('/', controllerPlanta.obtenerPlanta);
+router.post('/insertar',controllerPlanta.insertPlanta);
 
 module.exports=router

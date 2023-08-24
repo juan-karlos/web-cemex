@@ -22,7 +22,6 @@ controladorUsuario.verificar=async(req,res)=>{
 
         const {id_usuario,correo_electronico,nombre_user}=req.body
         try{
-            
         const  [insert] = await pool.query('INSERT INTO usuarios VALUES (?,?,?,?)',[id_usuario,correo_electronico,nombre_user,passwordHash])
         res.send("tipo insertado");
         } catch(Excepcion){
@@ -61,7 +60,7 @@ controladorUsuario.verificar=async(req,res)=>{
         //     })
         //     res.send("saltado")
         // }
-    }
+}
     //         if(result.lengt==0 || !(await bcryptjs.compare(password,result[0].password))){
     //             res.send('usuario y o pasword incorrectos');
     //         }else {
@@ -91,7 +90,7 @@ controladorUsuario.verificar=async(req,res)=>{
     // }
     
     
-    controladorUsuario.comparacion= async(req,res)=>{
+controladorUsuario.comparacion = async(req,res)=>{
     const usuario= req.body.user;
     const [bdpassword] =  await pool.query('select contrasena from usuarios where Nombre_usuario= ? ',[usuario]); 
     // const texto =json.parse(bdpassword)
