@@ -1,4 +1,4 @@
-const { json } = require("express")
+
 const  pool  = require("../database")
 
 const controladorRequerimiento={}
@@ -41,6 +41,8 @@ controladorRequerimiento.actualizarRequerimiento=async(req,res)=>{
         res.send("conexion de la base de datos perdida")
     }
 }
+
+
 
 controladorRequerimiento.eliminarRequerimiento=async(req,res)=>{
     const id=req.body

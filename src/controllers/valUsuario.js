@@ -1,6 +1,3 @@
-//ValUsuario
-
-const { json } = require('express');
 const pool = require('../database')
 const bcryptjs= require('bcryptjs');
 
@@ -54,12 +51,24 @@ controladorUsuario.eliminar =async(req,res)=>{
     }
     
 }
-controladorUsuario.actualizar=async(req,res)=>{
-    const {correo,password,user}=req.body
-    const [usuario]= await pool.query('SELECT * from usuarios where correo=?' ,[correo]);
-    if(correo !=""){
+controladorUsuario.actualizarContraseña=async(req,res)=>{
+    const correo= req.body.correo;
+    const correoNuevo= req.body.nuevo
+    const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
+    const contra = req.body.password;
+    contrabd = JSON.stringify(bdpassword);
+    let encriptedbd = contrabd.substring(16,76);
+    let compare =bcryptjs.compareSync(contra,encriptedbd);
+    if(compare){
+        res.send("actualizar")
+    }else{
+
     }
-}
+        res.send("no se encuentra el usuario")
+
+
+
+ }
 
 
 

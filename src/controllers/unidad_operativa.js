@@ -1,5 +1,3 @@
-//unidad Operativa 
-
 const pool = require('../database')
 const controllerPlanta ={};
 
