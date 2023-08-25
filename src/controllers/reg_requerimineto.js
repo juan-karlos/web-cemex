@@ -19,13 +19,8 @@ controladorRequerimiento.insertarRequerimiento=async(req,res)=>{
 
 controladorRequerimiento.obtenerUnRequerimiento=async(req,res)=>{
     const nombre = req.body.nom_req
-    const [id_req]= await pool.query('Select id_requerimiento from requerimiento where nom_req = ?',[nombre])
-    id = JSON.stringify(id_req);
-    // const regex=/(\d+)/g
-    // const idRequerimineto = id.match(regex);
-    // await pool.query('update requerimiento set nom_req="ANALISTA", dato="asda", peso=32, impacto="asffa", pais="chiguagua", validez_unica=true, siglas="udp" where id_requerimiento = ?',[idRequerimineto])
-    // //let idReq = id.substring(21,50);
-    // res.json(idRequerimineto)
+    const [id_req]= await pool.query('Select *from requerimiento where nom_req = ?',[nombre])
+    res.send(id_req)
 }
 
 controladorRequerimiento.actualizarRequerimiento=async(req,res)=>{
