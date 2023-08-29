@@ -6,7 +6,11 @@ const controladorUsuario={}
 controladorUsuario.uniUsuario = async(req,res )=>{
     const [usuario] = await pool.query("select *  From usuarios ");
     res.send(usuario)
+
 }
+
+
+
 controladorUsuario.regisUsu=async(req,res)=>{
 
     const contra = req.body.password;
@@ -60,7 +64,7 @@ controladorUsuario.actualizarContraseña=async(req,res)=>{
     let encriptedbd = contrabd.substring(16,76);
     let compare =bcryptjs.compareSync(contra,encriptedbd);
     if(compare){
-        res.send("actualizar")
+        await pool.query('UPDATE usuarios SET ')
     }else{
 
     }
@@ -68,7 +72,7 @@ controladorUsuario.actualizarContraseña=async(req,res)=>{
 
 
 
- }
+}
 
 
 
