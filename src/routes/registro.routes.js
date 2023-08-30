@@ -15,3 +15,7 @@ router.get('/fechaVenR',controladorRegistro.buscarFechRango)
 router.post('/insertar',controladorRegistro.insertarRegistro)
 router.put('/actualizar',controladorRegistro.actualizarRegistro)
 module.exports=router
+
+
+//toda las que estan activas en el mes de febrero
+//y compararlas con las que estaban 

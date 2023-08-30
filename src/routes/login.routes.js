@@ -5,7 +5,6 @@ const valUsuario = require("../controllers/valUsuario")
 router.post('/verifica', valUsuario.regisUsu)
 router.get('/comparacion',valUsuario.comparacion)
 router.get('/',valUsuario.uniUsuario)
-
-// router.put('/actualizar',valUsuario.actualizar)
+router.put('/actualizar',valUsuario.actualizarContraseña)
 router.delete('/eliminar',valUsuario.eliminar)
 module.exports = router
