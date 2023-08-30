@@ -7,6 +7,7 @@ controladorUsuario.uniUsuario = async(req,res )=>{
     const [usuario] = await pool.query("select *  From usuarios ");
     res.send(usuario)
 }
+
 controladorUsuario.regisUsu=async(req,res)=>{
 
     const contra = req.body.password;
@@ -20,6 +21,7 @@ controladorUsuario.regisUsu=async(req,res)=>{
             res.send("el correo que insertaste ya esta registrado")
         }
 }    
+
 controladorUsuario.comparacion= async(req,res)=>{
     const correo= req.body.correo;
     const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
@@ -31,7 +33,6 @@ controladorUsuario.comparacion= async(req,res)=>{
         res.send("vienvenido")
     }else
         res.send("no se encuentra el usuario")
-
 }
 
 controladorUsuario.eliminar =async(req,res)=>{
@@ -48,10 +49,10 @@ controladorUsuario.eliminar =async(req,res)=>{
         res.send("Usuario eliminado");
     }else{
         res.send("contraseña o correo electronico no es correcto")
-    }
-    
+    } 
 }
-controladorUsuario.actualizarContraseña=async(req,res)=>{
+
+controladorUsuario.actualizarContrasena=async(req,res)=>{
     const correo= req.body.correo;
     const correoNuevo= req.body.nuevo
     const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
@@ -62,14 +63,8 @@ controladorUsuario.actualizarContraseña=async(req,res)=>{
     if(compare){
         res.send("actualizar")
     }else{
-
-    }
         res.send("no se encuentra el usuario")
-
-
-
+    }
  }
-
-
 
 module.exports=controladorUsuario
