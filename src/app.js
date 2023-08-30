@@ -16,5 +16,4 @@ app.use('/api/requerimiento',require('./routes/reg_requeriminto.routes'))
 app.use('/api/unidad',require("./routes/uni_opera.routes"))
 app.use('/api/regi',require("./routes/registro.routes"))
 
-
 module.exports=app

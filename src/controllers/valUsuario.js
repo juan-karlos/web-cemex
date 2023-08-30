@@ -20,6 +20,7 @@ controladorUsuario.regisUsu=async(req,res)=>{
             res.send("el correo que insertaste ya esta registrado")
         }
 }    
+
 controladorUsuario.comparacion= async(req,res)=>{
     const correo= req.body.correo;
     const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
@@ -46,9 +47,10 @@ controladorUsuario.eliminar =async(req,res)=>{
         res.send("Usuario eliminado");
     }else{
         res.send("contraseña o correo electronico no es correcto")
-    }
+    } 
 }
-controladorUsuario.actualizarContraseña=async(req,res)=>{
+
+controladorUsuario.actualizarContrasena=async(req,res)=>{
     const correo= req.body.correo;
     const contranueva= req.body.passnuevo
     const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
@@ -61,10 +63,10 @@ controladorUsuario.actualizarContraseña=async(req,res)=>{
         await pool.query('UPDATE usuarios SET contrasena=? WHERE correo_electronico=?',[passwordHash,correo]);
         res.send("se actualizon con exito")
     }else{
-        res.send("la contraseña no coinciden")
-    }
-}
 
+        res.send("no se encuentra el usuario")
+    }
+ }
 
 
 module.exports=controladorUsuario
