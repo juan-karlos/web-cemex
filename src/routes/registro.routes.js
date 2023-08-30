@@ -16,3 +16,4 @@ router.get('/fechaVenR',controladorRegistro.buscarFechRango)// busca un rango de
 router.put('/actualizarEs',controladorRegistro.actualizarEstado)//actualiza el estado del registro
 router.put('/actualizar',controladorRegistro.actualizarRegistro)
 module.exports=router
+
