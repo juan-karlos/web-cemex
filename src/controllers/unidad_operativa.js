@@ -11,6 +11,11 @@ controllerPlanta.obtenerPlanta = async(req,res)=>{
     }
 }
 
+controllerPlanta.obtenerplantas=async(req,res)=>{
+    const [plantas]= await pool.query('select * From unidad_operativa')
+    res.send(plantas)
+}
+
 controllerPlanta.insertPlanta = async(req,res)=>{
 
     const {id_planta, nombre_planta, segmento,zona,estatus,peso,porcentaje_cump,fija }=req.body
