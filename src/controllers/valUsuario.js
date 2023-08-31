@@ -29,7 +29,7 @@ controladorUsuario.comparacion= async(req,res)=>{
     let encriptedbd = contrabd.substring(16,76);
     let compare =bcryptjs.compareSync(contra,encriptedbd);
     if(compare){
-        res.send("vienvenido")
+        res.send("Bienvenido")
     }else
         res.send("no se encuentra el usuario")
 }
