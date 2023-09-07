@@ -1,4 +1,5 @@
 const {createPool} = require('mysql2/promise')
+require ('dotenv').config({path:'./src/.env'})
 
 port = process.env.PORT || 3200
 DB_HOST = process.env.DB_HOST || 'localhost'
