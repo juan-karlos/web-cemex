@@ -11,9 +11,9 @@ controladorUsuario.uniUsuario = async(req,res )=>{
 controladorUsuario.regisUsu=async(req,res)=>{
     const contra = req.body.password;
     let passwordHash= await bcryptjs.hash(contra,8)
-        const {user,correo,}=req.body
+        const {user,correo,apellidos}=req.body
         try{
-            await pool.query('INSERT INTO usuarios (correo_electronico,Nombre_usuario,contrasena) VALUES (?,?,?)',[correo,user,passwordHash])
+            await pool.query('INSERT INTO usuarios (correo_electronico,nombre_usuario,apelidos,contrasena) VALUES (?,?,?,?)',[correo,user,apellidos,passwordHash])
             res.send("el usuario se inserto correctamente");
 
         } catch(Excepcion){
@@ -29,7 +29,7 @@ controladorUsuario.comparacion= async(req,res)=>{
     let encriptedbd = contrabd.substring(16,76);
     let compare =bcryptjs.compareSync(contra,encriptedbd);
     if(compare){
-        res.send("vienvenido")
+        res.send("Bienvenido")
     }else
         res.send("no se encuentra el usuario")
 }
