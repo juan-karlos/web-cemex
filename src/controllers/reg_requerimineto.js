@@ -1,6 +1,7 @@
 const  pool  = require("../database")
 
 const controladorRequerimiento={}
+const recid=/(\d+)/g;
 
 //muestra todos los requerimientos
 controladorRequerimiento.obtenerRequerimiento=async(req,res)=>{
@@ -40,13 +41,17 @@ controladorRequerimiento.obtenerUnRequerimiento=async(req,res)=>{
 
 //actualiza los requerimientos
 controladorRequerimiento.actualizarRequerimiento=async(req,res)=>{
-    const {nom_req,dato,peso,impacto,pais,validez_unica,siglas,id}=req.body
+    const {nom_req,peso,impacto,siglas,nom}=req.body
     try{
-        const actaulizar = await pool.query('update requerimiento set nom_req=?, dato=?, peso=?, impacto=?, pais=?, validez_unica=?, siglas=? where id_requerimiento = ?',[nom_req,dato,peso,impacto,pais,validez_unica,siglas,id])
-        if(actaulizar.affectedRows>=1){
+        const [nombreR] = await pool.query('select id_requerimiento from requerimiento where nombre_requerimiento = ?',[nom])
+        id = JSON.stringify(nombreR)
+        const idrequ = id.match(recid)
+        const [actualizar] = await pool.query('update requerimiento set nombre_requerimiento=?, peso=?, impacto=?, siglas=? where id_requerimiento= ?',[nom_req,peso,impacto,siglas,idrequ])
+        console.log(actualizar)
+        if(actualizar.affectedRows>0){
             res.send("Actualizacion del requerimiento exitosa")
         }else{
-            res.send("La actualizacion no fue realizada")
+            res.send("No se encontro un requerimiento con este nombre")
         }
     }catch(Excepcion){
         res.send("No se pudo conectar a la base de datos")
@@ -56,8 +61,11 @@ controladorRequerimiento.actualizarRequerimiento=async(req,res)=>{
 //elimina uno de los requerimientos 
 controladorRequerimiento.eliminarRequerimiento=async(req,res)=>{
     try{
-        const id=req.body
-        const [rows] = await pool.query('Delete from requerimiento where id_requerimiento=?',[id])
+        const nom=req.body.nombre
+        const [nombreR] = await pool.query('select id_requerimiento from requerimiento where nombre_requerimiento = ?',[nom])
+        id = JSON.stringify(nombreR)
+        const idrequ = id.match(recid)
+        const [rows] = await pool.query('Delete from requerimiento where id_requerimiento=?',[idrequ])
         if(rows.affectedRows >= 1){
             res.send("Eliminacion exito")
         }else{
