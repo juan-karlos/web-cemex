@@ -1,4 +1,3 @@
-
 const  pool  = require("../database")
 
 const controladorRequerimiento={}
@@ -6,7 +5,7 @@ const controladorRequerimiento={}
 //muestra todos los requerimientos
 controladorRequerimiento.obtenerRequerimiento=async(req,res)=>{
     try{
-        const [todreg]= await pool.query('select * from requerimiento');
+        const [todreg]= await pool.query('call seleccionarRequerimiento');
         res.json(todreg);
     }catch(Excepcion){
         res.send("No hay conexion a la base de datos")

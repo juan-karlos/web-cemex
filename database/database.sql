@@ -1,45 +1,54 @@
 CREATE DATABASE IF NOT EXISTS cemex;
 
 use cemex;
-Create Table usuarios
 
+create table Historial(
+id_historial int not null auto_increment,
+segmento nvarchar (100),
+zona nvarchar(50),
+cumplimiento nvarchar(250),
+fecha datetime,
+primary key (id_historial)
+);
+
+Create Table Usuarios
 (
 id_usuario INT NOT NULL AUTO_INCREMENT,
 correo_electronico nvarchar (50) not null,
-Nombre_usuario Nvarchar(50) not null,
+nombre_usuario Nvarchar(50) not null,
+apellidos nvarchar (50) not null,
 contrasena Nvarchar(120) not null,
 primary key (id_usuario),
-UNIQUE(correo_electronico)
+UNIQUE(correo_electronico) 
 );
 
 Create table Unidad_Operativa
 (
 id_planta INT NOT NULL AUTO_INCREMENT,
-Nombre_planta nvarchar(100),
-Segmento nvarchar(100),
-Zona nvarchar(100),
+nombre_planta nvarchar(100),
+segmento nvarchar(100),
+zona nvarchar(100),
 Estado nvarchar(100),
-    
 porcentaje_cumplimiento nvarchar (150),
 fija boolean,
 primary key (id_planta),
 UNIQUE(Nombre_planta)
 );
 
-create table requerimiento
+create table Requerimiento
 (
 id_requerimiento int not null auto_increment,
-nom_req nvarchar(250),
-
+nombre_requerimiento nvarchar(250),
 peso int,
 impacto nvarchar(100),
-
 siglas nvarchar(50),
 primary key (id_requerimiento),
-unique (nom_req)
+unique (nombre_requerimiento)
 );
 
-create table registro
+
+
+create table Registro
 (
 id_registro INT NOT NULL AUTO_INCREMENT,
 id_requerimiento INT,
@@ -47,11 +56,11 @@ id_planta INT,
 fecha_inicio datetime,
 fecha_vencimiento datetime,
 observaciones nvarchar(250),
-Estatus nvarchar (150),
+estatus nvarchar (150),
 url Nvarchar(250),
-	foreign key (id_planta) references Unidad_Operativa(id_planta) , 
-    foreign key (id_requerimiento) references requerimiento(id_requerimiento),
+validez_unica boolean,
+foreign key (id_planta) references Unidad_Operativa(id_planta) , 
+foreign key (id_requerimiento) references requerimiento(id_requerimiento),
 primary key (id_registro)
     
 );
-

@@ -6,7 +6,7 @@ const controladorRegistro={}
 //controlador que trae todos los registros 
 controladorRegistro.obtenerRegistro = async(req,res)=>{
     try{
-        const [registros]=await pool.query("select * from registro");
+        const [registros]=await pool.query("call seleccionarRegistros");
         res.send(registros)
     }catch(Excepcion){
         res.send("No se pudo conectar a la base de datos")
