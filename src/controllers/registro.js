@@ -6,7 +6,7 @@ const controladorRegistro={}
 //controlador que trae todos los registros 
 controladorRegistro.obtenerRegistro = async(req,res)=>{
     try{
-        const [registros]=await pool.query("call seleccionarRegistros");
+        const [registros]=await pool.query("select *from Registro");
         res.send(registros)
     }catch(Excepcion){
         res.send("No se pudo conectar a la base de datos")
@@ -16,8 +16,8 @@ controladorRegistro.obtenerRegistro = async(req,res)=>{
 //controlador de registros para agregar nuevo registro
 controladorRegistro.insertarRegistro = async(req,res)=>{
     try{
-        const {id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url}=req.body
-        const [consulta] = await pool.query('insert into registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url) values (?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url])
+        const {id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url,validez_unica}=req.body
+        const [consulta] = await pool.query('insert into registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url,validez_unica) values (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url,validez_unica])
         if(consulta.affectedRows>=1){
             res.send("El registro fue insertado de manera correcta")
         }else{
@@ -155,8 +155,8 @@ controladorRegistro.buscarFechRango=async(req,res)=>{
 //controlador de registros para actualizar registros
 controladorRegistro.actualizarRegistro=async(req,res)=>{
     try{
-        const {id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url,id_registro}=req.body
-        const [rows]= await pool.query('UPDATE registro set id_requerimiento=?, id_planta=?, fecha_inicio=?, fecha_vencimiento=?, observaciones=?, Estatus=?, url=? where id_registro = ?',[id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url,id_registro])
+        const {id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url,validez_unica,id_registro}=req.body
+        const [rows]= await pool.query('UPDATE registro set id_requerimiento=?, id_planta=?, fecha_inicio=?, fecha_vencimiento=?, observaciones=?, Estatus=?, url=?, validez_unica=? where id_registro = ?',[id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url,validez_unica,id_registro])
         if(rows.affectedRows > 0){
             res.send("actualizacion realizada con exito")
         }else{
