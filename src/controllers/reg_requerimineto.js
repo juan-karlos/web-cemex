@@ -7,7 +7,7 @@ const recid=/(\d+)/g;
 //muestra todos los requerimientos
 controladorRequerimiento.obtenerRequerimiento=async(req,res)=>{
     try{
-        const [todreg]= await pool.query('call seleccionarRequerimiento');
+        const [todreg]= await pool.query('select *from Requerimiento');
         res.json(todreg);
     }catch(Excepcion){
         res.send("No hay conexion a la base de datos")
@@ -16,9 +16,9 @@ controladorRequerimiento.obtenerRequerimiento=async(req,res)=>{
 
 //inserta un nuevo requerimiento 
 controladorRequerimiento.insertarRequerimiento=async(req,res)=>{
-    const {nom_req,dato,peso,impacto,pais,validez_unica,siglas}=req.body
+    const {nom_req,peso,impacto,siglas}=req.body
     try{
-        const [regis]= await pool.query('INSERT INTO requerimiento (nom_req,dato,peso,impacto,pais,validez_unica,siglas) VALUES (?,?,?,?,?,?,?)',[nom_req,dato,peso,impacto,pais,validez_unica,siglas])
+        const [regis]= await pool.query('INSERT INTO requerimiento (nombre_requerimiento,peso,impacto,siglas) VALUES (?,?,?,?)',[nom_req,peso,impacto,siglas])
         res.json({"status":"cliente insertado"})
     }catch(Excepcion){
         res.json("hay un error", MessageEvent(Excepcion))
