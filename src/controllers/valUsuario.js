@@ -9,9 +9,13 @@ controladorUsuario.uniUsuario = async(req,res )=>{
 }
 
 controladorUsuario.regisUsu=async(req,res)=>{
+
     const contra = req.body.password;
+
     let passwordHash= await bcryptjs.hash(contra,8)
+
         const {user,correo,apellidos}=req.body
+
         try{
             await pool.query('INSERT INTO usuarios (correo_electronico,nombre_usuario,apelidos,contrasena) VALUES (?,?,?,?)',[correo,user,apellidos,passwordHash])
             res.send("el usuario se inserto correctamente");
@@ -23,8 +27,11 @@ controladorUsuario.regisUsu=async(req,res)=>{
 
 controladorUsuario.comparacion= async(req,res)=>{
     const correo= req.body.correo;
+
     const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
+
     const contra = req.body.password;
+
     contrabd = JSON.stringify(bdpassword);
     let encriptedbd = contrabd.substring(16,76);
     let compare =bcryptjs.compareSync(contra,encriptedbd);
@@ -36,11 +43,13 @@ controladorUsuario.comparacion= async(req,res)=>{
 
 controladorUsuario.eliminar =async(req,res)=>{
     const correo = req.body.correo;
+
     const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
     contrabd = JSON.stringify(bdpassword);
     let encriptedbd = contrabd.substring(16,76);
 
     const contrasena = req.body.password;
+
     let compare =bcryptjs.compareSync(contrasena,encriptedbd);
     if(compare){
         await pool.query('Delete From usuarios Where correo_electronico= ? ',[correo]);
@@ -51,8 +60,10 @@ controladorUsuario.eliminar =async(req,res)=>{
 }
 
 controladorUsuario.actualizarContrasena=async(req,res)=>{
+
     const correo= req.body.correo;
     const contranueva= req.body.passnuevo
+    
     const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
     const contra = req.body.password;
     contrabd = JSON.stringify(bdpassword);
