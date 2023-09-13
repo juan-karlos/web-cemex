@@ -1,7 +1,31 @@
 const express = require ('express')
 const morgan = require('morgan')
+const cors = require("cors")
 const passport = require('passport')
 const app = express()
+
+const whitelist=[
+    "http://localhost:4200"
+
+]
+const corsOptions ={
+    origin:function(origin,callback){
+        try{
+            if(whitelist.indexOf(origin)!==-1||!origin){
+                callback(null,true);
+            }
+        }catch{
+            
+             callback(new Error("Not Allowed by CORS"));
+            
+        }
+        
+    },
+
+};
+
+app.use(cors(corsOptions));
+
 
 app.set('port',process.env.PORT ||3500)
 

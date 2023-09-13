@@ -1,9 +1,10 @@
 const pool = require('../database')
 
 const controllerHistorial = {}
-const {segmento,zona,cumplimiento,fecha}=req.body
+
 
 controllerHistorial.insertarHitorial= async (req,res)=>{
+    const {segmento,zona,cumplimiento,fecha}=req.body
     try{
         await pool.query('INSERT INTO historial (segmento, zona, cumplimiento, fecha)VALUES (?,?,?,?)'[segmento,zona,cumplimiento,fecha]);
     res.send ("estatus guardado");
@@ -13,6 +14,7 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
     }
 }
     controllerHistorial.buseg =async (req,res)=>{
+        const segmento= req.body
         try{
             const [segmentos]= await pool.query('SELECT * FROM historia WHERE segmento =?' [segmento]);
             if(segmento !=""){
@@ -27,6 +29,7 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
     }
 
     controllerHistorial.buzon =async(req, res)=>{
+        const zona= req.body
         try{
             const [zonas] =await pool.query('SELECT * FROM historial WHERE =?',[zona]);
         if(zona!=""){
@@ -42,6 +45,7 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
     }
 
     controllerHistorial.buscumpli = async(req,res)=>{
+        const cumplimiento= req.body
         try{
             const [cumplimientos]= await pool.query('SELECT * FROM historial WHERE =?',[cumplimiento]);
         if(cumplimientos != ""){
@@ -56,6 +60,7 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
     }
 
     controllerHistorial.busfecha=async(req,res)=>{
+        const fecha= req.body
         try{
             const fe = fecha+"%"
             const [fechas]=await pool.query('SELEC * FROM hitorial WHERE =?  ',[fe])
