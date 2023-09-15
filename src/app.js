@@ -5,7 +5,7 @@ const passport = require('passport')
 const app = express()
 
 const whitelist=[
-    "http://localhost:25574"
+    "http://localhost:4200"
 
 ]
 const corsOptions ={
