@@ -2,8 +2,11 @@ const pool = require('../database')
 const controllerPlanta ={};
 
 controllerPlanta.obtenerPlanta = async(req,res)=>{
-    const planta = req.body.nombre_planta;
-    const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE nombre_planta =?',[planta])
+    const planta = ({id_planta:req.params.cb})
+    id=JSON.stringify(planta);
+        const recid=/(\d+)/g;
+        const idrecu= id.match(recid);
+    const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE id_planta =?',[idrecu])
     if(infoPlanta!="")
     res.send(infoPlanta);
     else{
@@ -30,36 +33,53 @@ controllerPlanta.insertPlanta = async(req,res)=>{
 }
 
     controllerPlanta.actualizar = async(req, res)=>{
-        const planta = req.body.nombre_planta;
-        const {segmento,zona, Estado,porcentaje_cumplimiento,fija}=req.body
-
-        const [infoPlanta]= await pool.query('Select id_planta FROM unidad_operativa WHERE nombre_planta =?',[planta]);
-        id=JSON.stringify(infoPlanta);
-        const recid=/(\d+)/g;
-        const idrecu= id.match(recid);
-        if(infoPlanta!=""){
-            await pool.query('UPDATE unidad_operativa SET nombre_planta=?, segmento=?, zona=?, Estado=?, porcentaje_cumplimiento=?, fija=? WHERE id_planta=?',[planta,segmento,zona,Estado,porcentaje_cumplimiento,fija,idrecu]);
-            res.send("estatus actualizado")
-        }else{
-            res.send("no esta")
-        }
-    }
-
-    controllerPlanta.eliminar = async(req, res)=>{
-        const planta = req.body.nombre_planta;
-        const [infoPlanta]= await pool.query('Select id_planta FROM unidad_operativa WHERE nombre_planta =?',[planta]);
-        id=JSON.stringify(infoPlanta);
-        const recid=/(\d+)/g
-        const idrecu= id.match(recid);
         try{
+        const {nombre_planta,segmento,zona, Estado,porcentaje_cumplimiento,fija}=req.body
+        const planta = ({id_planta:req.params.cb})
+        id=JSON.stringify(planta);
+            const recid=/(\d+)/g;
+            const idrecu= id.match(recid);
+            
+            
+        const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE id_planta =?',[idrecu])
+       
             if(infoPlanta!=""){
-                await pool.query('DELETE FROM unidad_operativa WHERE id_planta=?',[idrecu])
-                res.send("estatus Eliminado")
+                await pool.query('UPDATE unidad_operativa SET nombre_planta=?, segmento=?, zona=?, Estado=?, porcentaje_cumplimiento=?, fija=? WHERE id_planta=?',[nombre_planta,segmento,zona,Estado,porcentaje_cumplimiento,fija,idrecu]);
+                res.send("Sactualizo Correctamente")
             }else{
                 res.send("no esta")
             }
         }catch(excepcion){
-            res.send("hay un problema en la eliminacion de la planta")
+            res.send("algo anda mal")
         }
         
+    
+        
+    }
+
+    controllerPlanta.eliminar = async(req, res)=>{
+        
+             const planta = ({id_planta:req.params.cb})
+            id=JSON.stringify(planta);
+                const recid=/(\d+)/g;
+                const idrecu= id.match(recid);
+                
+                
+            const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE id_planta =?',[idrecu])
+            try{
+                if(infoPlanta!=""){
+                    await pool.query('DELETE FROM unidad_operativa WHERE id_planta=?',[idrecu]);
+                    res.send("se elimino Correctamente ")
+                }else{
+                    res.send("no esta")
+                }
+            }catch(excepcion){
+                res.send("algo anda mal")
+            }
+            
+        
     }    
+    module.exports=controllerPlanta
+
+
+    // drop box
