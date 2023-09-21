@@ -19,6 +19,8 @@ controllerPlanta.obtenerplantas=async(req,res)=>{
     res.send(plantas)
 }
 
+
+
 controllerPlanta.insertPlanta = async(req,res)=>{
 
     const {nombre_planta, segmento,zona,Estado,porcentaje_cumplimiento,fija }=req.body
