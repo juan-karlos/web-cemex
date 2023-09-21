@@ -4,7 +4,11 @@ const router = Router()
 const controladorRegistro= require('../controllers/registro');
 const { route } = require('./reg_requeriminto.routes');
 
-router.get('/registros',controladorRegistro.obtenerRegistro)
+router.post('/load_pdf',controladorRegistro.pdf)
+
+router.get('/',controladorRegistro.obtenerRegistro)
+
+
 router.post('/insertar',controladorRegistro.insertarRegistro)
 router.get('/fechaIniDia',controladorRegistro.buscarFechaDia)//busca fechas por dia de los registros de inicio
 router.get('/fechaIniAAMM',controladorRegistro.buscarFechaAAMM)//busca fechas por mes y año de inicio de registro
