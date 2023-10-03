@@ -4,7 +4,7 @@ const cors = require("cors")
 const passport = require('passport')
 const app = express()
 const fileUpload = require('express-fileupload');
-
+const bodyParser = require('body-parser')
 const path = require("path");
 
 const whitelist=[
@@ -38,8 +38,9 @@ app.use(fileUpload())
 
 app.use(express.json()),
 app.use(morgan('dev')),
-
+app.use(bodyParser.json()),
 app.use(express.urlencoded({extended:false}))
+app.use (bodyParser.urlencoded({extended:false}))
 app.use(passport.initialize());
 
 
