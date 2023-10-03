@@ -18,13 +18,15 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
 };
 
 controladorRegistro.fechas=async(req,res)=>{
-  const{
+  const fechas ={
     fechaAcomodada,
     fechaAcomodada2
   }=req.body
   console.log(fechaAcomodada,fechaAcomodada2)
   
   res.json("fechas leidas")
+  
+  return fechas
 }
 
 
@@ -36,7 +38,7 @@ controladorRegistro.insertarPdf= async (req, res) => {
   if (!req.files || !req.files.pdfFile) {
     return res.status(400).json({ message: "Ningún archivo PDF seleccionado" });
   }
-
+ // Obtén los datos del cuerpo de la solicitud
   const pdfFile = req.files.pdfFile;
   const nomarchi = pdfFile.name;
 
@@ -45,28 +47,27 @@ controladorRegistro.insertarPdf= async (req, res) => {
     fs.mkdirSync('./recursos');
   }
 
-
-  try {
     // Mueve el archivo PDF a la carpeta de recursos
-    await pdfFile.mv(path.join(__dirname, "../recursos", nomarchi));
+  pdfFile.mv(path.join(__dirname, "../recursos", nomarchi),(err)=>{
+
+    if(err){
+      console.log("truena aqui")
+      console.log(err)
+      return res.status(500).json({message:"{Error al cargar el archivo}"})
+    }
+  });
 
     // Construye la URL del PDF
     const pdfUrls = `http://localhost:2300/recursos/${nomarchi}`;
     console.log(pdfUrls);
 
     res.json("Peticion procesada")
-    // Obtén los datos del cuerpo de la solicitud
-  
-
+   return(pdfUrls)
     // if (consulta.affectedRows >= 1) {
     //   res.send("El registro fue insertado de manera correcta");
     // } else {
     //   res.send("El registro no se pudo insertar");
     // }
-  } catch (excepcion) {
-    console.error(excepcion);
-    res.status(500).json({ message: "Error en el servidor" });
-  }
 };
 
 controladorRegistro.insertarRegistro=async(req,res)=>{
