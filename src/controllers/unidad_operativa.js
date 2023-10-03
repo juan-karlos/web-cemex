@@ -83,5 +83,4 @@ controllerPlanta.insertPlanta = async(req,res)=>{
     }    
     module.exports=controllerPlanta
 
-
-    // drop box
+    
