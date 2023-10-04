@@ -21,17 +21,17 @@ controladorRegistro.fechas=async(req,res)=>{
   try {
     // Extraer las fechas del cuerpo de la solicitud
     const  fechas= { fechaAcomodada, fechaAcomodada2 } = req.body;
-    console.log(fechas)
+    // console.log(fechas)
 
 
     
-    let f1 = fechas.fechaAcomodada;
-    let f2 = fechas.fechaAcomodada2;
+    // let f1 = fechas.fechaAcomodada;
+    // let f2 = fechas.fechaAcomodada2;
     // Imprimir las fechas en la consola
 
     // console.log(fechaAcomodada,fechaAcomodada2);
-     console.log(f1);
-     console.log(f2);
+    //  console.log(f1);
+    //  console.log(f2);
     // Enviar una respuesta JSON
     res.json({ message: "Fechas leídas", fechas: { fechaAcomodada, fechaAcomodada2 } });
     return fechas 
@@ -63,20 +63,20 @@ controladorRegistro.insertarPdf= async (req, res) => {
 
     // Mueve el archivo PDF a la carpeta de recursos
 
-  // pdfFile.mv(path.join(__dirname, "../recursos", nomarchi),(err)=>{
+  pdfFile.mv(path.join(__dirname, "../recursos", nomarchi),(err)=>{
 
-  //   if(err){
-  //     console.log("truena aqui")
-  //     console.log(err)
-  //     return res.status(500).json({message:"{Error al cargar el archivo}"})
-  //   }
-  // });
+    if(err){
+      console.log("truena aqui")
+      console.log(err)
+      return res.status(500).json({message:"{Error al cargar el archivo}"})
+    }
+  });
 
     // Construye la URL del PDF
     const pdfUrls = `http://localhost:2300/recursos/${nomarchi}`;
     // console.log(pdfUrls);
-
-    res.json("Peticion procesada")
+    
+    res.json(pdfUrls)
    return(pdfUrls)
     // if (consulta.affectedRows >= 1) {
     //   res.send("El registro fue insertado de manera correcta");
@@ -86,10 +86,11 @@ controladorRegistro.insertarPdf= async (req, res) => {
 };
 
 controladorRegistro.insertarRegistro=async(req,res)=>{
-  console.log("se resivio la peticion ")
+  console.log("se recibio la peticion ")
 
-  const fechas= await controladorRegistro.fechas(req,res);
-
+  // const fechas= await controladorRegistro.fechas(req,res);
+  // const  { fechaAcomodada, fechaAcomodada2 } = req.body;
+  // console.log(fechas)
   const {
     id_planta,
     id_requerimiento,
@@ -101,9 +102,9 @@ controladorRegistro.insertarRegistro=async(req,res)=>{
   console.log("Aqui empieza")
 
   console.log('Estas son las fechas que se insertaron en un controller')
-  console.log(fechas)
+  // console.log(fechas)
   console.log ("esto es del body.................................")
-  console.log(id_planta,id_requerimiento,observaciones,estatus,validez_unica)
+  console.log(id_planta,id_requerimiento,observaciones,estatus,validez_unica,fechaAcomodada,fechaAcomodada2)
 // res.json("campos")
 
   // Inserta el registro en la base de datos
