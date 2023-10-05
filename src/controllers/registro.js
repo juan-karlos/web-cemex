@@ -18,15 +18,29 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
 };
 
 controladorRegistro.fechas=async(req,res)=>{
-  const fechas ={
-    fechaAcomodada,
-    fechaAcomodada2
-  }=req.body
-  console.log(fechaAcomodada,fechaAcomodada2)
+  try {
+    // Extraer las fechas del cuerpo de la solicitud
+    const  fechas= { fechaAcomodada, fechaAcomodada2 } = req.body;
+    // console.log(fechas)
+
+
+    
+    // let f1 = fechas.fechaAcomodada;
+    // let f2 = fechas.fechaAcomodada2;
+    // Imprimir las fechas en la consola
+
+    // console.log(fechaAcomodada,fechaAcomodada2);
+    //  console.log(f1);
+    //  console.log(f2);
+    // Enviar una respuesta JSON
+    res.json({ message: "Fechas leídas", fechas: { fechaAcomodada, fechaAcomodada2 } });
+    return fechas 
+  } catch (error) {
+    // Manejo de errores
+    console.error("Error al procesar la solicitud:", error);
+    res.status(500).json({ error: "Error al procesar la solicitud" });
+  }
   
-  res.json("fechas leidas")
-  
-  return fechas
 }
 
 
@@ -43,11 +57,12 @@ controladorRegistro.insertarPdf= async (req, res) => {
   const nomarchi = pdfFile.name;
 
 
-  if (!fs.existsSync('./recursos')) {
-    fs.mkdirSync('./recursos');
+  if (!fs.existsSync('./src/recursos')) {
+    fs.mkdirSync('./src/recursos');
   }
 
     // Mueve el archivo PDF a la carpeta de recursos
+
   pdfFile.mv(path.join(__dirname, "../recursos", nomarchi),(err)=>{
 
     if(err){
@@ -59,9 +74,9 @@ controladorRegistro.insertarPdf= async (req, res) => {
 
     // Construye la URL del PDF
     const pdfUrls = `http://localhost:2300/recursos/${nomarchi}`;
-    console.log(pdfUrls);
-
-    res.json("Peticion procesada")
+    // console.log(pdfUrls);
+    
+    res.json(pdfUrls)
    return(pdfUrls)
     // if (consulta.affectedRows >= 1) {
     //   res.send("El registro fue insertado de manera correcta");
@@ -71,26 +86,42 @@ controladorRegistro.insertarPdf= async (req, res) => {
 };
 
 controladorRegistro.insertarRegistro=async(req,res)=>{
+  console.log("se recibio la peticion ")
+
+  // const fechas= await controladorRegistro.fechas(req,res);
+  // const  { fechaAcomodada, fechaAcomodada2 } = req.body;
+  // console.log(fechas)
   const {
-    id_requerimiento,
     id_planta,
+    id_requerimiento,
     observaciones,
     estatus,
     validez_unica,
   } = req.body;
 
+  console.log("Aqui empieza")
+
+  console.log('Estas son las fechas que se insertaron en un controller')
+  // console.log(fechas)
+  console.log ("esto es del body.................................")
+  try{
+  console.log(id_planta,id_requerimiento,observaciones,estatus,validez_unica,fechaAcomodada,fechaAcomodada2)
+  }catch{
+    res.status(500).json({message:"esta fallando algo"})
+  }
+// res.json("campos")
 
   // Inserta el registro en la base de datos
-  const [consulta] = await pool.query(
-    "INSERT INTO registro (id_requerimiento, id_planta, fecha_inicio, fecha_vencimiento, observaciones, estatus, url, validez_unica) VALUES (?,?,?,?,?,?,?,?)",
-    [
-      id_requerimiento,
-      id_planta,
-      observaciones,
-      estatus,
-      validez_unica,
-    ]
-  );
+  // const [consulta] = await pool.query(
+  //   "INSERT INTO registro (id_requerimiento, id_planta, fecha_inicio, fecha_vencimiento, observaciones, estatus, url, validez_unica) VALUES (?,?,?,?,?,?,?,?)",
+  //   [
+  //     id_requerimiento,
+  //     id_planta,
+  //     observaciones,
+  //     estatus,
+  //     validez_unica,
+  //   ]
+  // );
 
 }
 // Exporta el controlador
