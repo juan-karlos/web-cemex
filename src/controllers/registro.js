@@ -57,8 +57,8 @@ controladorRegistro.insertarPdf= async (req, res) => {
   const nomarchi = pdfFile.name;
 
 
-  if (!fs.existsSync('./recursos')) {
-    fs.mkdirSync('./recursos');
+  if (!fs.existsSync('./src/recursos')) {
+    fs.mkdirSync('./src/recursos');
   }
 
     // Mueve el archivo PDF a la carpeta de recursos
@@ -104,7 +104,11 @@ controladorRegistro.insertarRegistro=async(req,res)=>{
   console.log('Estas son las fechas que se insertaron en un controller')
   // console.log(fechas)
   console.log ("esto es del body.................................")
+  try{
   console.log(id_planta,id_requerimiento,observaciones,estatus,validez_unica,fechaAcomodada,fechaAcomodada2)
+  }catch{
+    res.status(500).json({message:"esta fallando algo"})
+  }
 // res.json("campos")
 
   // Inserta el registro en la base de datos
