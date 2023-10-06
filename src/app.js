@@ -8,7 +8,8 @@ const bodyParser = require('body-parser')
 const path = require("path");
 
 const whitelist=[
-    "http://localhost:4200"
+    "http://localhost:4200",
+    "http://192.168.100.62:4200"
 
 ]
 const corsOptions ={
