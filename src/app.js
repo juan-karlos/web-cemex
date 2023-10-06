@@ -50,4 +50,5 @@ app.use('/api/requerimiento',require('./routes/reg_requeriminto.routes'));
 app.use('/api/unidad',require("./routes/uni_opera.routes"));
 app.use('/api/regi',require("./routes/registro.routes"));
 app.use('/api/historial',require("./routes/historial.routes"));
+app.use('/api/logica',require("./routes/logica.routes"));
 module.exports=app
