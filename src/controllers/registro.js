@@ -94,7 +94,7 @@ controladorRegistro.fechas = async (req, res) => {
     const { fechaAcomodada, fechaAcomodada2 } = req.body;
 
     res.json({ message: "Fechas leídas", fechas: { fechaAcomodada, fechaAcomodada2 } });
-    return { fechaAcomodada, fechaAcomodada2 };
+    console.log (fechaAcomodada, fechaAcomodada2 );
   } catch (error) {
     // Manejo de errores
     console.error("Error al procesar la solicitud:", error);
@@ -102,57 +102,57 @@ controladorRegistro.fechas = async (req, res) => {
   }
 };
 
-controladorRegistro.insertarPdf = async (req, res) => {
-  // Verifica si se envió un archivo PDF
-  if (!req.files || !req.files.pdfFile) {
-    return res.status(400).json({ message: "Ningún archivo PDF seleccionado" });
-  }
+// controladorRegistro.insertarPdf = async (req, res) => {
+//   // Verifica si se envió un archivo PDF
+//   if (!req.files || !req.files.pdfFile) {
+//     return res.status(400).json({ message: "Ningún archivo PDF seleccionado" });
+//   }
 
-  // Obtén los datos del cuerpo de la solicitud
-  const pdfFile = req.files.pdfFile;
-  const nomarchi = pdfFile.name;
+//   // Obtén los datos del cuerpo de la solicitud
+//   const pdfFile = req.files.pdfFile;
+//   const nomarchi = pdfFile.name;
 
-  if (!fs.existsSync('./src/recursos')) {
-    fs.mkdirSync('./src/recursos');
-  }
+//   if (!fs.existsSync('./src/recursos')) {
+//     fs.mkdirSync('./src/recursos');
+//   }
 
-  pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), async (err) => {
-    if (err) {
-      console.log("Error al mover el archivo");
-      console.log(err);
-      return res.status(500).json({ message: "Error al cargar el archivo" });
-    }
+//   pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), async (err) => {
+//     if (err) {
+//       console.log("Error al mover el archivo");
+//       console.log(err);
+//       return res.status(500).json({ message: "Error al cargar el archivo" });
+//     }
 
-    // Construye la URL del PDF
-    const pdfUrls = `http://localhost:2300/recursos/${nomarchi}`;
+//     // Construye la URL del PDF
+//     const pdfUrls = `http://localhost:2300/recursos/${nomarchi}`;
 
-    // Llama a insertarRegistro y pasa pdfUrls como argumento
-    // controladorRegistro.insertarRegistro(req, res, pdfUrls);
-  });
-};
+//     // Llama a insertarRegistro y pasa pdfUrls como argumento
+//     // controladorRegistro.insertarRegistro(req, res, pdfUrls);
+//   });
+// };
 
-controladorRegistro.insertarRegistro = async (req, res, pdfUrls) => {
-  console.log("Se recibió la petición");
-  console.log(JSON.stringify(pdfUrls));
-  console.log("HASTA aquí está la petición");
-  const {
-    id_planta,
-    id_requerimiento,
-    observaciones,
-    estatus,
-    validez_unica,
-  } = req.body;
+// controladorRegistro.insertarRegistro = async (req, res, pdfUrls) => {
+//   console.log("Se recibió la petición");
+//   console.log(JSON.stringify(pdfUrls));
+//   console.log("HASTA aquí está la petición");
+//   const {
+//     id_planta,
+//     id_requerimiento,
+//     observaciones,
+//     estatus,
+//     validez_unica,
+//   } = req.body;
 
-  console.log("Aquí empieza");
+//   console.log("Aquí empieza");
 
-  console.log('Estas son las fechas que se insertaron en un controller');
-  console.log("Esto es del body.................................");
-  try {
-    console.log(id_planta, id_requerimiento, observaciones, estatus, validez_unica);
-  } catch {
-    res.status(500).json({ message: "Está fallando algo" });
-  }
-};
+//   console.log('Estas son las fechas que se insertaron en un controller');
+//   console.log("Esto es del body.................................");
+//   try {
+//     console.log(id_planta, id_requerimiento, observaciones, estatus, validez_unica);
+//   } catch {
+//     res.status(500).json({ message: "Está fallando algo" });
+//   }
+// };
 
 
 
@@ -165,32 +165,34 @@ controladorRegistro.insertarRegistro = async (req, res, pdfUrls) => {
 
 
 // Controlador para cargar el archivo PDF y agregar un nuevo registro
-// controladorRegistro.insertarPdf= async (req, res) => {
-//   // Verifica si se envió un archivo PDF
-//   if (!req.files || !req.files.pdfFile) {
-//     return res.status(400).json({ message: "Ningún archivo PDF seleccionado" });
-//   }
-//  // Obtén los datos del cuerpo de la solicitud
-//   const pdfFile = req.files.pdfFile;
-//   const nomarchi = pdfFile.name;
-//   if (!fs.existsSync('./src/recursos')) {
-//     fs.mkdirSync('./src/recursos');
-//   }
+controladorRegistro.insertarPdf= async (req, res) => {
+  // Verifica si se envió un archivo PDF
+  if (!req.files || !req.files.pdfFile) {
+    return res.status(400).json({ message: "Ningún archivo PDF seleccionado" });
+  }
+ // Obtén los datos del cuerpo de la solicitud
+ const { fechaAcomodada, fechaAcomodada2,validez_unica,estatus,observaciones,id_requerimiento,id_planta } = req.body;
+  const pdfFile = req.files.pdfFile;
+  const nomarchi = pdfFile.name;
+  if (!fs.existsSync('./src/recursos')) {
+    fs.mkdirSync('./src/recursos');
+  }
 
-//   pdfFile.mv(path.join(__dirname, "../recursos", nomarchi),(err)=>{
-//     if(err){
-//       console.log("truena aqui")
-//       console.log(err)
-//       return res.status(500).json({message:"{Error al cargar el archivo}"})
-//     }
-//   });
-//     // Construye la URL del PDF
-//     const pdfUrls = `http://localhost:2300/recursos/${nomarchi}`;
+  pdfFile.mv(path.join(__dirname, "../recursos", nomarchi),(err)=>{
+    if(err){
+      console.log("truena aqui")
+      console.log(err)
+      return res.status(500).json({message:"{Error al cargar el archivo}"})
+    }
+  });
+    // Construye la URL del PDF
+    const pdfUrls = `http://localhost:2300/recursos/${nomarchi}`;
     
-//     res.json(pdfUrls)
-//    return(pdfUrls)
+    // console.log(pdfUrls)
+    console.log ("la fecha acomodada",fechaAcomodada,"la fecha acomodada", fechaAcomodada2,"validez unica",validez_unica ,"Estatus",estatus,"Observaciones",observaciones,"Id requerimiento",id_requerimiento,"id planta",id_planta,"urls",pdfUrls);
+   return(pdfUrls)
 
-// };
+};
 
 // controladorRegistro.insertarRegistro=async(req,res)=>{
 //   console.log("se recibio la peticion ")
@@ -231,7 +233,7 @@ controladorRegistro.insertarRegistro = async (req, res, pdfUrls) => {
 
 
 
-//controller pára recibir el pdf
+// controller pára recibir el pdf
 // controladorRegistro.pdf = async (req, res, callback) => {
 
 //   // res.send({data:'ok'})
@@ -264,51 +266,55 @@ controladorRegistro.insertarRegistro = async (req, res, pdfUrls) => {
 // };
 
 
-//controlador de registros para agregar nuevo registro
+// controlador de registros para agregar nuevo registro
 
 
-// controladorRegistro.insertarRegistro = async (req, res) => {
-//     console.log("peticion resivida");
+controladorRegistro.insertarRegistro = async (req, res) => {
+    console.log("peticion resivida");
 
-//     controladorRegistro.pdf(req,res,async (pdfUrl)=>{
+    controladorRegistro.pdf(req,res,async (pdfUrl)=>{
 
-//       try {
-//         const {
-//           id_requerimiento, //agregado
-//           id_planta, //agregado
-//           fecha_inicio, //agregado
-//           fecha_vencimiento,//agregado
-//           observaciones,//agregado
-//           estatus, //estatus
-//           validez_unica,
-//         } = req.body;
+      try {
+        const {
+          id_requerimiento, //agregado
+          id_planta, //agregado
+          fecha_inicio, //agregado
+          fecha_vencimiento,//agregado
+          observaciones,//agregado
+          estatus, //estatus
+          validez_unica,
+        } = req.body;
     
     
-//         const [consulta] = await pool.query(
-//           "insert into registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url,validez_unica) values (?,?,?,?,?,?,?,?)",
-//           [
-//             id_requerimiento,
-//             id_planta,
-//             fecha_inicio,
-//             fecha_vencimiento,
-//             observaciones,
-//             estatus,
-//             pdfUrl,
-//             validez_unica,
-//           ]
-//         );
-//         if (consulta.affectedRows >= 1) {
-//           res.send("El registro fue insertado de manera correcta");
-//         } else {
-//           res.send("El registro no se pudo insertar");
-//         }
-//       } catch (Excepcion) {
-//         res.send("No se pudo conectar a la base de datos");
-//       }
-//     });
-//   // console.log(resPdf)
+        // const [consulta] = await pool.query(
+        //   "insert into registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,Estatus,url,validez_unica) values (?,?,?,?,?,?,?,?)",
+        //   [
+        //     id_requerimiento,
+        //     id_planta,
+        //     fecha_inicio,
+        //     fecha_vencimiento,
+        //     observaciones,
+        //     estatus,
+        //     pdfUrl,
+        //     validez_unica,
+        //   ]
+        // );
+        // if (consulta.affectedRows >= 1) {
+        //   res.send("El registro fue insertado de manera correcta");
+        // } else {
+        //   res.send("El registro no se pudo insertar");
+        // }
+      } catch (Excepcion) {
+        res.send("No se pudo conectar a la base de datos");
+      }
+    });
+  // console.log(resPdf)
 
-// };
+};
+
+
+
+
 
 //controlador para buscar por fecha especifica de inicio
 controladorRegistro.buscarFechaDia = async (req, res) => {
