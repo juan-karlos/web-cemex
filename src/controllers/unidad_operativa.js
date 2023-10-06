@@ -23,64 +23,51 @@ controllerPlanta.obtenerplantas=async(req,res)=>{
 
 controllerPlanta.insertPlanta = async(req,res)=>{
 
-    const {nombre_planta, segmento,zona,Estado,porcentaje_cumplimiento,fija }=req.body
+    const {nombre_planta, segmento,zona,estado,porcentaje_cump,fija,activo }=req.body
     try{ 
-    await pool.query('INSERT INTO unidad_Operativa (nombre_planta, segmento, zona, Estado, porcentaje_cumplimiento,fija) Values (?,?,?,?,?,?)', [nombre_planta,segmento,zona,Estado,porcentaje_cumplimiento,fija])
-
+    const [reg]= await pool.query(`INSERT INTO unidad_Operativa (nombre_planta, segmento, zona, Estado, porcentaje_cumplimiento,fija,activo) Values (?,?,?,?,?,?,?)`, [nombre_planta,segmento,zona,estado,porcentaje_cump,fija,activo])
     res.send("planta registrada en la base de datos")
-
     }catch(Exception){
-        res.send("la planta ya esta reguistrada")
+        res.send("El id ingresado es el mismo")
     }
 }
 
-    controllerPlanta.actualizar = async(req, res)=>{
-        try{
-        const {nombre_planta,segmento,zona, Estado,porcentaje_cumplimiento,fija}=req.body
-        const planta = ({id_planta:req.params.cb})
+controllerPlanta.actualizar = async(req, res)=>{
+    const planta = req.body.nombre_planta;
+    const {plantaN,segmento,zona, estado,porcentaje_cumplimiento,fija,activo}=req.body
+
+    const [infoPlanta]= await pool.query(`Select id_planta FROM unidad_operativa WHERE nombre_planta =?`,[planta]);
+    id=JSON.stringify(infoPlanta);
+    const recid=/(\d+)/g;
+    const idrecu= id.match(recid);
+    if(infoPlanta!=""){
+        await pool.query(`UPDATE unidad_operativa SET nombre_planta=ifNULL(?,nombre_planta), segmento=ifNULL(?,segmento), zona=ifNULL(?,zona), Estado=ifNULL(?,Estado), porcentaje_cumplimiento=ifNULL(?,porcentaje_cumplimiento), fija=ifNULL(?,fija), activo=ifNULL(?,activo) 
+        WHERE id_planta=?`,[plantaN,segmento,zona,estado,porcentaje_cumplimiento,fija,activo,idrecu]);
+        res.send("estatus actualizado")
+    }else{
+        res.send("no esta")
+    }
+}
+
+controllerPlanta.eliminar = async(req, res)=>{
+    const planta = ({id_planta:req.params.cb})
         id=JSON.stringify(planta);
             const recid=/(\d+)/g;
             const idrecu= id.match(recid);
             
             
         const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE id_planta =?',[idrecu])
-       
+        try{
             if(infoPlanta!=""){
-                await pool.query('UPDATE unidad_operativa SET nombre_planta=?, segmento=?, zona=?, Estado=?, porcentaje_cumplimiento=?, fija=? WHERE id_planta=?',[nombre_planta,segmento,zona,Estado,porcentaje_cumplimiento,fija,idrecu]);
-                res.send("Sactualizo Correctamente")
+                await pool.query('DELETE FROM unidad_operativa WHERE id_planta=?',[idrecu]);
+                res.send("se elimino Correctamente ")
             }else{
                 res.send("no esta")
             }
         }catch(excepcion){
             res.send("algo anda mal")
         }
-        
-    
-        
-    }
-
-    controllerPlanta.eliminar = async(req, res)=>{
-        
-             const planta = ({id_planta:req.params.cb})
-            id=JSON.stringify(planta);
-                const recid=/(\d+)/g;
-                const idrecu= id.match(recid);
-                
-                
-            const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE id_planta =?',[idrecu])
-            try{
-                if(infoPlanta!=""){
-                    await pool.query('DELETE FROM unidad_operativa WHERE id_planta=?',[idrecu]);
-                    res.send("se elimino Correctamente ")
-                }else{
-                    res.send("no esta")
-                }
-            }catch(excepcion){
-                res.send("algo anda mal")
-            }
-            
-        
-    }    
+}    
     module.exports=controllerPlanta
 
     
