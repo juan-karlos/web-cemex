@@ -20,6 +20,7 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
 // Controlador para cargar el archivo PDF y agregar un nuevo registro
 controladorRegistro.insertarPdf = async (req, res) => {
   // Verifica si se envió un archivo PDF
+  console.log("se resivio la peticion")
   if (!req.files || !req.files.pdfFile) {
     return res.status(400).json({ message: "Ningún archivo PDF seleccionado" });
   }
@@ -30,12 +31,18 @@ controladorRegistro.insertarPdf = async (req, res) => {
     estatus,
     observaciones,
   } = req.body;
+
+
   const id_requerimiento= parseInt(req.body.id_requerimiento,10);
   const id_planta= parseInt(req.body.id_planta,10);
   const val=req.body.validez_unica
   const validez_unica=val==="true"? true:false;
+
+
   const pdfFile = req.files.pdfFile;
   const nomarchi = pdfFile.name;
+
+
   if (!fs.existsSync("./src/recursos")) {
     fs.mkdirSync("./src/recursos");
   }
@@ -50,19 +57,19 @@ controladorRegistro.insertarPdf = async (req, res) => {
   // Construye la URL del PDF
   const pdfUrls = `http://localhost:2300/recursos/${nomarchi}`;
 
-  // try{
-  // await pool.query('INSERT INTO Registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
-  // // console.log(pdfUrls)
-  // res.json({message:'{"Estatus":"Producto insertado"}'})
-  // }catch(exepcion){
-  //   console.log(exepcion)
-  //   // res.status(500).json({message:"{no se pudo insertar el producto}"})
-  // }
+  try{
+  await pool.query('INSERT INTO Registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
+  // console.log(pdfUrls)
+  res.json({message:'{"Estatus":"Producto insertado"}'})
+  }catch(exepcion){
+    console.log(exepcion)
+    res.status(500).json({message:"{no se pudo insertar el producto}"})
+  }
 
   console.log(
-    "la fecha acomodada",
+    "Fecha de inicio",
     fechaAcomodada,
-    "la fecha acomodada",
+    "Fecha de vencimiento",
     fechaAcomodada2,
     "validez unica",
     validez_unica,
