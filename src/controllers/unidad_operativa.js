@@ -33,6 +33,7 @@ controllerPlanta.insertPlanta = async(req,res)=>{
 }
 
 controllerPlanta.actualizar = async(req, res)=>{
+    const planElej=({id_planta:req.params.cb})
     const planta = req.body.nombre_planta;
     const {plantaN,segmento,zona, estado,porcentaje_cumplimiento,fija,activo}=req.body
 
