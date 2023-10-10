@@ -14,7 +14,7 @@ controllerPlanta.obtenerPlanta = async(req,res)=>{
     }
 }
 
-controllerPlanta.obtenerplantas=async(req,res)=>{
+controllerPlanta.obtenerPlantas=async(req,res)=>{
     const [plantas]= await pool.query('select * From unidad_operativa')
     res.send(plantas)
 }

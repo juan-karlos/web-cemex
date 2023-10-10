@@ -46,7 +46,7 @@ controladorRequerimiento.actualizarRequerimiento=async(req,res)=>{
         const [nombreR] = await pool.query('select id_requerimiento from requerimiento where nombre_requerimiento = ?',[nom])
         id = JSON.stringify(nombreR)
         const idrequ = id.match(recid)
-        const [actualizar] = await pool.query('update requerimiento set nombre_requerimiento=?, peso=?, impacto=?, siglas=? where id_requerimiento= ?',[nom_req,peso,impacto,siglas,idrequ])
+        const [actualizar] = await pool.query(`update requerimiento set nombre_requerimiento=ifNULL(?,nombre_requerimiento), peso=ifNULL(?,peso), impacto=ifNULL(?,impacto), siglas=ifNULL(?,siglas) where id_requerimiento= ?`,[nom_req,peso,impacto,siglas,idrequ])
         console.log(actualizar)
         if(actualizar.affectedRows>0){
             res.send("Actualizacion del requerimiento exitosa")
