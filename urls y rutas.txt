@@ -1,0 +1,340 @@
+//////////////////////////////---  CONTROL DE USUARIOS ---/////////////////////////////////////////////
+
+app.use('/api/login',require("./routes/login.routes"));                         --> Esta es la ruta del control de Usuarios <-- Se solicita desde app
+
+
+    ---> router.get('/',valUsuario.uniUsuario)                                  --> Muestra toda la informacion de los USUARIOS
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                    --> http://localhost:3200/api/login/
+
+    ---> router.post('/verifica', valUsuario.regisUsu)                          --> Inserta un nuevo USUARIO 
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                    --> http://localhost:3200/api/login/verifica
+                    PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON
+                    {
+                        "password": ,
+                        "user": " ",
+                        "correo": " ",
+                        "apellidos": " "
+                    }
+
+    ---> router.get('/comparacion',valUsuario.comparacion)                      --> Inicio de sesion mediante correo y contraseña
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                    --> http://localhost:3200/api/login/comparacion
+                    PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON
+                    {
+                        "correo":"",
+                        "password": 
+                    }
+
+    ---> router.delete('/eliminar',valUsuario.eliminar)                         --> Elimina usuarios mediante correo y contrasenia
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                    --> http://localhost:3200/api/login/eliminar
+                    PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON
+                    {
+                        "correo":"",
+                        "password": 
+                    }
+
+    ---> router.patch('/actualizarContra',valUsuario.actualizarContrasena)        --> Actualiza la contrasenia de un USUARIO
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                    --> http://localhost:3200/api/login/actualizarContra
+                    PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON
+                    {
+                        "correo":"",
+                        "passnuevo": ,
+                        "password": 
+                    }
+
+
+//////////////////////////////---  CONTROL DE LOS REQUERIMIENTOS ---/////////////////////////////////////////////
+
+app.use('/api/requerimiento',require('./routes/reg_requeriminto.routes'));           --> Ruta que tomara para el control de requerimientos <-- se solicita desde app
+
+
+    ---> router.get('/obtener',controladorRequerimiento.obtenerRequerimiento)        --> Muestra todos los requerimientos
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/requerimiento/obtener
+
+    ---> router.get('/reqIndivudual',controladorRequerimiento.obtenerUnRequerimiento)--> Muestra un requerimiento especifico
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/requerimiento/reqIndivudual
+                        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body  --> JSON
+                        {
+                            "nom_req":" "
+                        }
+  
+    ---> router.patch('/actualizar',controladorRequerimiento.actualizarRequerimiento)  --> Actualiza un requerimiento
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/requerimiento/actualizar
+                        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body  --> JSON
+                        {
+                            "nom_req": "",
+                            "peso": ,
+                            "impacto": "",
+                            "siglas":"",
+                            "nom":""  <--ESTE SIEMPRE VA QUE ES EL NOMBRE DEL REQUERIMIENTO Y SE USA PARA BUSCAR EL ID DE FORMA AUTOMATICA SOLO CON EL NOMBRE
+                        }
+
+    ---> router.post('/insertar',controladorRequerimiento.insertarRequerimiento)     --> Inserta un nuevo requerimiento
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/requerimiento/insertar    
+                        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body  --> JSON
+                        {
+                            "nom_req": "",
+                            "peso": ,
+                            "impacto": "",
+                            "siglas":""
+                        }               
+    
+    ---> router.delete('/eliminar',controladorRequerimiento.eliminarRequerimiento)   --> Elimina un requerimiento
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/requerimiento/eliminar
+                        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body  --> JSON
+                        {
+                            "nombre":""
+                        }
+
+
+//////////////////////////////---  CONTROL DE LA UNIDAD OPERATIVA (PLANTAS) ---/////////////////////////////////////////////
+
+app.use('/api/unidad',require("./routes/uni_opera.routes"));      --> Ruta que tomara para controlar la UNIDAD_OPERATIVA <-- Se solicita desde app
+
+
+    ---> router.get('/', controllerPlanta.obtenerPlantas);                       --> Muestra todas las plantas
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                     --> http://localhost:3200/api/unidad/
+                        
+    ---> router.get('/uno', controllerPlanta.obtenerPlanta);                     --> Muestra una planta en especifica
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                     --> http://localhost:3200/api/unidad/uno
+                    PARAMETROS QUE NECESITAS EN EL body copea y pega en el body  --> JSON
+                    {
+                        "nombre_planta":""
+                    }    
+
+    ---> router.post('/insertar',controllerPlanta.insertPlanta);                 --> Inserta una nueva planta
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                     --> http://localhost:3200/api/unidad/insertar
+                    PARAMETROS QUE NECESITAS EN EL body copea y pega en el body  --> JSON
+                    {
+                        "nombre_planta": "", 
+                        "segmento": "",
+                        "zona": "",
+                        "estado": "",
+                        "porcentaje_cump": "",
+                        "fija": ,
+                        "activo":
+                    }
+
+    ---> router.patch('/actualizar',controllerPlanta.actualizar);                --> Actualiza la informacion de una planta
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                     --> http://localhost:3200/api/unidad/actualizar
+                    PARAMETROS QUE NECESITAS EN EL body copea y pega en el body  --> JSON
+                    {
+                        "nombre_planta": "", 
+                        "plantaN": "",
+                        "segmento": "",
+                        "zona": "", 
+                        "estado": "",
+                        "porcentaje_cumplimiento": "",
+                        "fija": ,
+                        "activo": 
+                    }        
+
+    ---> router.delete('/eliminar',controllerPlanta.eliminar);                    --> Elimina una planta especifica
+                INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/unidad/eliminar
+                    PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+                    {
+                        "nombre_planta": ""
+                    }
+
+
+//////////////////////////////---  CONTROL DE REGISTROS ---/////////////////////////////////////////////
+
+app.use('/api/regi',require("./routes/registro.routes"));                 --> Ruta que tomara para controlar registros <--Se solicita desde app
+
+
+    ---> router.post('/fechas',controladorRegistro.fechas) //traere fechas --> recupera las fechas de un documento *duda porque no se va por get* 
+         INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/fechas
+            PARAMETROS DESCONOCIDOS
+            {
+
+            }
+    ---> router.post('/pdf', controladorRegistro.insertarPdf)              --> Inserta un pdf 
+         INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/pdf
+            PARAMETROS DESCONOCIDOS
+            {
+
+            }
+    ---> router.post('/insertar',controladorRegistro.insertarRegistro)     --> Inserta un registro a un pdfFile
+         INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/insertar
+            PARAMETROS DESCONOCIDOS
+            {
+
+            }
+    ---> router.get('/registros',controladorRegistro.obtenerRegistro)     --> Muestra todos los registros
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/registros
+            PARAMETROS DESCONOCIDO
+            {
+
+            }
+
+    ---> router.post('/insertar',controladorRegistro.insertarRegistro)    --> Inserta un nuevo resgistro
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/insertar
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+            {
+                "reque":"",
+                "planta":"",
+                "fecha_inicio":"",
+                "fecha_vencimiento":"",
+                "observaciones":"",
+                "Estatus":"",
+                "url":"",
+                "validez_unica":
+            }
+
+    ---> router.get('/fechaIniDia',controladorRegistro.buscarFechaDia)    --> Busca las fechas de inicio por dia especifico
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/fechaIniDia
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+            {
+                "fechaIni":" "
+            }
+
+    ---> router.get('/fechaIniAAMM',controladorRegistro.buscarFechaAAMM)  --> Busca las fechas de inicio por mes y año
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/fechaIniAAMM
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+            {
+                "anio": 2023
+                "mes": 03
+            }
+    ---> router.get('/fechaIniAnio',controladorRegistro.buscarFechaAnio)  --> Busca las fechas de inicio por año
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/fechaIniAnio
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+            {
+                "ani": 2022
+            }
+
+    ---> router.get('/fechaVenDia',controladorRegistro.buscarFechaAnioT)  --> Busca las fechas de vencimiento por dia especifico
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/fechaVenDia
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+            {
+                "fechaVen":"2022-12-31"
+            }
+
+    ---> router.get('/fechaVenAAMM',controladorRegistro.buscarFechaAAMMT) --> Busca las fechas de vencimiento por mes y año
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/fechaVenAAMM
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+                {
+                    "anio": 2022,
+                    "mes": 03
+                }
+
+    ---> router.get('/fechaVenAnio',controladorRegistro.buscarFechaAT)    --> Busca las fechas de vencimiento de todo un año
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/fechaVenAnio
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+            {
+                "anio":2022
+            }
+
+    ---> router.get('/fechaVenR',controladorRegistro.buscarFechRango)     --> Busca un rango de fechas de vencimiento 
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/fechaVenR
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+            {
+                "fechIni": "2021-01-01",
+                "fechFin": "2022-12-04"
+            }
+
+    ---> router.patch('/actualizarEs',controladorRegistro.actualizarEstado) --> Actualiza el estado de un registro
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/actualizarEs
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+            {
+                "ide": ,
+                "estado":""
+            }
+
+    ---> router.patch('/actualizar',controladorRegistro.actualizarRegistro) --> Actualiza los campos necesarios
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/actualizar
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body   --> JSON
+            {
+                "id_requerimiento":"",
+                "id_planta":"",
+                "fecha_inicio":"",
+                "fecha_vencimiento":"",
+                "observaciones":"",
+                "Estatus":"",
+                "url":"",
+                "validez_unica":,
+                "id_registro":
+            }
+
+
+//////////////////////////////---  CONTROL DEL HISTORIAL ---/////////////////////////////////////////////
+
+app.use('/api/historial',require("./routes/historial.routes")); --> Ruta que tomara para controlar el historial <-- Se solicita desde app
+    
+
+    ---> router.post('/reghis',historial.insertarHitorial);         --> Inserta un nuevo Historial
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                --> http://localhost:3200/api/historial/reghis
+        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON
+        {
+            "segmento": "",
+            "zona": "",
+            "cumplimiento": "",
+            "fecha": ""
+        }
+
+    ---> router.get('/segmento',historial.buseg);                   --> Busca un histroial especifico mediante su segmento
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                --> http://localhost:3200/api/historial/segmento
+        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON 
+        {
+            "segmento":""
+        }
+
+    ---> router.get('/zona',historial.buzon);                       --> Busca un historial especifico por zona 
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                --> http://localhost:3200/api/historial/zona
+        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON 
+        {
+            "zona":""
+        }
+
+    ---> router.get('/cumplimineto',historial.buscumpli);           --> Busca un historial especifico por cumplimiento
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                --> http://localhost:3200/api/historial/cumplimineto
+        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON
+        {
+            "cumplimiento":""
+        }
+
+    ---> router.get('/fecha',historial.busfecha);                   --> Busca un historial especifico por fecha
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                --> http://localhost:3200/api/historial/fecha
+        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON
+        {
+            "fecha":""
+        }
+
+
+//////////////////////////////---  CONTROL DE LA LOGICA ---/////////////////////////////////////////////
+
+app.use('/api/logica',require("./routes/logica.routes"));       --> Ruta que tomara para controlar la logica <-- Se solicita desde app
+
+
+    ---> router.get('/total',controllersLogica.pesoTotal)                    --> Muestra la SUMA TOTAL de peso de una PLANTA especifica sin importar los ESTATUS de los REQUERIMIENTOS
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/logica/total
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body      --> JSON
+            {
+                "nombre":""
+            } 
+    ---> router.get('/parcial',controllersLogica.pesoParcial)                --> Muestra un peso parcial de una planta dependiendo el estatus que tenga el requerimiento 
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/logica/parcial
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body      --> JSON
+            {
+                "estatu": "",
+                "nombre": ""
+            }
+    ---> router.get('/porcentaje',controllersLogica.pesoEnPorcentajeEstatus) --> Muestra el porcentaje que le corresponde a los requerimientos en vase al estatus que se le indica -->permite ver el porcentaje de cumplimiento<--
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/logica/porcentaje
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body      --> JSON
+            {
+                "nomPlanta": "",
+                "estatus": ""
+            }
+    ---> router.get('/totalPlanta',controllersLogica.totalPlantas)           --> Obtiene el total de plantas por zona y segmento
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/logica/totalPlanta
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body      --> JSON
+            {
+                "zona":"",
+                "segmento":""
+            }  
+    ---> router.get('/sumaTotal',controllersLogica.sumTotalZonaSegmento)     --> Muestra la suma total del porcentaje de cumplmiento por zona y segmento
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                         --> http://localhost:3200/api/logica/sumaTotal
+            PARAMETROS QUE NECESITAS EN EL body copea y pega en el body      --> JSON
+            {
+                "zona":"",
+                "segmento":""
+            }

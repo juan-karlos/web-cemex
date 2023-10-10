@@ -7,5 +7,5 @@ router.get('/comparacion',valUsuario.comparacion)
 router.get('/',valUsuario.uniUsuario)
 
 router.delete('/eliminar',valUsuario.eliminar)
-router.put('/actualizarContra',valUsuario.actualizarContrasena)
+router.patch('/actualizarContra',valUsuario.actualizarContrasena)
 module.exports = router
