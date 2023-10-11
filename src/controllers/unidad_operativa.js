@@ -16,7 +16,7 @@ controllerPlanta.obtenerPlanta = async(req,res)=>{
             res.status(500).json({message:"no se encuentra la planta registrada"})
         }
     }catch(Excepcion){
-        
+        res.status(500).json({message:"hay un error con el servidor"})
     }
     
 }
@@ -32,11 +32,11 @@ controllerPlanta.insertPlanta = async(req,res)=>{
 
     const {nombre_planta, segmento,zona,estado,porcentaje_cumplimiento,fija,activa }=req.body
     try{ 
-    const [reg]= await pool.query(`INSERT INTO unidad_Operativa (nombre_planta, segmento, zona, Estado, porcentaje_cumplimiento,fija,activo) Values (?,?,?,?,?,?,?)`, [nombre_planta,segmento,zona,estado,porcentaje_cump,fija,activo])
-    res.send("planta registrada en la base de datos")
+    const [reg]= await pool.query(`INSERT INTO unidad_Operativa (nombre_planta, segmento, zona, Estado, porcentaje_cumplimiento,fija,activo) Values (?,?,?,?,?,?,?)`, [nombre_planta,segmento,zona,estado,porcentaje_cumplimiento,fija,activa])
+    
     console.log("Se resivio la peticon ")
     console.log(nombre_planta, segmento,zona,estado,porcentaje_cumplimiento,fija,activa)
-    res.json("planta insertada")
+    res.json("planta insertada en la base de datos")
     }catch(Exception){
         res.status(500).json({message:'Estas intentando insertar una planta que ya esta registrada'})
     }
@@ -55,7 +55,7 @@ controllerPlanta.actualizar = async(req, res)=>{
          if(infoPlanta!=""){
         await pool.query(`UPDATE unidad_operativa SET nombre_planta=ifNULL(?,nombre_planta), segmento=ifNULL(?,segmento), zona=ifNULL(?,zona), Estado=ifNULL(?,Estado), porcentaje_cumplimiento=ifNULL(?,porcentaje_cumplimiento), fija=ifNULL(?,fija), activo=ifNULL(?,activo) 
         WHERE id_planta=?`,[plantaN,segmento,zona,estado,porcentaje_cumplimiento,fija,activo,idrecu]);
-        res.send("estatus actualizado")
+        res.json({message:"estatus actualizado"})
     }
     } catch(Excepcion){
         res.status(500).json({message:"No se encuenetra el dato que quieres actualizar"})
