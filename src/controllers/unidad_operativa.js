@@ -6,15 +6,22 @@ controllerPlanta.obtenerPlanta = async(req,res)=>{
     id=JSON.stringify(planta);
         const recid=/(\d+)/g;
         const idrecu= id.match(recid);
+    try{    
     const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE id_planta =?',[idrecu])
-    if(infoPlanta!="")
+    
+        if(infoPlanta!="")
     res.send(infoPlanta);
-    else{
-        res.send("no se encuentra")
+        else{
+
+            res.status(500).json({message:"no se encuentra la planta registrada"})
+        }
+    }catch(Excepcion){
+        
     }
+    
 }
 
-controllerPlanta.obtenerplantas=async(req,res)=>{
+controllerPlanta.obtenerPlantas=async(req,res)=>{
     const [plantas]= await pool.query('select * From unidad_operativa')
     res.send(plantas)
 }
@@ -23,16 +30,20 @@ controllerPlanta.obtenerplantas=async(req,res)=>{
 
 controllerPlanta.insertPlanta = async(req,res)=>{
 
-    const {nombre_planta, segmento,zona,estado,porcentaje_cump,fija,activo }=req.body
+    const {nombre_planta, segmento,zona,estado,porcentaje_cumplimiento,fija,activa }=req.body
     try{ 
     const [reg]= await pool.query(`INSERT INTO unidad_Operativa (nombre_planta, segmento, zona, Estado, porcentaje_cumplimiento,fija,activo) Values (?,?,?,?,?,?,?)`, [nombre_planta,segmento,zona,estado,porcentaje_cump,fija,activo])
     res.send("planta registrada en la base de datos")
+    console.log("Se resivio la peticon ")
+    console.log(nombre_planta, segmento,zona,estado,porcentaje_cumplimiento,fija,activa)
+    res.json("planta insertada")
     }catch(Exception){
-        res.send("El id ingresado es el mismo")
+        res.status(500).json({message:'Estas intentando insertar una planta que ya esta registrada'})
     }
 }
 
 controllerPlanta.actualizar = async(req, res)=>{
+    const planElej=({id_planta:req.params.cb})
     const planta = req.body.nombre_planta;
     const {plantaN,segmento,zona, estado,porcentaje_cumplimiento,fija,activo}=req.body
 
@@ -40,22 +51,24 @@ controllerPlanta.actualizar = async(req, res)=>{
     id=JSON.stringify(infoPlanta);
     const recid=/(\d+)/g;
     const idrecu= id.match(recid);
-    if(infoPlanta!=""){
+    try{
+         if(infoPlanta!=""){
         await pool.query(`UPDATE unidad_operativa SET nombre_planta=ifNULL(?,nombre_planta), segmento=ifNULL(?,segmento), zona=ifNULL(?,zona), Estado=ifNULL(?,Estado), porcentaje_cumplimiento=ifNULL(?,porcentaje_cumplimiento), fija=ifNULL(?,fija), activo=ifNULL(?,activo) 
         WHERE id_planta=?`,[plantaN,segmento,zona,estado,porcentaje_cumplimiento,fija,activo,idrecu]);
         res.send("estatus actualizado")
-    }else{
-        res.send("no esta")
     }
+    } catch(Excepcion){
+        res.status(500).json({message:"No se encuenetra el dato que quieres actualizar"})
+
+    }
+   
 }
 
 controllerPlanta.eliminar = async(req, res)=>{
     const planta = ({id_planta:req.params.cb})
         id=JSON.stringify(planta);
             const recid=/(\d+)/g;
-            const idrecu= id.match(recid);
-            
-            
+            const idrecu= id.match(recid);           
         const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE id_planta =?',[idrecu])
         try{
             if(infoPlanta!=""){
@@ -65,7 +78,7 @@ controllerPlanta.eliminar = async(req, res)=>{
                 res.send("no esta")
             }
         }catch(excepcion){
-            res.send("algo anda mal")
+            res.status(500).json("No se encontro la planta que se desea eliminar")
         }
 }    
     module.exports=controllerPlanta

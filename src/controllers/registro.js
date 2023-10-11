@@ -245,7 +245,7 @@ controladorRegistro.actualizarRegistro = async (req, res) => {
       id_registro,
     } = req.body;
     const [rows] = await pool.query(
-      "UPDATE registro set id_requerimiento=?, id_planta=?, fecha_inicio=?, fecha_vencimiento=?, observaciones=?, Estatus=?, url=?, validez_unica=? where id_registro = ?",
+      "UPDATE registro set id_requerimiento=ifNULL(?,id_requerimiento), id_planta=ifNULL(?,id_planta), fecha_inicio=ifNULL(?,fecha_inicio), fecha_vencimiento=ifNULL(?,fecha_vencimiento), observaciones=ifNULL(?,observaciones), Estatus=ifNULL(?,Estatus), url=ifNULL(?,url), validez_unica=ifNULL(?,validez_unica) where id_registro = ?",
       [
         id_requerimiento,
         id_planta,
@@ -274,7 +274,7 @@ controladorRegistro.actualizarEstado = async (req, res) => {
     const id = req.body.ide;
     const dato = req.body.estado;
     const [aviso] = await pool.query(
-      "update registro set Estatus = ? where id_registro=?",
+      "update registro set Estatus = ifNULL(?,Estatus) where id_registro=?",
       [dato, id]
     );
     if (aviso.affectedRows >= 1) {

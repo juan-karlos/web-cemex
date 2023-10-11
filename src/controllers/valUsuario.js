@@ -71,7 +71,7 @@ controladorUsuario.actualizarContrasena=async(req,res)=>{
     let compare =bcryptjs.compareSync(contra,encriptedbd);
     if(compare){
         let passwordHash= await bcryptjs.hash(contranueva,8)
-        await pool.query('UPDATE usuarios SET contrasena=? WHERE correo_electronico=?',[passwordHash,correo]);
+        await pool.query(`UPDATE usuarios SET contrasena=ifNULL(?,contrasena) WHERE correo_electronico=?`,[passwordHash,correo]);
         res.send("se actualizon con exito")
     }else{
 

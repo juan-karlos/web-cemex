@@ -19,7 +19,7 @@ router.get('/fechaVenDia',controladorRegistro.buscarFechaAnioT)//busca las fecha
 router.get('/fechaVenAAMM',controladorRegistro.buscarFechaAAMMT)//busca las fechas de vencimiento por mes y año 
 router.get('/fechaVenAnio',controladorRegistro.buscarFechaAT)//busca todas las fechas de vencimiento de un año
 router.get('/fechaVenR',controladorRegistro.buscarFechRango)// busca un rango de fechas de vencimiento especificado
-router.put('/actualizarEs',controladorRegistro.actualizarEstado)//actualiza el estado del registro
-router.put('/actualizar',controladorRegistro.actualizarRegistro)
+router.patch('/actualizarEs',controladorRegistro.actualizarEstado)//actualiza el estado del registro
+router.patch('/actualizar',controladorRegistro.actualizarRegistro)
 module.exports=router
 

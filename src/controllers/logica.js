@@ -105,6 +105,19 @@ controllersLogica.pesoEnPorcentajeEstatus=async(req,res)=>{
     
 }
 
+//suma el total de plantas por zona y segmento
+controllersLogica.totalPlantas=async(req,res)=>{
+    const filtro = /(\d+)/g;
+    const {zona,segmento}=req.body
+    const [sumPlantas]=await pool.query(`select count( distinct id_planta) from unidad_operativa
+    where zona = ? and 
+    segmento = ? and 
+    activo = 1`,[zona,segmento])
+    suma = JSON.stringify(sumPlantas)
+    const totalPlantas = suma.match(filtro)
+    res.send(`El total de plantas en la zona "${zona}" del segmento "${segmento}" es de: ${totalPlantas} `)
+}
+
 //suma de porcentaje de cumplimiento total
 
 controllersLogica.sumTotalZonaSegmento=async(req,res)=>{
@@ -112,22 +125,13 @@ controllersLogica.sumTotalZonaSegmento=async(req,res)=>{
     const filtro = /(\d+\.\d+)/g;
     const [sumPeso]= await pool.query(`select sum(porcentaje_cumplimiento) from unidad_operativa
     where zona = ? and 
-    segmento = ?`,[zona,segmento])
+    segmento = ? and 
+    activo=1`,[zona,segmento])
     
     pesoCum = JSON.stringify(sumPeso)
     const pesoCumplimiento = pesoCum.match(filtro)
     res.send(`La suma total de cumplimiento es del "${pesoCumplimiento}" %`)
 }
 
-//nos sume el total de plantas por zona y por segmento
-controllersLogica.totalPlantas=async(req,res)=>{
-    const filtro = /(\d+)/g;
-    const {zona,segmento}=req.body
-    const [sumPlantas]=await pool.query(`select count( distinct id_planta) from unidad_operativa
-    where zona = ? and 
-    segmento = ?`,[zona,segmento])
-    suma = JSON.stringify(sumPlantas)
-    const totalPlantas = suma.match(filtro)
-    res.send(`El total de plantas en la zona "${zona}" del segmento "${segmento}" es de: ${totalPlantas} `)
-}
+
 module.exports=controllersLogica;
