@@ -1,3 +1,4 @@
+const { join } = require('path');
 const pool = require('../database')
 const controllerPlanta ={};
 
@@ -44,28 +45,37 @@ controllerPlanta.insertPlanta = async(req,res)=>{
 
 controllerPlanta.actualizar = async(req, res)=>{
     const planElej=({id_planta:req.params.cb})
-    const planta = req.body.nombre_planta;
-    const {plantaN,segmento,zona, estado,porcentaje_cumplimiento,fija,activo}=req.body
+    const {nombre_planta,segmento,zona, estado,porcentaje_cumplimiento,fija,activo}=req.body
 
-    const [infoPlanta]= await pool.query(`Select id_planta FROM unidad_operativa WHERE nombre_planta =?`,[planta]);
-    id=JSON.stringify(infoPlanta);
+    id=JSON.stringify(planElej);
     const recid=/(\d+)/g;
-    const idrecu= id.match(recid);
+    let idrecu= id.match(recid);
+    idrecu=idrecu.join();
+    let ids=parseInt(idrecu,10);
     try{
+         const [infoPlanta]= await pool.query(`Select id_planta FROM unidad_operativa WHERE id_planta =?`,[ids]);
          if(infoPlanta!=""){
+            // console.log(ids)
         await pool.query(`UPDATE unidad_operativa SET nombre_planta=ifNULL(?,nombre_planta), segmento=ifNULL(?,segmento), zona=ifNULL(?,zona), Estado=ifNULL(?,Estado), porcentaje_cumplimiento=ifNULL(?,porcentaje_cumplimiento), fija=ifNULL(?,fija), activo=ifNULL(?,activo) 
-        WHERE id_planta=?`,[plantaN,segmento,zona,estado,porcentaje_cumplimiento,fija,activo,idrecu]);
+        WHERE id_planta=?`,[nombre_planta,segmento,zona,estado,porcentaje_cumplimiento,fija,activo,ids]);
         res.json({message:"estatus actualizado"})
+        console.log("se actualizo correctamente")
+    }
+    else{
+        res.status(404).json({message:"No se encuentra el registro"})
+        console.log("no se encontro la planta")
     }
     } catch(Excepcion){
-        res.status(500).json({message:"No se encuenetra el dato que quieres actualizar"})
-
+        res.status(500).json({message:"error interno del sistema"})
+        console.log("error interno con el sistema",excepcion);
     }
    
 }
 
 controllerPlanta.eliminar = async(req, res)=>{
+    
     const planta = ({id_planta:req.params.cb})
+    
         id=JSON.stringify(planta);
             const recid=/(\d+)/g;
             const idrecu= id.match(recid);           
