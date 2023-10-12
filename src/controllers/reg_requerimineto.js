@@ -28,7 +28,7 @@ controladorRequerimiento.insertarRequerimiento=async(req,res)=>{
 controladorRequerimiento.obtenerUnRequerimiento=async(req,res)=>{  
     try{
         const nombre = req.body.nom_req
-        const [id_req]= await pool.query('Select *from requerimiento where nom_req = ?',[nombre])
+        const [id_req]= await pool.query('Select * from requerimiento WHERE nombre_requerimiento = ?',[nombre])
         if(id_req.length >= 1){
             res.send(id_req)
         }else{
