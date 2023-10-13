@@ -10,11 +10,27 @@ const controladorRegistro = {};
 //controlador que trae todos los registros
 controladorRegistro.obtenerRegistro = async (req, res) => {
   try {
-    const [registros] = await pool.query("select *from Registro");
+    const [registros] = await pool.query(`SELECT nombre_requerimiento,nombre_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+    FROM registro,unidad_operativa,requerimiento
+    where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento and validez_unica= false `);
     res.send(registros);
   } catch (Excepcion) {
-    res.send("No se pudo conectar a la base de datos");
+    console.log(Excepcion)
+    res.status(500).json({message:"hay un error en el systema intente mas tarde"})
   }
+  /*
+  nombre_requerimiento,
+  nombre_planta,
+  fecha_inicio,
+  fecha_vencimiento,
+  observaciones,
+  url,
+  validez_unica
+
+  
+  
+  */ 
+
 };
 
 // Controlador para cargar el archivo PDF y agregar un nuevo registro
@@ -55,10 +71,10 @@ controladorRegistro.insertarPdf = async (req, res) => {
     }
   });
   // Construye la URL del PDF
-  const pdfUrls = `http://localhost:2300/recursos/${nomarchi}`;
+  const pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
 
   try{
-  await pool.query('INSERT INTO Registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
+  // await pool.query('INSERT INTO Registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
   // console.log(pdfUrls)
   res.json({message:'{"Estatus":"Producto insertado"}'})
   }catch(exepcion){
