@@ -10,7 +10,7 @@ const controladorRegistro = {};
 //controlador que trae todos los registros
 controladorRegistro.obtenerRegistro = async (req, res) => {
   try {
-    const [registros] = await pool.query(`SELECT nombre_requerimiento,nombre_planta,fecha_inicio,fecha_vencimiento,observaciones,url,validez_unica
+    const [registros] = await pool.query(`SELECT nombre_requerimiento,nombre_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
     FROM registro,unidad_operativa,requerimiento
     where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento and validez_unica= false `);
     res.send(registros);
