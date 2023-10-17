@@ -7,10 +7,10 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
     const {segmento,zona,cumplimiento,fecha}=req.body
     try{
         await pool.query('INSERT INTO historial (segmento, zona, cumplimiento, fecha)VALUES (?,?,?,?)'[segmento,zona,cumplimiento,fecha]);
-    res.send ("estatus guardado");
+    res.json("estatus guardado");
 
     }catch(excepcion){
-        res.send("hubo un herror en la coneccion")
+        res.status(500).json("hubo un herror en la coneccion")
     }
 }
     controllerHistorial.buseg =async (req,res)=>{
@@ -18,13 +18,13 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
         try{
             const [segmentos]= await pool.query('SELECT * FROM historia WHERE segmento =?' [segmento]);
             if(segmento !=""){
-                res.send(segmento);
+                res.json(segmento);
             }else{
-                res.send("no se encontraron datos");
+                res.json("no se encontraron datos");
             }
         }
         catch(excepcion){
-            res.send("hubo un error")
+            res.status(500).json("hubo un error")
         }
     }
 
@@ -33,13 +33,13 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
         try{
             const [zonas] =await pool.query('SELECT * FROM historial WHERE =?',[zona]);
         if(zona!=""){
-            res.send(zonas);
+            res.json(zonas);
         }else{
-            res.send("No se encontro ningun segemnto");
+            res.json("No se encontro ningun segemnto");
         }
         }
         catch(excepcion){
-            res.send("erro")
+            res.status(500).json("erro")
         }
     
     }
@@ -49,13 +49,13 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
         try{
             const [cumplimientos]= await pool.query('SELECT * FROM historial WHERE =?',[cumplimiento]);
         if(cumplimientos != ""){
-            res.send(cumplimientos)
+            res.json(cumplimientos)
         }else{
-            res.send("no se encontraron datos")
+            res.json("no se encontraron datos")
             }      
         }
         catch(excepcion){
-            res.send("error")
+            res.status(500).json("error")
             }
     }
 
@@ -65,13 +65,13 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
             const fe = fecha+"%"
             const [fechas]=await pool.query('SELEC * FROM hitorial WHERE =?  ',[fe])
             if(fechas != ""){
-                res.send(fechas)
+                res.json(fechas)
             }else{
-                res.send("no se encontro ningun reguistro")
+                res.json("no se encontro ningun reguistro")
             }
         }
         catch(excepcion){
-            res.send("error")
+            res.status(500).json("error")
         }
     }
 
