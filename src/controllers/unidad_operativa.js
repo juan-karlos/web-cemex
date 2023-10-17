@@ -14,7 +14,8 @@ controllerPlanta.obtenerPlanta = async(req,res)=>{
     res.send(infoPlanta);
         else{
 
-            res.status(500).json({message:"no se encuentra la planta registrada"})
+            res.status(500).json({message
+                :"no se encuentra la planta registrada"})
         }
     }catch(Excepcion){
         res.status(500).json({message:"hay un error con el servidor"})
@@ -23,8 +24,26 @@ controllerPlanta.obtenerPlanta = async(req,res)=>{
 }
 
 controllerPlanta.obtenerPlantas=async(req,res)=>{
-    const [plantas]= await pool.query('select * From unidad_operativa')
-    res.send(plantas)
+    try{
+        const [plantas]= await pool.query('select * From unidad_operativa')
+    res.json(plantas)
+    }catch{
+        res.status(500).json("no hay coneccion en la base de datos")
+    }
+    
+}
+controllerPlanta.activasFijas=async(req,res)=>{
+    try{
+        const activo=req.body.activa;
+        const fija= req.body.fija;
+
+        const [plantas] = await pool.query('Select * FROM unidad_operativa WHERE fija=? and activo =?',[fija,activo])
+        res.json(plantas)
+    }catch(exepcion){
+        console.log(exepcion)
+        res.status(500).json("no hay coneccion en la base de datos")
+        
+    }
 }
 
 
@@ -33,7 +52,7 @@ controllerPlanta.insertPlanta = async(req,res)=>{
 
     const {nombre_planta, segmento,zona,estado,porcentaje_cumplimiento,fija,activa }=req.body
     try{ 
-    const [reg]= await pool.query(`INSERT INTO unidad_Operativa (nombre_planta, segmento, zona, Estado, porcentaje_cumplimiento,fija,activo) Values (?,?,?,?,?,?,?)`, [nombre_planta,segmento,zona,estado,porcentaje_cumplimiento,fija,activa])
+    const [reg]= await pool.query(`INSERT INTO unidad_operativa (nombre_planta, segmento, zona, Estado, porcentaje_cumplimiento,fija,activo) Values (?,?,?,?,?,?,?)`, [nombre_planta,segmento,zona,estado,porcentaje_cumplimiento,fija,activa])
     
     console.log("Se resivio la peticon ")
     console.log(nombre_planta, segmento,zona,estado,porcentaje_cumplimiento,fija,activa)
@@ -63,7 +82,7 @@ controllerPlanta.actualizar = async(req, res)=>{
     }
     else{
         res.status(404).json({message:"No se encuentra el registro"})
-        console.log("no se encontro la planta")
+        console.log("no se encontro la planta que intentas actualizar")
     }
     } catch(Excepcion){
         res.status(500).json({message:"error interno del sistema"})
