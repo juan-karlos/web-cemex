@@ -14,7 +14,7 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
     FROM registro,unidad_operativa,requerimiento
     where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento
      `);
-    res.json("se registro correctamente");
+    res.status(200).json("se registro correctamente");
   } catch (Excepcion) {
     console.log(Excepcion)
     res.status(500).json({message:"hay un error en el systema intente mas tarde"})
@@ -27,9 +27,6 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
   observaciones,
   url,
   validez_unica
-
-  
-  
   */ 
 
 };
@@ -75,9 +72,9 @@ controladorRegistro.insertarPdf = async (req, res) => {
   const pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
 
   try{
-  await pool.query('INSERT INTO Registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
+  await pool.query('INSERT INTO registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
   // console.log(pdfUrls)
-  res.json({message:'{"Estatus":"Producto insertado"}'})
+  res.status(200).json({message:'{"Estatus":"Producto insertado"}'})
   }catch(exepcion){
     console.log(exepcion)
     res.status(500).json({message:"{no se pudo insertar el producto}"})
@@ -111,18 +108,18 @@ controladorRegistro.buscarFechaDia = async (req, res) => {
     const fech = req.body.fechaIni;
     const fe = fech + "%";
     const [fechas] = await pool.query(
-      "select *from registro where fecha_inicio like ?",
+      "select * from registro where fecha_inicio like ?",
       [fe]
     );
     if (fechas != "") {
-      res.send(fechas);
+      res.json(fechas);
     } else {
-      res.send(
+      res.json(
         "Formato de fecha incorrecto o ingresaste un caracter no valido"
       );
     }
   } catch (Exception) {
-    res.send("No se pudo conectar a la base de datos");
+    res.status(500).json("No se pudo conectar a la base de datos");
   }
 };
 
@@ -132,16 +129,16 @@ controladorRegistro.buscarFechaAAMM = async (req, res) => {
     const ani = req.body.anio;
     const me = req.body.mes;
     const [fechaIni] = await pool.query(
-      "select *from registro where month(fecha_inicio)=? and year(fecha_inicio) = ?",
+      "select * from registro where month(fecha_inicio)=? and year(fecha_inicio) = ?",
       [me, ani]
     );
     if (fechaIni != "") {
-      res.send(fechaIni);
+      res.json(fechaIni);
     } else {
-      res.send("Verifica que el año y mes esten bien escritos");
+      res.json("Verifica que el año y mes esten bien escritos");
     }
   } catch (Excepcion) {
-    res.send("No se pudo conectar a la base de datos");
+    res.status(500).json("No se pudo conectar a la base de datos");
   }
 };
 
@@ -150,16 +147,16 @@ controladorRegistro.buscarFechaAnio = async (req, res) => {
   try {
     const anio = req.body.ani;
     const [fe] = await pool.query(
-      "select *from registro where year(fecha_inicio) = ?",
+      "select * from registro where year(fecha_inicio) = ?",
       [anio]
     );
     if (fe.length >= 1) {
-      res.send(fe);
+      res.json(fe);
     } else {
-      res.send("No se encontro ningun dato que coinsida");
+      res.join("No se encontro ningun dato que coinsida");
     }
   } catch (Excepcion) {
-    res.send("No se pudo cpnectar a la base de datos");
+    res.status(500).join("No se pudo conectar a la base de datos");
   }
 };
 
@@ -170,19 +167,19 @@ controladorRegistro.buscarFechaAnioT = async (req, res) => {
     if (fech != "") {
       const fecha = fech + "%";
       const [fechas] = await pool.query(
-        "select *from registro where fecha_vencimiento like ?",
+        "select * from registro where fecha_vencimiento like ?",
         [fecha]
       );
       if (fechas.length >= 1) {
-        res.send(res.send(fechas));
+        res.json(res.json(fechas));
       } else {
-        res.send("No se encontro ningun registro con la fecha especificada");
+        res.join("No se encontro ningun registro con la fecha especificada");
       }
     } else {
-      res.send("formato de fechas invalido");
+      res.join("formato de fechas invalido");
     }
   } catch (Excepcion) {
-    res.send("No se pudo conectar a la base de datos");
+    res.status(500).json({message:"No se pudo conectar a la base de datos"});
   }
 };
 
@@ -192,7 +189,7 @@ controladorRegistro.buscarFechaAAMMT = async (req, res) => {
     const ani = req.body.anio;
     const me = req.body.mes;
     const [fechaVen] = await pool.query(
-      "select *from registro where month(fecha_vencimiento)=? and year(fecha_vencimiento) = ?;",
+      "select * from registro where month(fecha_vencimiento)=? and year(fecha_vencimiento) = ?;",
       [me, ani]
     );
     if (fechaVen.length >= 1) {
@@ -201,7 +198,7 @@ controladorRegistro.buscarFechaAAMMT = async (req, res) => {
       res.json("No se encontro un registro con este año y mes especificado");
     }
   } catch (Excepcion) {
-    res.json("No se pudo conectar a la base de datos");
+    res.status(200).json({message:"No se pudo conectar a la base de datos"});
   }
 };
 
@@ -210,7 +207,7 @@ controladorRegistro.buscarFechaAT = async (req, res) => {
   try {
     const ani = req.body.anio;
     const [fechaVen] = await pool.query(
-      "select *from registro where year(fecha_vencimiento) = ?",
+      "select * from registro where year(fecha_vencimiento) = ?",
       [ani]
     );
     if (fechaVen.length >= 1) {
@@ -219,7 +216,7 @@ controladorRegistro.buscarFechaAT = async (req, res) => {
       res.json("no se encontraron registros de este año");
     }
   } catch (Excepcion) {
-    res.json("No se pudo conectar a la base de datos");
+    res.status(500).json({message:"No se pudo conectar a la base de datos"});
   }
 };
 
@@ -231,19 +228,19 @@ controladorRegistro.buscarFechRango = async (req, res) => {
       const feI = fechIni + "%";
       const feF = fechFin + "%";
       const [rang] = await pool.query(
-        "select *from registro where fecha_vencimiento >= ? and fecha_vencimiento<=?",
+        "select * from registro where fecha_vencimiento >= ? and fecha_vencimiento<=?",
         [feI, feF]
       );
       if (rang.length >= 1) {
-        res.send(res.send(rang));
+        res.json(res.json(rang));
       } else {
-        res.send("No se encontraron registros en este rango insertado");
+        res.json("No se encontraron registros en este rango insertado");
       }
     } else {
-      res.send("formato de fecha invalida");
+      res.json("formato de fecha invalida");
     }
   } catch (Excepcion) {
-    res.send("No se pudo conectar a la base de datos");
+    res.status(500).json({message:"No se pudo conectar a la base de datos"});
   }
 };
 
@@ -291,7 +288,7 @@ controladorRegistro.actualizarEstado = async (req, res) => {
     const id = req.body.ide;
     const dato = req.body.estado;
     const [aviso] = await pool.query(
-      "update registro set Estatus = ifNULL(?,Estatus) where id_registro=?",
+      "update registro set estatus = ifNULL(?,estatus) where id_registro=?",
       [dato, id]
     );
     if (aviso.affectedRows >= 1) {
@@ -300,9 +297,9 @@ controladorRegistro.actualizarEstado = async (req, res) => {
       res.json("No se pudo actualizar el estado");
     }
   } catch (Exception) {
-    res.json(
+    res.status(500).json({message:
       "verifica no haber metido un caracter especial o tener conexion a la base de datos"
-    );
+  });
   }
 };
 
