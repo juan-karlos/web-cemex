@@ -14,7 +14,7 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
     FROM registro,unidad_operativa,requerimiento
     where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento
      `);
-    res.status(200).json("se registro correctamente");
+    res.json(registros);
   } catch (Excepcion) {
     console.log(Excepcion)
     res.status(500).json({message:"hay un error en el systema intente mas tarde"})
@@ -33,34 +33,76 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
 
 // Controlador para cargar el archivo PDF y agregar un nuevo registro
 controladorRegistro.insertarPdf = async (req, res) => {
+
+const sqlQuery=
+`SELECT DISTINCT registro.id_registro, requerimiento.id_requerimiento, unidad_operativa.id_planta
+FROM registro
+INNER JOIN requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
+INNER JOIN unidad_operativa ON unidad_operativa.id_planta = registro.id_planta
+WHERE requerimiento.nombre_requerimiento = ? AND unidad_operativa.nombre_planta = ?;`
+
+const otroQuery=
+`
+select id_planta 
+from unidad_operativa
+where nombre_planta = ?;
+`
+const query2=
+`select id_requerimiento 
+from requerimiento
+where nombre_requerimiento =;`
+
   // Verifica si se envió un archivo PDF
   console.log("se resivio la peticion")
-  if (!req.files || !req.files.pdfFile) {
-    return res.status(400).json({ message: "Ningún archivo PDF seleccionado" });
-  }
-  // Obtén los datos del cuerpo de la solicitud
-  const {
+
+  let {
+    nombre_requerimineto,
+    nombre_planta,
     fechaAcomodada,
     fechaAcomodada2,
     estatus,
     observaciones,
   } = req.body;
 
+  if(fechaAcomodada && fechaAcomodada2== 'Fecha inválida'){
+    fechaAcomodada=null,
+    fechaAcomodada2=null
+  } 
+  
 
-  const id_requerimiento= parseInt(req.body.id_requerimiento,10);
-  const id_planta= parseInt(req.body.id_planta,10);
+  
+  if (!req.files || !req.files.pdfFile) {
+    return res.status(400).json({ message: "Ningún archivo PDF seleccionado" });
+  }
+  // Obtén los datos del cuerpo de la solicitud
+  //  const id_requerimiento= parseInt(req.body.id_requerimiento,10);
+  // const id_planta= parseInt(req.body.id_planta,10);
+
   const val=req.body.validez_unica
   const validez_unica=val==="true"? true:false;
-
-
   const pdfFile = req.files.pdfFile;
   const nomarchi = pdfFile.name;
 
 
+ const [existe] =await pool.query(sqlQuery,[nombre_requerimineto,nombre_planta])
+  // const [existe]= await pool.query('SELECT * FROM registro WHERE id_requerimiento=? and id_planta=?',[id_requerimiento,id_planta])
+
+  if(existe ==""){
+    
+    
   if (!fs.existsSync("./src/recursos")) {
     fs.mkdirSync("./src/recursos");
   }
 
+
+  // Construye la URL del PDF
+  const pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
+
+  try{
+    
+
+  await pool.query('INSERT INTO registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
+  // console.log(pdfUrls)
   pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), (err) => {
     if (err) {
       console.log("truena aqui");
@@ -68,16 +110,10 @@ controladorRegistro.insertarPdf = async (req, res) => {
       return res.status(500).json({ message: "{Error al cargar el archivo}" });
     }
   });
-  // Construye la URL del PDF
-  const pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
 
-  try{
-  await pool.query('INSERT INTO registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
-  // console.log(pdfUrls)
   res.status(200).json({message:'{"Estatus":"Producto insertado"}'})
   }catch(exepcion){
     console.log(exepcion)
-    res.status(500).json({message:"{no se pudo insertar el producto}"})
   }
 
   console.log(
@@ -98,6 +134,10 @@ controladorRegistro.insertarPdf = async (req, res) => {
     "urls",
     pdfUrls
   );
+  }else{
+    res.status(500).json({message:"ya existe un registro con esos datos"})
+  }
+
 };
 
 
