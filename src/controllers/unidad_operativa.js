@@ -23,21 +23,33 @@ controllerPlanta.obtenerPlanta = async(req,res)=>{
     
 }
 
+
 controllerPlanta.obtenerPlantas=async(req,res)=>{
     try{
-        const [plantas]= await pool.query('select * From unidad_operativa')
-    res.json(plantas)
-    }catch{
+        const [plantas] = await pool.query('SELECT * from unidad_operativa');
+        res.json(plantas)
+    }catch(exepcion){
+        console.log(exepcion)
         res.status(500).json("no hay coneccion en la base de datos")
     }
     
 }
 controllerPlanta.activasFijas=async(req,res)=>{
+    const fijas = req.body.fija
     try{
-        const activo=req.body.activa;
-        const fija= req.body.fija;
+        const [plantas] = await pool.query('SELECT * from unidad_operativa where activo= true and fija =?',[fijas])
+        res.json(plantas)
+    }catch(exepcion){
+        console.log(exepcion)
+        res.status(500).json("no hay coneccion en la base de datos")
+    }
 
-        const [plantas] = await pool.query('Select * FROM unidad_operativa WHERE fija=? and activo =?',[fija,activo])
+}
+
+controllerPlanta.inactivasFijas=async(req,res)=>{
+    const fijas = req.body.fija
+    try{
+        const [plantas] = await pool.query('Select * FROM unidad_operativa WHERE activo = false and fija =?',[fijas])
         res.json(plantas)
     }catch(exepcion){
         console.log(exepcion)
