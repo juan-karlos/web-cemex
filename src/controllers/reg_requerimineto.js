@@ -18,7 +18,7 @@ controladorRequerimiento.insertarRequerimiento=async(req,res)=>{
         const [regis]= await pool.query('INSERT INTO requerimiento (nombre_requerimiento,peso,impacto,siglas) VALUES (?,?,?,?)',[nom_req,peso,impacto,siglas])
         res.json({"status":"cliente insertado"})
     }catch(Excepcion){
-        res.status(500).json({message:"hay un error"})
+        res.status(500).json({message:"El nombre del requerimineto ya esta insertado"})
     }
 }
 
