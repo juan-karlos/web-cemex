@@ -34,34 +34,27 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
 // Controlador para cargar el archivo PDF y agregar un nuevo registro
 controladorRegistro.insertarPdf = async (req, res) => {
 
-const sqlQuery=
-`SELECT DISTINCT registro.id_registro, requerimiento.id_requerimiento, unidad_operativa.id_planta
-FROM registro
-INNER JOIN requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
-INNER JOIN unidad_operativa ON unidad_operativa.id_planta = registro.id_planta
-WHERE requerimiento.nombre_requerimiento = ? AND unidad_operativa.nombre_planta = ?;`
 
-const otroQuery=
-`
-select id_planta 
-from unidad_operativa
-where nombre_planta = ?;
-`
-const query2=
-`select id_requerimiento 
-from requerimiento
-where nombre_requerimiento =;`
+const sqlQuery=
+`INSERT INTO registro (id_planta, id_requerimiento, fecha_inicio, fecha_vencimiento, observaciones, estatus, url, validez_unica)
+SELECT uo.id_planta, req.id_requerimiento, ?, ?, ?, ?, ?, ?
+FROM unidad_operativa AS uo
+JOIN requerimiento AS req ON uo.nombre_planta = ? AND req.nombre_requerimiento = ?
+WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerimiento FROM registro);`
+
+
 
   // Verifica si se envió un archivo PDF
   console.log("se resivio la peticion")
 
   let {
-    nombre_requerimineto,
+    nombre_requerimiento,
     nombre_planta,
     fechaAcomodada,
     fechaAcomodada2,
     estatus,
     observaciones,
+    pdfUrls
   } = req.body;
 
   if(fechaAcomodada && fechaAcomodada2== 'Fecha inválida'){
@@ -69,78 +62,61 @@ where nombre_requerimiento =;`
     fechaAcomodada2=null
   } 
   
-
-  
   if (!req.files || !req.files.pdfFile) {
-    return res.status(400).json({ message: "Ningún archivo PDF seleccionado" });
+    pdfUrls=null
+    console.log(pdfUrls)
+  }else{
+
+      const pdfFile = req.files.pdfFile;
+      const nomarchi = pdfFile.name;
+       pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
+      console.log(pdfUrls)
+
+  if (!fs.existsSync("./src/recursos")) {
+    fs.mkdirSync("./src/recursos");
+   }
+  
+      pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), (err) => {
+        if (err) {
+          console.log("truena aqui");
+          console.log(err);
+          return res.status(500).json({ message: "{Error al cargar el archivo}" });
+        }
+      });
+  
   }
-  // Obtén los datos del cuerpo de la solicitud
-  //  const id_requerimiento= parseInt(req.body.id_requerimiento,10);
-  // const id_planta= parseInt(req.body.id_planta,10);
 
   const val=req.body.validez_unica
   const validez_unica=val==="true"? true:false;
-  const pdfFile = req.files.pdfFile;
-  const nomarchi = pdfFile.name;
 
 
- const [existe] =await pool.query(sqlQuery,[nombre_requerimineto,nombre_planta])
-  // const [existe]= await pool.query('SELECT * FROM registro WHERE id_requerimiento=? and id_planta=?',[id_requerimiento,id_planta])
-
-  if(existe ==""){
-    
-    
-  if (!fs.existsSync("./src/recursos")) {
-    fs.mkdirSync("./src/recursos");
-  }
-
-
+   // if(existe ==""){
   // Construye la URL del PDF
-  const pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
+  // const pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
 
   try{
     
-
-  await pool.query('INSERT INTO registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
+  // await pool.query('INSERT INTO registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
   // console.log(pdfUrls)
-  pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), (err) => {
-    if (err) {
-      console.log("truena aqui");
-      console.log(err);
-      return res.status(500).json({ message: "{Error al cargar el archivo}" });
-    }
-  });
-
-  res.status(200).json({message:'{"Estatus":"Producto insertado"}'})
+      const [afectaciones] =await pool.execute(sqlQuery,[fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica,nombre_planta,nombre_requerimiento])
+      if(afectaciones.affectedRows>0){
+        res.status(200).json({message:'{"Estatus":"Producto insertado"}'})
+        console.log(nombre_planta,nombre_requerimiento,fechaAcomodada,fechaAcomodada2,estatus,observaciones,pdfUrls,validez_unica)
+      }else{
+        res.status(404).json({message:"verifica que la planta este registrada o ya existe la relacion entre permiso-planta "})
+      }
+      
   }catch(exepcion){
     console.log(exepcion)
+  res.status(500).json({message:"error interno"})
   }
 
-  console.log(
-    "Fecha de inicio",
-    fechaAcomodada,
-    "Fecha de vencimiento",
-    fechaAcomodada2,
-    "validez unica",
-    validez_unica,
-    "Estatus",
-    estatus,
-    "Observaciones",
-    observaciones,
-    "Id requerimiento",
-    id_requerimiento,
-    "id planta",
-    id_planta,
-    "urls",
-    pdfUrls
-  );
-  }else{
-    res.status(500).json({message:"ya existe un registro con esos datos"})
-  }
+
+  // }else{
+  //   res.status(500).json({message:"ya existe un registro con esos datos"})
+  // }
 
 };
-
-
 
 //controlador para buscar por fecha especifica de inicio
 controladorRegistro.buscarFechaDia = async (req, res) => {
