@@ -2,6 +2,9 @@ const { join } = require('path');
 const pool = require('../database')
 const controllerPlanta ={};
 
+
+
+
 controllerPlanta.obtenerPlanta = async(req,res)=>{
     const planta = ({id_planta:req.params.cb})
     id=JSON.stringify(planta);
@@ -34,10 +37,98 @@ controllerPlanta.obtenerPlantas=async(req,res)=>{
     }
     
 }
+
+
+controllerPlanta.sur=async(req,res)=>{
+    const centroquery=`SELECT
+    SUM(CASE WHEN segmento = 'Cadena de suministro' THEN 1 ELSE 0 END) AS 'cadena_suministro',
+    SUM(CASE WHEN segmento = 'Industriales' THEN 1 ELSE 0 END) AS 'industriales',
+    SUM(CASE WHEN segmento = 'Inmuebles no operativos' THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
+    SUM(CASE WHEN segmento = 'Operaciones' THEN 1 ELSE 0 END) AS 'operaciones',
+    SUM(CASE WHEN segmento = 'Transporte' THEN 1 ELSE 0 END) AS 'transporte',
+    SUM(CASE WHEN segmento = 'Promexma' THEN 1 ELSE 0 END) AS 'Promexma',
+    SUM(CASE WHEN segmento = 'Constructores' THEN 1 ELSE 0 END) AS 'constructores'
+  FROM unidad_operativa where zona ='Sureste';`
+
+    try{
+        const [sur] =await pool.execute(centroquery)
+        res.json(sur)
+        console.log("peticion procesada")
+    }catch(excepcion){
+        res.status(500).json({message:"error interno de servidor"})
+    }
+
+}
+
+controllerPlanta.centro=async(req,res)=>{
+    const centroquery=`SELECT
+    SUM(CASE WHEN segmento = 'Cadena de suministro' THEN 1 ELSE 0 END) AS 'cadena_suministro',
+    SUM(CASE WHEN segmento = 'Industriales' THEN 1 ELSE 0 END) AS 'industriales',
+    SUM(CASE WHEN segmento = 'Inmuebles no operativos' THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
+    SUM(CASE WHEN segmento = 'Operaciones' THEN 1 ELSE 0 END) AS 'operaciones',
+    SUM(CASE WHEN segmento = 'Transporte' THEN 1 ELSE 0 END) AS 'transporte',
+    SUM(CASE WHEN segmento = 'Promexma' THEN 1 ELSE 0 END) AS 'Promexma',
+    SUM(CASE WHEN segmento = 'Constructores' THEN 1 ELSE 0 END) AS 'constructores'
+  FROM unidad_operativa where zona ='Centro';`
+
+    try{
+        const [centro] =await pool.execute(centroquery)
+        res.json(centro)
+        console.log("peticion procesada")
+    }catch(excepcion){
+        res.status(500).json({message:"error interno de servidor"})
+    }
+
+}
+
+
+controllerPlanta.pasifico=async(req,res)=>{
+
+    const query=`SELECT
+    SUM(CASE WHEN segmento = 'Cadena de suministro' THEN 1 ELSE 0 END) AS 'cadena_suministro',
+    SUM(CASE WHEN segmento = 'Industriales' THEN 1 ELSE 0 END) AS 'industriales',
+    SUM(CASE WHEN segmento = 'Inmuebles no operativos' THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
+    SUM(CASE WHEN segmento = 'Operaciones' THEN 1 ELSE 0 END) AS 'operaciones',
+    SUM(CASE WHEN segmento = 'Transporte' THEN 1 ELSE 0 END) AS 'transporte',
+    SUM(CASE WHEN segmento = 'Promexma' THEN 1 ELSE 0 END) AS 'Promexma',
+    SUM(CASE WHEN segmento = 'Constructores' THEN 1 ELSE 0 END) AS 'constructores'
+  FROM unidad_operativa where zona ='Pacífico';`
+  
+ 
+
+  try{
+    const [pasifico]=await pool.execute(query)
+    res.json(pasifico)
+  }catch(exepcion){
+    console.log(exepcion)
+    res.status(500).json({message:"error interno"})
+  }
+}
+controllerPlanta.norte=async(req,res)=>{
+    const query=`SELECT
+    SUM(CASE WHEN segmento = 'Cadena de suministro' THEN 1 ELSE 0 END) AS 'cadena_suministro',
+    SUM(CASE WHEN segmento = 'Industriales' THEN 1 ELSE 0 END) AS 'industriales',
+    SUM(CASE WHEN segmento = 'Inmuebles no operativos' THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
+    SUM(CASE WHEN segmento = 'Operaciones' THEN 1 ELSE 0 END) AS 'operaciones',
+    SUM(CASE WHEN segmento = 'Transporte' THEN 1 ELSE 0 END) AS 'transporte',
+    SUM(CASE WHEN segmento = 'Promexma' THEN 1 ELSE 0 END) AS 'Promexma',
+    SUM(CASE WHEN segmento = 'Constructores' THEN 1 ELSE 0 END) AS 'constructores'
+    FROM unidad_operativa where zona ='Noreste' ;`
+    try{
+        const [pasifico]=await pool.execute(query)
+        res.json(pasifico)
+    }catch(exepcion){
+        console.log(exepcion)
+        res.status(500).json({message:"error interno"})
+    }
+
+}
+
+
 controllerPlanta.activasFijas=async(req,res)=>{
     const fijas = req.body.fija
     try{
-        const [plantas] = await pool.query('SELECT * from unidad_operativa where activo= true and fija =?',[fijas])
+        const plantas = await pool.query('SELECT * from unidad_operativa where activo= true and fija =?',[fijas])
         res.json(plantas)
     }catch(exepcion){
         console.log(exepcion)
@@ -62,7 +153,14 @@ controllerPlanta.inactivasFijas=async(req,res)=>{
 
 controllerPlanta.insertPlanta = async(req,res)=>{
 
-    const {nombre_planta, segmento,zona,estado,porcentaje_cumplimiento,fija,activa }=req.body
+    let {nombre_planta, segmento,zona,estado,porcentaje_cumplimiento,fija,activa }=req.body
+
+    if(activa==null){
+        activa = false   
+    }
+    if(fija==null){
+        fija=false
+    }
     try{ 
     const [reg]= await pool.query(`INSERT INTO unidad_operativa (nombre_planta, segmento, zona, Estado, porcentaje_cumplimiento,fija,activo) Values (?,?,?,?,?,?,?)`, [nombre_planta,segmento,zona,estado,porcentaje_cumplimiento,fija,activa])
     
@@ -70,9 +168,12 @@ controllerPlanta.insertPlanta = async(req,res)=>{
     console.log(nombre_planta, segmento,zona,estado,porcentaje_cumplimiento,fija,activa)
     res.json("planta insertada en la base de datos")
     }catch(Exception){
+        console.log(Exception)
         res.status(500).json({message:'Estas intentando insertar una planta que ya esta registrada'})
+
     }
 }
+
 
 controllerPlanta.actualizar = async(req, res)=>{
     const planElej=({id_planta:req.params.cb})
