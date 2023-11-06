@@ -160,7 +160,7 @@ app.use('/api/regi',require("./routes/registro.routes"));                 --> Ru
 
             }
     ---> router.get('/registros',controladorRegistro.obtenerRegistro)     --> Muestra todos los registros
-        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/registros
+        INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                      --> http://localhost:3200/api/regi/
             PARAMETROS DESCONOCIDO
             {
 

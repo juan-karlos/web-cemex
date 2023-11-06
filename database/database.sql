@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS cemex;
 
 use cemex;
 
-create table Historial(
+create table historial(
 id_historial int not null auto_increment,
 segmento nvarchar (100),
 zona nvarchar(50),
@@ -11,7 +11,7 @@ fecha datetime,
 primary key (id_historial)
 );
 
-Create Table Usuarios
+Create Table usuarios
 (
 id_usuario INT NOT NULL AUTO_INCREMENT,
 correo_electronico nvarchar (50) not null,
@@ -22,7 +22,7 @@ primary key (id_usuario),
 UNIQUE(correo_electronico) 
 );
 
-Create table Unidad_Operativa
+Create table unidad_Operativa
 (
 id_planta INT NOT NULL AUTO_INCREMENT,
 nombre_planta nvarchar(100),
@@ -31,11 +31,12 @@ zona nvarchar(100),
 Estado nvarchar(100),
 porcentaje_cumplimiento nvarchar (150),
 fija boolean,
+activo boolean,
 primary key (id_planta),
 UNIQUE(Nombre_planta)
 );
 
-create table Requerimiento
+create table requerimiento
 (
 id_requerimiento int not null auto_increment,
 nombre_requerimiento nvarchar(250),
@@ -48,7 +49,7 @@ unique (nombre_requerimiento)
 
 
 
-create table Registro
+create table registro
 (
 id_registro INT NOT NULL AUTO_INCREMENT,
 id_requerimiento INT,
