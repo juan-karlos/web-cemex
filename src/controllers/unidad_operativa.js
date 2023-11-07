@@ -178,7 +178,6 @@ controllerPlanta.insertPlanta = async(req,res)=>{
 controllerPlanta.actualizar = async(req, res)=>{
     const planElej=({id_planta:req.params.cb})
     const {nombre_planta,segmento,zona, estado,porcentaje_cumplimiento,fija,activo}=req.body
-
     id=JSON.stringify(planElej);
     const recid=/(\d+)/g;
     let idrecu= id.match(recid);
@@ -209,8 +208,8 @@ controllerPlanta.eliminar = async(req, res)=>{
     const planta = ({id_planta:req.params.cb})
     
         id=JSON.stringify(planta);
-            const recid=/(\d+)/g;
-            const idrecu= id.match(recid);           
+        const recid=/(\d+)/g;
+        const idrecu= id.match(recid);           
         const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE id_planta =?',[idrecu])
         try{
             if(infoPlanta!=""){
