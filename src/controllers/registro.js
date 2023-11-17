@@ -56,7 +56,6 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
     observaciones,
     pdfUrls
   } = req.body;
-
   if(fechaAcomodada && fechaAcomodada2== 'Fecha inválida'){
     fechaAcomodada=null,
     fechaAcomodada2=null
