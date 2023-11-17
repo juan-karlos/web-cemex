@@ -123,13 +123,11 @@ controllerPlanta.norte=async(req,res)=>{
     }
 
 }
-
-
 controllerPlanta.activasFijas=async(req,res)=>{
-    const fijas = req.body.fija
+    let [plantas]=[];
     try{
-        const plantas = await pool.query('SELECT * from unidad_operativa where activo= true and fija =?',[fijas])
-        res.json(plantas)
+            [plantas]= await pool.query('SELECT * from unidad_operativa where activo= true and fija =true')
+            res.json(plantas)
     }catch(exepcion){
         console.log(exepcion)
         res.status(500).json("no hay coneccion en la base de datos")
@@ -138,18 +136,17 @@ controllerPlanta.activasFijas=async(req,res)=>{
 }
 
 controllerPlanta.inactivasFijas=async(req,res)=>{
-    const fijas = req.body.fija
+    
+    let [plantas]=[];
     try{
-        const [plantas] = await pool.query('Select * FROM unidad_operativa WHERE activo = false and fija =?',[fijas])
-        res.json(plantas)
+            [plantas]= await pool.query('Select * FROM unidad_operativa WHERE activo = false and fija =true')
+            res.json(plantas)
     }catch(exepcion){
         console.log(exepcion)
-        res.status(500).json("no hay coneccion en la base de datos")
+        res.status(500).json("no hay coneccion en la base de datossss")
         
     }
 }
-
-
 
 controllerPlanta.insertPlanta = async(req,res)=>{
 
@@ -222,6 +219,10 @@ controllerPlanta.eliminar = async(req, res)=>{
             res.status(500).json("No se encontro la planta que se desea eliminar")
         }
 }    
+
+
+// controlador para poder contar todas los permisos que tenemos 
+
     module.exports=controllerPlanta
 
     
