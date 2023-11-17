@@ -14,5 +14,4 @@ router.get('/pasifico',controllerPlanta.pasifico)
 router.get('/norte',controllerPlanta.norte)
 router.get('/centro',controllerPlanta.centro)
 router.get('/sur',controllerPlanta.sur)
-
 module.exports=router

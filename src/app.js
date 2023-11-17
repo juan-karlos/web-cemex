@@ -29,19 +29,14 @@ const corsOptions ={
 };
 
 app.use(cors(corsOptions));
-
-
 app.use('/recursos', express.static(path.join(__dirname, 'recursos')));
-
 app.set('port',process.env.PORT ||3500)
-
 app.use(fileUpload())
-
 app.use(express.json()),
 app.use(morgan('dev')),
 app.use(bodyParser.json()),
 app.use(express.urlencoded({extended:false}))
-app.use (bodyParser.urlencoded({extended:false}))
+app.use(bodyParser.urlencoded({extended:false}))
 app.use(passport.initialize());
 
 

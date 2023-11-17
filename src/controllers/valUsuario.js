@@ -32,7 +32,6 @@ controladorUsuario.comparacion= async(req,res)=>{
     const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
 
     const contra = req.body.password;
-
     contrabd = JSON.stringify(bdpassword);
     let encriptedbd = contrabd.substring(16,76);
     let compare =bcryptjs.compareSync(contra,encriptedbd);
