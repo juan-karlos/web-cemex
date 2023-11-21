@@ -2,7 +2,7 @@ const { join } = require('path');
 const pool = require('../database')
 const controllerPlanta ={};
 
-
+let [plantas]=[];
 
 
 controllerPlanta.obtenerPlanta = async(req,res)=>{
@@ -29,7 +29,7 @@ controllerPlanta.obtenerPlanta = async(req,res)=>{
 
 controllerPlanta.obtenerPlantas=async(req,res)=>{
     try{
-        const [plantas] = await pool.query('SELECT * from unidad_operativa');
+        [plantas] = await pool.query('SELECT * from unidad_operativa');
         res.json(plantas)
     }catch(exepcion){
         console.log(exepcion)
@@ -124,7 +124,7 @@ controllerPlanta.norte=async(req,res)=>{
 
 }
 controllerPlanta.activasFijas=async(req,res)=>{
-    let [plantas]=[];
+    [plantas]=[];
     try{
             [plantas]= await pool.query('SELECT * from unidad_operativa where activo= true and fija =true')
             res.json(plantas)
@@ -137,7 +137,7 @@ controllerPlanta.activasFijas=async(req,res)=>{
 
 controllerPlanta.inactivasFijas=async(req,res)=>{
     
-    let [plantas]=[];
+    
     try{
             [plantas]= await pool.query('Select * FROM unidad_operativa WHERE activo = false and fija =true')
             res.json(plantas)
@@ -145,6 +145,26 @@ controllerPlanta.inactivasFijas=async(req,res)=>{
         console.log(exepcion)
         res.status(500).json("no hay coneccion en la base de datossss")
         
+    }
+}
+
+controllerPlanta.activasMoviles=async(req,res)=>{
+    try{
+        [plantas]=await pool.query('SELECT * FROM  unidad_operativa Where activo = true and fija =false')
+        res.json(plantas)
+    }catch(exepcion){
+        console.log(exepcion)
+        res.status(500).json("no hay coneccion en la base de datos")
+    }
+}
+controllerPlanta.inactivasMoviles=async(req,res)=>{
+    try{
+        [plantas]=await pool.query('SELECT * FROM  unidad_operativa WHERE activo = false and fija = false')
+        res.json(plantas)
+
+    }catch(exepcion){
+        console.log(exepcion)
+        res.status(500).json("hay un error con el servidor")
     }
 }
 
