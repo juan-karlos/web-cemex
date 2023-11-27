@@ -7,6 +7,26 @@ const { url } = require("inspector");
 
 const controladorRegistro = {};
 
+
+// controller para elegir el registro para actualizarlo
+ 
+controladorRegistro.obtenerUnRegi=async(req,res)=>{
+  const registro =({id_requerimiento:req.params.cb})
+  id=JSON.stringify(registro);
+  const recid=/(\d+)/g;
+  const idrecu= id.match(recid);
+   try{
+    const [permiso]=await pool.query(`SELECT nombre_requerimiento,nombre_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+    FROM registro,unidad_operativa,requerimiento
+    where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento and registro.id_registro=?`,[idrecu])
+    res.json(permiso)
+   }catch(error){
+    console.log(error)
+    res.status(500).json({message:"error en el servidor"})
+   }
+}
+
+
 //controlador que trae todos los registros
 controladorRegistro.obtenerRegistro = async (req, res) => {
   try {

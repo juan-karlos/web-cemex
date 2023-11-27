@@ -21,5 +21,7 @@ router.get('/fechaVenAnio',controladorRegistro.buscarFechaAT)//busca todas las f
 router.get('/fechaVenR',controladorRegistro.buscarFechRango)// busca un rango de fechas de vencimiento especificado
 router.patch('/actualizarEs',controladorRegistro.actualizarEstado)//actualiza el estado del registro
 router.patch('/actualizar',controladorRegistro.actualizarRegistro)
+router.get('/permiso/:cb',controladorRegistro.obtenerUnRegi);
+
 module.exports=router
 
