@@ -187,7 +187,6 @@ controllerPlanta.insertPlanta = async(req,res)=>{
     }catch(Exception){
         console.log(Exception)
         res.status(500).json({message:'Estas intentando insertar una planta que ya esta registrada'})
-
     }
 }
 
