@@ -1,7 +1,6 @@
 const { join } = require('path');
 const pool = require('../database')
 const controllerPlanta ={};
-
 let [plantas]=[];
 
 
@@ -12,18 +11,17 @@ controllerPlanta.obtenerPlanta = async(req,res)=>{
         const idrecu= id.match(recid);
     try{    
     const [infoPlanta]= await pool.query('Select * FROM unidad_operativa WHERE id_planta =?',[idrecu])
-    
         if(infoPlanta!="")
-    res.send(infoPlanta);
+    res.json(infoPlanta);
         else{
-
-            res.status(500).json({message
+            res.status(404).json({message
                 :"no se encuentra la planta registrada"})
         }
+        
     }catch(Excepcion){
+        console.log(Excepcion)
         res.status(500).json({message:"hay un error con el servidor"})
     }
-    
 }
 
 
