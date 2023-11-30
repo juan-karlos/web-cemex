@@ -6,23 +6,28 @@ const controllersLogica={}
 controllersLogica.pesoTotal=async(req,res)=>{
     try {
         const nomPlanta = req.body.nombre
-        const [peso] = await pool.query(`select sum(peso) 
+        const [peso] = await pool.query(`select sum(peso) as pesoTotal
         from unidad_operativa,registro,requerimiento 
         where activo=1 and
         nombre_planta = ? and 
         unidad_operativa.id_planta = registro.id_planta and 
         registro.id_requerimiento = requerimiento.id_requerimiento`,[nomPlanta]) 
-        const pesoTotal = peso[0]['sum(peso)']
-        if(pesoTotal!=null){
-            res.status(200).json({
-                message:`El Peso Total de  ${nomPlanta} es de: ${pesoTotal}`
-            })
+        const pesoTotal = peso[0]['pesoTotal']
+        const numero = parseInt(pesoTotal)
+
+        if(peso!=null){
+            res.status(200).json({total:numero})
+            // res.status(200).json({
+            //     // message:`El Peso Total de  ${nomPlanta} es de:` + pesoTotal
+            //     peso:peso
+            // })
         }else{
             res.status(400).json({
                 message: "verifica que esta planta cuente con requerimientos o este activa"
             })
         }
     } catch (Excepcion) {
+        console.log(Excepcion)
         res.status(500).json({
             message: "No se pudo conectar a la base de datos"
         })
@@ -37,19 +42,21 @@ controllersLogica.pesoTotal=async(req,res)=>{
 //no aplica
 controllersLogica.pesoParcial=async(req,res)=>{
     try {
-        const {estatu,nombre} = req.body
+        const {status,nombre} = req.body
 
-        const [pesoEs] = await pool.query(`select sum(peso) 
+        const [pesoEs] = await pool.query(`select sum(peso) as pesoTotal
         from unidad_operativa,registro,requerimiento 
         where activo = 1 and
         estatus = ? and  
         nombre_planta = ? and 
         unidad_operativa.id_planta = registro.id_planta and 
-        registro.id_requerimiento = requerimiento.id_requerimiento`,[estatu,nombre])
-        const pesoEstatus = pesoEs[0]['sum(peso)']
+        registro.id_requerimiento = requerimiento.id_requerimiento`,[status,nombre])
+        const pesoEstatus = pesoEs[0]['pesoTotal'];  
+        const total= parseInt(pesoEstatus)  
+        console.log(pesoEstatus)
         if(pesoEstatus!=null){
             res.status(200).json({
-                message: `El peso total de los Estatus "${estatu}" es de ${pesoEstatus} de la planta ${nombre}`
+            total:total
             })
         }else{
             res.status(400).json({
@@ -71,17 +78,16 @@ controllersLogica.pesoParcial=async(req,res)=>{
 //no aplica
 controllersLogica.pesoEnPorcentajeEstatus=async(req,res)=>{
     try {
-        const {nomPlanta,estatus} = req.body
-
-        const [peso] = await pool.query(`select sum(peso) from unidad_operativa,registro,requerimiento where activo=1 and nombre_planta = ? and unidad_operativa.id_planta = registro.id_planta and registro.id_requerimiento = requerimiento.id_requerimiento`,[nomPlanta]) 
+        const {nombre,status} = req.body
+        const [peso] = await pool.query(`select sum(peso) from unidad_operativa,registro,requerimiento where activo=1 and nombre_planta = ? and unidad_operativa.id_planta = registro.id_planta and registro.id_requerimiento = requerimiento.id_requerimiento`,[nombre]) 
         const pesoTotal = Number(peso[0]['sum(peso)'])
         if(peso[0]['sum(peso)'] != null){
-            const [pesoEs] = await pool.query(`select sum(peso) from unidad_operativa,registro,requerimiento where activo=1 and estatus = ? and nombre_planta = ? and unidad_operativa.id_planta = registro.id_planta and registro.id_requerimiento = requerimiento.id_requerimiento`,[estatus,nomPlanta])
+            const [pesoEs] = await pool.query(`select sum(peso) from unidad_operativa,registro,requerimiento where activo=1 and estatus = ? and nombre_planta = ? and unidad_operativa.id_planta = registro.id_planta and registro.id_requerimiento = requerimiento.id_requerimiento`,[status,nombre])
             const pesoEstatus = Number(pesoEs[0]['sum(peso)'])
             if (pesoEs[0]['sum(peso)'] != null) {
                 const resultado =  (pesoEstatus/pesoTotal)*100
                 res.status(200).json({
-                    message: `El porcentaje de Estatus ${estatus} es del: ${resultado}%`
+                    porsentaje:resultado
                 })
             } else {
                 res.status(400).json({
