@@ -10,4 +10,7 @@ router.delete('/eliminar',controladorRequerimiento.eliminarRequerimiento);//elim
 router.get('/conteo',controladorRequerimiento.conteo);
 router.get('/zonas',controladorRequerimiento.Conteozonas);
 
+// router.get('/cumplimiento', controladorRequerimiento.cumplimiento)
+router.get('/cumplimiento', controladorRequerimiento.cumplimiento1)
+
 module.exports=router
