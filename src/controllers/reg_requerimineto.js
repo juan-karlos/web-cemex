@@ -133,7 +133,7 @@ controladorRequerimiento.nacional=async(req,res)=>{
 //     nombre_requerimiento;`
     
     
-  
+
     
     const [requerimientos] = await pool.query('SELECT * FROM requerimiento')
     
@@ -248,6 +248,7 @@ controladorRequerimiento.nacional=async(req,res)=>{
     // AND nombre_requerimiento = ?; `
 
     // const [requerimineto]= await pool.query('SELECT * FROM requerimiento')
+
     //     for(let i =0; i<requerimineto.length; i++){
     //     const nombre = requerimineto[i].nombre_requerimiento;
     //     const [result] = await pool.query
@@ -411,6 +412,7 @@ controladorRequerimiento.nacional=async(req,res)=>{
 // };
 
 controladorRequerimiento.conteo = async (req, res) => {
+
     try {
         const query = `
             SELECT 
@@ -510,8 +512,6 @@ controladorRequerimiento.Conteozonas=async(req,res)=>{
     SUM(CASE WHEN zona ='Centro' and estatus != 'Vigente' or zona='Pacífico' or zona='Sureste' or zona ='Noreste' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'total'
     FROM registro ,unidad_operativa where registro.id_planta = unidad_operativa.id_planta
     `
-
-
     try{
         const [zonasconteo]= await pool.query(zonas)
         res.json(zonasconteo)
@@ -523,17 +523,299 @@ controladorRequerimiento.Conteozonas=async(req,res)=>{
     }
 }
 
+// controladorRequerimiento.cumplimiento=async(req,res)=>{
+ 
+//     let sentencia= [];
+//     let plantass=[]
+//     let respuestas=[]
+//     const [requerimientos] = await pool.query('SELECT * FROM requerimiento')
+//     const [plantas]=await pool.query('select distinct(nombre_planta) from unidad_operativa')
+//     for (const requerimiento of requerimientos) {
+//         const nombre = requerimiento.nombre_requerimiento;
+        
+//         jos={
+//             nombre
+//         }
+
+//         sentencia.push(nombre);
+//     }
+//     for(const nombre of plantas ){
+//         const planta = nombre.nombre_planta;
+//         plantass.push(planta)
+        
+//     }
+//     const respuesta=({
+//         plantass,
+//         sentencia
+//     })
+
+//     for(let i = plantass; i<=plantass.length;i++){
+//         const nombre = requerimineto[i].nombre_requerimiento+"pruebaaaa";
+//         respuestas.push(nombre)
+//     }
+//     // console.log(sentencia,plantass);
+//     console.log(respuestas)
+//     res.json(respuesta)
+// }
+
+
+
+
+// controladorRequerimiento.cumplimiento = async (req, res) => {
+//     try {
+//         let plantass = [];
+//         let respuestas = [];
+
+//         const [plantas] = await pool.query('SELECT DISTINCT(nombre_planta) FROM unidad_operativa');
+
+//         for (const planta of plantas) {
+//             const nombrePlanta = planta.nombre_planta;
+//             const [conteo] = await pool.query(`
+//                 SELECT SUM(peso) as total                FROM unidad_operativa, registro, requerimiento 
+//                 WHERE nombre_planta = ? AND 
+//                 unidad_operativa.id_planta = registro.id_planta AND 
+//                 registro.id_requerimiento = requerimiento.id_requerimiento
+//             `, [nombrePlanta]);
+
+//             plantass.push(nombrePlanta);
+//             respuestas.push(conteo[0].total);
+//         }
+
+//         const respuesta = {
+//             plantass
+//             // respuestas
+//         };
+
+//         console.log(respuesta);
+//         res.json(respuesta);
+//     } catch (error) {
+//         console.error("Error en el método cumplimiento:", error);
+//         res.status(500).json({ error: "Error interno del servidor" });
+//     }
+// };
+
+// controladorRequerimiento.cumplimiento = async (req, res) => {
+//     try {
+//         let plantasConteo = {};
+
+//         const [plantas] = await pool.query('SELECT DISTINCT(nombre_planta) FROM unidad_operativa');
+
+//         for (const planta of plantas) {
+//             const nombrePlanta = planta.nombre_planta;
+//             const [conteo] = await pool.query(`
+//                 SELECT SUM(peso) as totalAQcapulco
+//                 FROM unidad_operativa, registro, requerimiento 
+//                 WHERE nombre_planta = ? AND 
+//                 unidad_operativa.id_planta = registro.id_planta AND 
+//                 registro.id_requerimiento = requerimiento.id_requerimiento
+//             `, [nombrePlanta]);
+
+//             plantasConteo[nombrePlanta] = conteo[0].totalAQcapulco;
+//         }
+
+//         const respuesta = {
+//             plantasConteo
+//         };
+
+//         console.log(respuesta);
+//         res.json(respuesta);
+//     } catch (error) {
+//         console.error("Error en el método cumplimiento:", error);
+//         res.status(500).json({ error: "Error interno del servidor" });
+//     }
+// };
+
+
+// controladorRequerimiento.cumplimiento = async (req, res) => {
+//     try {
+//         let plantasConteo = {};
+
+//         const [plantas] = await pool.query('SELECT DISTINCT(nombre_planta) FROM unidad_operativa');
+
+//         for (const planta of plantas) {
+//             const nombrePlanta = planta.nombre_planta;
+//             const [conteo] = await pool.query(`
+//                 SELECT SUM(peso) as totalAQcapulco
+//                 FROM unidad_operativa, registro, requerimiento 
+//                 WHERE estatus="Vigente" AND nombre_planta = ? AND 
+//                 unidad_operativa.id_planta = registro.id_planta AND 
+//                 registro.id_requerimiento = requerimiento.id_requerimiento
+//             `, [nombrePlanta]);
+
+
+
+
+//             // Realizar operaciones con el conteo (por ejemplo, multiplicar por 2)
+
+//             const [conteototal]= await pool.query(`  SELECT SUM(peso) as total
+//             FROM unidad_operativa, registro, requerimiento 
+//             WHERE estatus= nombre_planta = ? AND 
+//             unidad_operativa.id_planta = registro.id_planta AND 
+//             registro.id_requerimiento = requerimiento.id_requerimiento`)
+//             const resultadoOperacion = conteo[0].totalAQcapulco / conteototal[0].total *100
+
+//             // Asignar el resultado a la propiedad correspondiente en el objeto plantasConteo
+//             plantasConteo[nombrePlanta] = resultadoOperacion;
+//         }
+
+//         const respuesta = {
+//             plantasConteo
+//         };
+
+//         console.log(respuesta);
+//         res.json(respuesta);
+//     } catch (error) {
+//         console.error("Error en el método cumplimiento:", error);
+//         res.status(500).json({ error: "Error interno del servidor" });
+//     }
+// };
+
+// controladorRequerimiento.cumplimiento = async (req, res) => {
+//     try {
+//         let plantasConteo = {};
+        
+//         const almacenamiento=[]
+
+//         const [plantas] = await pool.query('SELECT DISTINCT(nombre_planta) FROM unidad_operativa');
+
+//         for (const planta of plantas) {
+//             const nombrePlanta = planta.nombre_planta;
+            
+//             const [conteo] = await pool.query(`
+//                 SELECT SUM(peso) as totalAQcapulco
+//                 FROM unidad_operativa, registro, requerimiento 
+//                 WHERE estatus="Vigente" AND nombre_planta = ? AND 
+//                 unidad_operativa.id_planta = registro.id_planta AND 
+//                 registro.id_requerimiento = requerimiento.id_requerimiento
+//             `, [nombrePlanta]);
+
+
+//             const [conteototal] = await pool.query(`
+//                 SELECT SUM(peso) as total
+//                 FROM unidad_operativa, registro, requerimiento 
+//                 WHERE estatus="Vigente" AND nombre_planta = ? AND 
+//                 unidad_operativa.id_planta = registro.id_planta AND 
+//                 registro.id_requerimiento = requerimiento.id_requerimiento
+//             `, [nombrePlanta]);
+
+//             // console.log(conteo)
+
+
+//             const resultadoOperacion = ((conteototal[0].total / conteo[0].totalAQcapulco) * 100);
+
+
+//             // Asignar el resultado a la propiedad correspondiente en el objeto plantasConteo
+//             almacenamiento.push (resultadoOperacion);
+//         }
+
+//         const respuesta = {
+//             plantasConteo
+//         };
+//         console.log(almacenamiento);
+        
+//         res.json(almacenamiento);
+//     } catch (error) {
+//         console.error("Error en el método cumplimiento:", error);
+//         res.status(500).json({ error: "Error interno del servidor" });
+//     }
+// };
+
+controladorRequerimiento.cumplimiento = async (req, res) => {
+    try {
+        const resultados = {};
+
+        const [plantas] = await pool.query('SELECT DISTINCT(nombre_planta) FROM unidad_operativa');
+
+        for (const planta of plantas) {
+            const nombrePlanta = planta.nombre_planta;
+
+            const [conteo] = await pool.query(`
+                SELECT SUM(peso) as totalAQcapulco
+                FROM unidad_operativa, registro, requerimiento 
+                WHERE estatus="Vigente" AND nombre_planta = ? AND 
+                unidad_operativa.id_planta = registro.id_planta AND 
+                registro.id_requerimiento = requerimiento.id_requerimiento
+            `, [nombrePlanta]);
+
+            const [conteototal] = await pool.query(`
+                SELECT SUM(peso) as total
+                FROM unidad_operativa, registro, requerimiento 
+                WHERE estatus="Vigente" AND nombre_planta = ? AND 
+                unidad_operativa.id_planta = registro.id_planta AND 
+                registro.id_requerimiento = requerimiento.id_requerimiento
+            `, [nombrePlanta]);
+
+            const resultadoOperacion = (((conteototal[0].total) / (conteo[0].totalAQcapulco)) * 100);
+
+            // Asignar el resultado a la propiedad correspondiente en el objeto resultados
+            resultados[nombrePlanta] = resultadoOperacion;
+        }
+
+        console.log(resultados);
+        res.json(resultados);
+    } catch (error) {
+        console.error("Error en el método cumplimiento:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+};
+
+
+controladorRequerimiento.cumplimiento1 = async (req, res) => {
+    try {
+        let totalPlantas = [];
+
+        const quer = `
+            SELECT SUM(peso) as totalAQcapulco
+            FROM unidad_operativa, registro, requerimiento 
+            WHERE nombre_planta = ? AND 
+            unidad_operativa.id_planta = registro.id_planta AND 
+            registro.id_requerimiento = requerimiento.id_requerimiento
+        `;
+
+        const quer2= ` SELECT SUM(peso) as total
+        FROM unidad_operativa, registro, requerimiento 
+        WHERE estatus = "Vigente" and nombre_planta = ? AND 
+        unidad_operativa.id_planta = registro.id_planta AND 
+        registro.id_requerimiento = requerimiento.id_requerimiento`;
+
+        const [plantas] = await pool.query('SELECT DISTINCT(nombre_planta) FROM unidad_operativa');
+
+        for (let i = 0; i < plantas.length; i++) {
+            const nombrePlanta = plantas[i].nombre_planta;
+            const [resultado] = await pool.query(quer, [nombrePlanta]);
+            const par= parseFloat(resultado[0].totalAQcapulco)
+
+            const [resultado2]= await pool.query(quer2,[nombrePlanta]);
+            const total=parseFloat(resultado2[0].total)
+
+            let resul= total/par*100
+
+
+
+            totalPlantas.push({
+                nombrePlanta,
+                resul
+            });
+
+            console.log(`Planta: ${nombrePlanta}, Total: ${resultado[0].totalAQcapulco}`);
+        }
+
+        res.json(totalPlantas);
+    } catch (error) {
+        console.error("Error en el método cumplimiento1:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+};
 
 
 
 
 
 
-
-
-
-
-
+   //aqui vamos a hacer un arrays en donde obtengamos un todos los nombres de todos los permiosos 
+    //despues recorer el arris donde vamos a meter los resultados en un siclio for para ejecutar de manera conjtinua un query que nos va a 
+    // traer el procentaje de cump0limineto sumando los permisos parciales y los permisos totales de cada una de las plantas que tenemos en le arrays
+    // todo eso lo metemos en otro arrays que vamos a acomodarlo en un json para hacer el response
 
 
 
