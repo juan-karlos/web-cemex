@@ -765,32 +765,36 @@ controladorRequerimiento.cumplimiento1 = async (req, res) => {
         let totalPlantas = [];
 
         const quer = `
-            SELECT SUM(peso) as totalAQcapulco
+            SELECT SUM(peso) as total
             FROM unidad_operativa, registro, requerimiento 
             WHERE nombre_planta = ? AND 
             unidad_operativa.id_planta = registro.id_planta AND 
             registro.id_requerimiento = requerimiento.id_requerimiento
         `;
 
-        const quer2= ` SELECT SUM(peso) as total
+        const quer2= ` SELECT SUM(peso) as parcial
         FROM unidad_operativa, registro, requerimiento 
         WHERE estatus = "Vigente" and nombre_planta = ? AND 
         unidad_operativa.id_planta = registro.id_planta AND 
         registro.id_requerimiento = requerimiento.id_requerimiento`;
 
+        const actualiza=`update unidad_operativa set porcentaje_cumplimiento=? where nombre_planta=?;`
+        
+        
         const [plantas] = await pool.query('SELECT DISTINCT(nombre_planta) FROM unidad_operativa');
 
         for (let i = 0; i < plantas.length; i++) {
             const nombrePlanta = plantas[i].nombre_planta;
+
             const [resultado] = await pool.query(quer, [nombrePlanta]);
-            const par= parseFloat(resultado[0].totalAQcapulco)
+            const total= parseFloat(resultado[0].total)
 
             const [resultado2]= await pool.query(quer2,[nombrePlanta]);
-            const total=parseFloat(resultado2[0].total)
+            const parcial=parseFloat(resultado2[0].parcial)
 
-            let resul= total/par*100
+            let resul= (parcial/total*100).toString();
 
-
+            await pool.query(actualiza,[resul,nombrePlanta])
 
             totalPlantas.push({
                 nombrePlanta,
