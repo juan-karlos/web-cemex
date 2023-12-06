@@ -11,6 +11,8 @@ router.get('/conteo',controladorRequerimiento.conteo);
 router.get('/zonas',controladorRequerimiento.Conteozonas);
 
 // router.get('/cumplimiento', controladorRequerimiento.cumplimiento)
-router.get('/cumplimiento', controladorRequerimiento.cumplimiento1)
+router.get('/cumplimiento', controladorRequerimiento.cumplimiento1);
+router.put('/porcentajeAct', controladorRequerimiento.porsentajeActual);
+
 
 module.exports=router

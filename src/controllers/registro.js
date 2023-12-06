@@ -86,7 +86,7 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
   
   if (!req.files || !req.files.pdfFile) {
     pdfUrls=null
-    console.log(pdfUrls)
+    // console.log(pdfUrls)
   }else{
 
       const pdfFile = req.files.pdfFile;
