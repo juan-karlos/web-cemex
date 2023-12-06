@@ -160,4 +160,32 @@ controllersLogica.sumTotalZonaSegmento=async(req,res)=>{
     }    
 }
 
+/*SUMA DE TODOS LOS PORSENTAJES DE CUMPLIMIENTO DE UNA ZONA ENTRE 
+EL TOTAL DE PLANTAS DE CADA UNA DE LOS SEGMENTOS */
+
+
+controllersLogica.porcentaje=async(req,res)=>{
+    const sentencia= `SELECT 
+    subquery.segmento,
+    SUM(CASE WHEN subquery.segmento = 'Cadena de suministro' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Cadena_suministro",
+    SUM(CASE WHEN subquery.segmento = 'Industriales' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Industriales",
+    SUM(CASE WHEN subquery.segmento = 'Inmuebles no operativos' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Inmuebles_operativos",
+    SUM(CASE WHEN subquery.segmento = 'Operaciones' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Operaciones",
+    SUM(CASE WHEN subquery.segmento = 'Transporte' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Transporte",
+    SUM(CASE WHEN subquery.segmento = 'Promexma' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Promexma",
+    SUM(CASE WHEN subquery.segmento = 'Constructores' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Constructores"
+FROM unidad_operativa uo
+JOIN (
+    SELECT id_planta, segmento
+    FROM unidad_operativa
+    WHERE zona = 'Centro'
+) subquery ON uo.id_planta = subquery.id_planta
+WHERE uo.zona = 'Centro'
+GROUP BY subquery.segmento;`
+
+    const [porcentaje]= await pool.query(sentencia)
+    res.json(porcentaje)
+    console.log(porcentaje)
+}
+
 module.exports=controllersLogica;
