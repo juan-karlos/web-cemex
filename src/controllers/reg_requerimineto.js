@@ -801,7 +801,7 @@ controladorRequerimiento.cumplimiento1 = async (req, res) => {
                 resul
             });
 
-            console.log(`Planta: ${nombrePlanta}, Total: ${resultado[0].totalAQcapulco}`);
+            console.log(`Planta: ${nombrePlanta}, Total: ${resultado[0].total}`);
         }
 
         res.json(totalPlantas);
@@ -809,7 +809,50 @@ controladorRequerimiento.cumplimiento1 = async (req, res) => {
         console.error("Error en el método cumplimiento1:", error);
         res.status(500).json({ error: "Error interno del servidor" });
     }
+    
 };
+
+controladorRequerimiento.porsentajeActual=async(req,res)=>{
+    let nombrePlanta= req.body.nombre_planta
+    try {
+
+        const quer = `
+            SELECT SUM(peso) as total
+            FROM unidad_operativa, registro, requerimiento 
+            WHERE nombre_planta = ? AND 
+            unidad_operativa.id_planta = registro.id_planta AND 
+            registro.id_requerimiento = requerimiento.id_requerimiento
+        `;
+
+        const quer2= ` SELECT SUM(peso) as parcial
+        FROM unidad_operativa, registro, requerimiento 
+        WHERE estatus = "Vigente" and nombre_planta = ? AND 
+        unidad_operativa.id_planta = registro.id_planta AND 
+        registro.id_requerimiento = requerimiento.id_requerimiento`;
+
+        const actualiza=`update unidad_operativa set porcentaje_cumplimiento=? where nombre_planta=?;`
+        
+        
+            const [resultado] = await pool.query(quer, [nombrePlanta]);
+            const total= parseFloat(resultado[0].total)
+
+            const [resultado2]= await pool.query(quer2,[nombrePlanta]);
+            const parcial=parseFloat(resultado2[0].parcial)
+
+            let resul= (parcial/total*100).toString();
+            console.log("se envio la peticon")
+
+            // await pool.query(actualiza,[resul,nombrePlanta])
+
+            const [planta] = await pool.query('Select nombre_planta, porcentaje_cumplimiento From unidad_operativa where nombre_planta=?',[nombrePlanta])
+            console.log(resul)
+            res.json(planta);
+    } catch (error) {
+        console.error("Error en el método cumplimiento1:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+
+}
 
 
 
