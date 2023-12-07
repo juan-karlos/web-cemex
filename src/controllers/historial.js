@@ -13,6 +13,7 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
         res.status(500).json("hubo un herror en la coneccion")
     }
 }
+
     controllerHistorial.buseg =async (req,res)=>{
         const segmento= req.body
         try{
@@ -59,6 +60,8 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
             }
     }
 
+
+
     controllerHistorial.busfecha=async(req,res)=>{
         const fecha= req.body
         try{
@@ -74,5 +77,38 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
             res.status(500).json("error")
         }
     }
+
+
+    
+    controllerHistorial.zonaSegmento = async(req,res)=>{
+        // const zona = req.body.zona;
+        
+        const {zona,segmento}=req.body
+
+
+        // console.log(zona,segmento)
+        // const [historial] = await pool.query('SELECT * FROM Historial WHERE zona=? AND segmento=?',[zona,segmento])
+        // res.json(historial)
+
+
+        // const segmento = req.body.segmento;
+        
+        try{
+            const [cumplimiento]= await pool.query('SELECT * FROM Historial WHERE zona = ? and segmento = ?',[zona, segmento]);
+            res.json(cumplimiento)
+        // if(zona != "" && segmento != ""){
+        //     // res.json(cumplimiento)
+        // }else{
+        //     res.json("no se encontraron datos")
+        //     }      
+        }
+        catch(excepcion){
+            res.status(500).json("error")
+            }
+    }
+
+
+
+
 
 module.exports = controllerHistorial

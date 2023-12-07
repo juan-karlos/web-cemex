@@ -8,5 +8,7 @@ router.get('/zona',historial.buzon);
 router.get('/cumplimineto',historial.buscumpli);
 router.get('/fecha',historial.busfecha);
 router.post('/reghis',historial.insertarHitorial);
+router.get('/ZonaSegmento',historial.zonaSegmento);
 
 module.exports=router
+
