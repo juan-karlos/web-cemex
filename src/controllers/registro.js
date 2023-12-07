@@ -125,7 +125,39 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
   
 
       const [afectaciones] =await pool.execute(sqlQuery,[fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica,nombre_planta,nombre_requerimiento])
+
       if(afectaciones.affectedRows>0){
+    
+
+          const quer = `
+              SELECT SUM(peso) as total
+              FROM unidad_operativa, registro, requerimiento 
+              WHERE nombre_planta = ? AND 
+              unidad_operativa.id_planta = registro.id_planta AND 
+              registro.id_requerimiento = requerimiento.id_requerimiento
+          `;
+  
+          const quer2= ` SELECT SUM(peso) as parcial
+          FROM unidad_operativa, registro, requerimiento 
+          WHERE estatus = "Vigente" and nombre_planta = ? AND 
+          unidad_operativa.id_planta = registro.id_planta AND 
+          registro.id_requerimiento = requerimiento.id_requerimiento`;
+  
+          const actualiza=`update unidad_operativa set porcentaje_cumplimiento=? where nombre_planta=?;`
+          
+          
+              const [resultado] = await pool.query(quer, [nombre_planta]);
+              const total= parseFloat(resultado[0].total)
+  
+              const [resultado2]= await pool.query(quer2,[nombre_planta]);
+              const parcial=parseFloat(resultado2[0].parcial)
+  
+              let resul= (parcial/total*100).toString();
+              console.log("se envio la peticon")
+  
+              await pool.query(actualiza,[resul,nombre_planta])
+              console.log(resul)
+  
         res.status(200).json({message:'{"Estatus":"Producto insertado"}'})
         console.log(nombre_planta,nombre_requerimiento,fechaAcomodada,fechaAcomodada2,estatus,observaciones,pdfUrls,validez_unica)
       }else{
@@ -433,6 +465,20 @@ controladorRegistro.actualizarRegistro = async (req, res) => {
       id_registro = ?; 
   `;
 
+  const quer = `
+  SELECT SUM(peso) as total
+  FROM unidad_operativa, registro, requerimiento 
+  WHERE nombre_planta = ? AND 
+  unidad_operativa.id_planta = registro.id_planta AND 
+  registro.id_requerimiento = requerimiento.id_requerimiento
+`;
+
+const quer2= ` SELECT SUM(peso) as parcial
+FROM unidad_operativa, registro, requerimiento 
+WHERE estatus = "Vigente" and nombre_planta = ? AND 
+unidad_operativa.id_planta = registro.id_planta AND 
+registro.id_requerimiento = requerimiento.id_requerimiento`;
+
   let {
     id_registro,
     nombre_requerimiento,
@@ -476,21 +522,29 @@ controladorRegistro.actualizarRegistro = async (req, res) => {
 
  
     const [registro] = await pool.query(`SELECT * FROM registro WHERE id_registro=?`, [id_registro]);
-    console.log(registro);
+    // console.log(registro);
 
     if (registro.length > 0) {
       await pool.query(query, [nombre_planta, nombre_requerimiento,  fechaAcomodada,fechaAcomodada2, observaciones, estatus, pdfUrls, validez_unica, id_registro]);
+       
+
+        const actualiza=`update unidad_operativa set porcentaje_cumplimiento=? where nombre_planta=?;`
+        
+            const [resultado] = await pool.query(quer, [nombre_planta]);
+            const total= parseFloat(resultado[0].total)
+
+            const [resultado2]= await pool.query(quer2,[nombre_planta]);
+            const parcial=parseFloat(resultado2[0].parcial)
+
+            let resul= (parcial/total*100).toString();
+
+            console.log(resul)
+
+            await pool.query(actualiza,[resul,nombre_planta])
+
       const [regis] = await pool.query(`SELECT * FROM registro WHERE id_registro=?`, [id_registro]);
       res.json(regis);
-      console.log( 
-        nombre_requerimiento,
-        nombre_planta,
-        fechaAcomodada,
-        fechaAcomodada2,
-        estatus,
-        observaciones,
-        validez_unica,
-        pdfUrls)
+      console.log("SE Actualizo el registro")
     } else {
       res.status(400).json({ error: "El registro no existe." });
     }
