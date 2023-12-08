@@ -80,32 +80,22 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
 
 
     
-    controllerHistorial.zonaSegmento = async(req,res)=>{
-        // const zona = req.body.zona;
-        
-        const {zona,segmento}=req.body
-
-
-        // console.log(zona,segmento)
-        // const [historial] = await pool.query('SELECT * FROM Historial WHERE zona=? AND segmento=?',[zona,segmento])
-        // res.json(historial)
-
-
-        // const segmento = req.body.segmento;
-        
-        try{
-            const [cumplimiento]= await pool.query('SELECT * FROM Historial WHERE zona = ? and segmento = ?',[zona, segmento]);
-            res.json(cumplimiento)
-        // if(zona != "" && segmento != ""){
-        //     // res.json(cumplimiento)
-        // }else{
-        //     res.json("no se encontraron datos")
-        //     }      
+    controllerHistorial.zonaSegmento = async (req, res) => {
+        const { zona, segmento } = req.body; // Obtener datos del cuerpo de la solicitud
+      
+        try {
+          console.log('Datos de la solicitud:', zona, segmento); // Agrega un log para los datos de la solicitud
+      
+          const [cumplimiento] = await pool.query('SELECT * FROM Historial WHERE zona = ? and segmento = ?', [zona, segmento]);
+      
+          console.log('Resultado de la consulta:', cumplimiento); // Agrega un log para los resultados de la consulta
+      
+          res.json(cumplimiento);
+        } catch (excepcion) {
+          console.error('Error en el backend:', excepcion); // Agrega un log para cualquier error
+          res.status(500).json("error");
         }
-        catch(excepcion){
-            res.status(500).json("error")
-            }
-    }
+      }
 
 
 
