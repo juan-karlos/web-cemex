@@ -545,6 +545,9 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
       const [regis] = await pool.query(`SELECT * FROM registro WHERE id_registro=?`, [id_registro]);
       res.json(regis);
       console.log("SE Actualizo el registro")
+
+      console.log(resultado)
+      console.log(resultado2)
     } else {
       res.status(400).json({ error: "El registro no existe." });
     }
