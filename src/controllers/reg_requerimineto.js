@@ -422,6 +422,7 @@ controladorRequerimiento.conteo = async (req, res) => {
             FROM 
                 registro
             RIGHT JOIN 
+            
                 unidad_operativa ON unidad_operativa.id_planta = registro.id_planta
             RIGHT JOIN 
                 requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
@@ -759,7 +760,8 @@ controladorRequerimiento.cumplimiento = async (req, res) => {
     }
 };
 
-
+// HACEMOS LA SUMA DEL PESO DE TODOS LOS REQUERIMIENTOS TOTALES QUE HAY EN LA BASE DE DATOS DE UNA SOLA PLANTA
+// DESPUES HACEMOS LA SUMA DE TODOS LOS REQUERIMINETOS TOTALES QUE ESTAN EN VIGENTE DE UNA SOLA PLANTA  
 controladorRequerimiento.cumplimiento1 = async (req, res) => {
     try {
         let totalPlantas = [];
@@ -812,6 +814,8 @@ controladorRequerimiento.cumplimiento1 = async (req, res) => {
     
 };
 
+//NO ES UTILIZADO METODO
+
 controladorRequerimiento.porsentajeActual=async(req,res)=>{
     let nombrePlanta= req.body.nombre_planta
     try {
@@ -842,7 +846,7 @@ controladorRequerimiento.porsentajeActual=async(req,res)=>{
             let resul= (parcial/total*100).toString();
             console.log("se envio la peticon")
 
-            // await pool.query(actualiza,[resul,nombrePlanta])
+            await pool.query(actualiza,[resul,nombrePlanta])
 
             const [planta] = await pool.query('Select nombre_planta, porcentaje_cumplimiento From unidad_operativa where nombre_planta=?',[nombrePlanta])
             console.log(resul)

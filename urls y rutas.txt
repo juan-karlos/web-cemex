@@ -298,6 +298,13 @@ app.use('/api/historial',require("./routes/historial.routes")); --> Ruta que tom
             "fecha":""
         }
 
+    --> router.get('/ZonaSegmento',historial.zonaSegmento);   -->Devuelve un areglo de jsons de historial filtrado por zona y segmento
+    -->INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                --> http://localhost:3200/api/historial/ZonaSegmento
+        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON
+        {
+            "zona":"",
+            "segmento":""
+        }
 
 //////////////////////////////---  CONTROL DE LA LOGICA ---/////////////////////////////////////////////
 
