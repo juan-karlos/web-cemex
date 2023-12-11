@@ -8,4 +8,5 @@ router.get('/porcentaje',controllersLogica.pesoEnPorcentajeEstatus)
 router.get('/totalPlanta',controllersLogica.totalPlantas)
 router.get('/sumaTotal',controllersLogica.sumTotalZonaSegmento)
 router.get('/porcentajePlanta', controllersLogica.porcentaje)
+router.get('/zonas', controllersLogica.zonas)
 module.exports=router;
