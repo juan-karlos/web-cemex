@@ -220,8 +220,12 @@ GROUP BY segmento
 ORDER BY segmento;`
 
 const [zon]=await pool.query(zonas)
+
 res.json(zon)
 }
+
+
+
 // sacar los porcentajes de cumplimiento para todos los segmentos divididos por zonas cadena_suministro{centro=? }
 
 module.exports=controllersLogica;
