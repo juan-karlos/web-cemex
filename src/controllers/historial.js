@@ -1,165 +1,78 @@
 const pool = require('../database')
 const fs = require('fs');
 const cron = require('node-cron')
+const schedule = require('node-schedule')
 
+async function insertar() {
+  try {
 
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;  // Nota: Los meses son indexados desde 0
+    const day = currentDate.getDate();
+    const fecha = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
+    console.log(fecha);
+    const datos = `
+      SELECT 
+        segmento,
+        zona,
+        SUM(CASE 
+          WHEN segmento = 'Cadena de suministro' THEN porcentaje_cumplimiento
+          WHEN segmento = 'Industriales' THEN porcentaje_cumplimiento
+          WHEN segmento = 'Inmuebles no operativos' THEN porcentaje_cumplimiento
+          WHEN segmento = 'Operaciones' THEN porcentaje_cumplimiento
+          WHEN segmento = 'Transporte' THEN porcentaje_cumplimiento
+          WHEN segmento = 'Promexma' THEN porcentaje_cumplimiento
+          WHEN segmento = 'Constructores' THEN porcentaje_cumplimiento
+          ELSE 0
+        END) / COUNT(id_planta) AS resultados
+      FROM unidad_operativa
+      WHERE zona IN ('Centro', 'Noreste', 'Sureste', 'Pacífico')
+      GROUP BY zona, segmento;`;
 
-// async function insertar(req, res) {
-//     try {
-//       const currentDate = new Date();
-//       const year = currentDate.getFullYear();
-//       const month = currentDate.getMonth() + 1;  // Nota: Los meses son indexados desde 0
-//       const day = currentDate.getDate();
-//       const fecha = `${year}-${month}-${day}`;
-//       console.log(fecha);
-  
-//       const datos = `
-//         SELECT 
-//           segmento,
-//           zona,
-//           CASE 
-//             WHEN segmento = 'Cadena de suministro' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-//             WHEN segmento = 'Industriales' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-//             WHEN segmento = 'Inmuebles no operativos' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-//             WHEN segmento = 'Operaciones' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-//             WHEN segmento = 'Transporte' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-//             WHEN segmento = 'Promexma' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-//             WHEN segmento = 'Constructores' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-//             ELSE 0
-//           END AS resultados
-//         FROM unidad_operativa
-//         WHERE zona IN ('Centro', 'Noreste', 'Sureste', 'Pacífico')
-//         GROUP BY zona, segmento;`;
-  
-//       const insertarQuery = `
-//         INSERT INTO historial(segmento, zona, cumplimiento, fecha) VALUES (?, ?, ?, ?);`;
-  
-//       const [respuesta] = await pool.query(datos);
-  
-//       for (let i = 0; i < respuesta.length; i++) {
-//         const resultados = {
-//             segmento: respuesta[i].segmento,
-//           zona: respuesta[i].zona,
-//           resultado: respuesta[i].resultados,
-//           fecha: fecha
-//         };
-  
-//         await pool.query(insertarQuery, [
-//           respuesta[i].segmento,
-//           respuesta[i].zona,
-//           respuesta[i].resultados,
-//           fecha
-//         ]);
-  
-//         console.log(resultados);
-//       }
-  
-//       res.json("Se insertaron los datos correctamente.");
-//     } catch (excepcion) {
-//       console.error(excepcion);
-//       res.status(500).json({ message: "Error del servidor" });
-//     }
-//   }
+    const insertarQuery = `
+      INSERT INTO historial(segmento, zona, cumplimiento, fecha) VALUES (?, ?, ?, ?);`;
 
-//   const currentDate = new Date();
-//   const ultimoDiaDelMes = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-  
-//     // Formatear la fecha
-//     const year = ultimoDiaDelMes.getFullYear();
-//     const month = ultimoDiaDelMes.getMonth() + 1;  // Nota: Los meses son indexados desde 0
-//     const day = ultimoDiaDelMes.getDate();
-  
-//     const fechaFormateada = `0 0 ${day < 10 ? '0' : ''}${day} ${month < 10 ? '0' : ''}${month}`;
+    const [respuesta] = await pool.query(datos);
 
-//     // res.send(`${year}/${month < 10 ? '0' : ''}${month}/${day < 10 ? '0' : ''}${day}`)
-//   // Uso del método
-// //   const ultimoDiaDelMes = obtenerUltimoDiaDelMes();
-// //   console.log(`El último día del mes es: ${ultimoDiaDelMes.year}`); 
-  
+    for (let i = 0; i < respuesta.length; i++) {
+      const resultados = {
+        segmento: respuesta[i].segmento,
+        zona: respuesta[i].zona,
+        resultado: respuesta[i].resultados,
+        // fecha: fecha
+      };
 
-//   cron.schedule(fechaFormateada,()=>{
-//     insertar();
-//   })
-  
-// const cron = require('node-cron');
+      await pool.query(insertarQuery, [
+        respuesta[i].segmento,
+        respuesta[i].zona,
+        respuesta[i].resultados,
+        fecha
+      ]);
 
-// async function insertar() {
-//   try {
-//     // console.log("inicio")
-//     const currentDate = new Date();
-//     const year = currentDate.getFullYear();
-//     const month = currentDate.getMonth() + 1;  // Nota: Los meses son indexados desde 0
-//     const day = currentDate.getDate();
-//     const fecha = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
-//     console.log(fecha);
-//     console.log("final")
-//     const datos = `
-//       SELECT 
-//         segmento,
-//         zona,
-//         SUM(CASE 
-//           WHEN segmento = 'Cadena de suministro' THEN porcentaje_cumplimiento
-//           WHEN segmento = 'Industriales' THEN porcentaje_cumplimiento
-//           WHEN segmento = 'Inmuebles no operativos' THEN porcentaje_cumplimiento
-//           WHEN segmento = 'Operaciones' THEN porcentaje_cumplimiento
-//           WHEN segmento = 'Transporte' THEN porcentaje_cumplimiento
-//           WHEN segmento = 'Promexma' THEN porcentaje_cumplimiento
-//           WHEN segmento = 'Constructores' THEN porcentaje_cumplimiento
-//           ELSE 0
-//         END) / COUNT(id_planta) AS resultados
-//       FROM unidad_operativa
-//       WHERE zona IN ('Centro', 'Noreste', 'Sureste', 'Pacífico')
-//       GROUP BY zona, segmento;`;
+      console.log(resultados);
+    }
 
-//     const insertarQuery = `
-//       INSERT INTO historial(segmento, zona, cumplimiento, fecha) VALUES (?, ?, ?, ?);`;
+    console.log("Se insertaron los datos correctamente.");
+  } catch (excepcion) {
+    console.error(excepcion);
+    res.status(500).json({mesage:"no se pudo correr el job"})
+    // Puedes manejar el error adecuadamente aquí
+  }
+}
 
-//     const [respuesta] = await pool.query(datos);
-
-//     for (let i = 0; i < respuesta.length; i++) {
-//       const resultados = {
-//         segmento: respuesta[i].segmento,
-//         zona: respuesta[i].zona,
-//         resultado: respuesta[i].resultados,
-//         // fecha: fecha
-//       };
-
-//       await pool.query(insertarQuery, [
-//         respuesta[i].segmento,
-//         respuesta[i].zona,
-//         respuesta[i].resultados,
-//         fecha
-//       ]);
-
-//       console.log(resultados);
-//     }
-
-//     console.log("Se insertaron los datos correctamente.");
-//   } catch (excepcion) {
-//     console.error(excepcion);
-//     // Puedes manejar el error adecuadamente aquí
-//   }
-// }
-
-// const currentDate = new Date();
-// const ultimoDiaDelMes = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-
-// // Formatear la fecha para ejecutar el cron en el último día del mes a las 00:00
+const currentDate = new Date();
+const ultimoDiaDelMes = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+// const year = currentDate.getFullYear();
+// Formatear la fecha para ejecutar el cron en el último día del mes a las 00:00
 // const yearCron = ultimoDiaDelMes.getFullYear();
-// const monthCron = ultimoDiaDelMes.getMonth() + 1;  // Nota: Los meses son indexados desde 0
-// const dayCron = ultimoDiaDelMes.getDate();
-
-// const fechaFormateada = `* 23 ${dayCron} ${monthCron} ${yearCron}`;
-
-// cron.schedule(fechaFormateada, () => {
-//   insertar();
-// });
-
-
+const monthCron = ultimoDiaDelMes.getMonth() + 1;  // Nota: Los meses son indexados desde 0
+const dayCron = ultimoDiaDelMes.getDate();
+const fechaFormateada = `50 23 ${dayCron} ${monthCron} *`;
+schedule.scheduleJob(fechaFormateada,insertar)
 
 
 const controllerHistorial = {}
-
 
 controllerHistorial.insertarHitorial= async (req,res)=>{
     const {segmento,zona,cumplimiento,fecha}=req.body
@@ -238,7 +151,7 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
 
 
     
-    controllerHistorial.zonaSegmento = async (req, res) => {
+  controllerHistorial.zonaSegmento = async (req, res) => {
         const { zona, segmento } = req.body; // Obtener datos del cuerpo de la solicitud
       
         try {
@@ -253,8 +166,8 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
           console.error('Error en el backend:', excepcion); // Agrega un log para cualquier error
           res.status(500).json("error");
         }
-      }
-controllerHistorial.actualizar=async(req,res)=>{
+    }
+  controllerHistorial.actualizar=async(req,res)=>{
     const {segmento,zona,cumplimiento,fecha,id_historial}=req.body
     try{
         await pool.query(`UPDATE Historial SET segmento=IFNULL(?,segmento), zona=IFNULL(?,zona), cumplimineto=IFNULL(?,cumplimiento),fecha=IFNULL(?,fecha)`);
@@ -262,73 +175,76 @@ controllerHistorial.actualizar=async(req,res)=>{
     }catch(exepcion){
         res.status(500).json({mesage:"error interno del servidor"})
     }
-}
+  }
 
-controllerHistorial.insertHistorial=async(req,res)=>{
-    //     const currentDate = new Date();
-    //     let datos=`SELECT 
-    //    segmento,
-    //    zona,
-    //    CASE 
-    //        WHEN segmento = 'Cadena de suministro' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-    //        WHEN segmento = 'Industriales' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-    //        WHEN segmento = 'Inmuebles no operativos' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-    //        WHEN segmento = 'Operaciones' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-    //        WHEN segmento = 'Transporte' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-    //        WHEN segmento = 'Promexma' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-    //        WHEN segmento = 'Constructores' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
-    //        ELSE 0
-    //    END AS resultados
-    // FROM unidad_operativa
-    // WHERE zona IN ('Centro', 'Noreste', 'Sureste', 'Pacífico')
-    // GROUP BY zona, segmento;`
-    
-    // const  insertar=`
-    // INSERT INTO historial(segmento,zona,cumplimiento,fecha)  values (?,?,?,?) 
-    // `
-    // try{
-    //     const year = currentDate.getFullYear();
-    // const month = currentDate.getMonth() + 1;  // Nota: Los meses son indexados desde 0
-    // const day = currentDate.getDate();
-    
-    
-    // let fecha =(`${year}-${month}-${day}`);
-    // console.log(fecha)
-    
-    // const [respuesta]= await pool.query(datos);
-    // for(let i =0; i< respuesta.length;i++){
-    
-    
-    //  resultados={
-    //     segmento:respuesta[i].segmento,
-    //     zona:respuesta[i].zona,
-    //     resultado:respuesta[i].resultados,
-    //     fecha:fecha
-       
-    // }
-    //     // await pool.query(insertar,[respuesta[i].segmento,respuesta[i].zona,respuesta[i].resultados,fecha])
-    //     console.log(resultados);
-    
-    // }
-    // res.json("se inserto");
-    
-    // }
-    // catch(exepcion){
-    //     res.status(500).json({message:"error del servidor"})
-    // }
-    const currentDate = new Date();
-    const ultimoDiaDelMes = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-  
-    // Formatear la fecha
-    const year = ultimoDiaDelMes.getFullYear();
-    const month = ultimoDiaDelMes.getMonth() + 1;  // Nota: Los meses son indexados desde 0
-    const day = ultimoDiaDelMes.getDate();
-  
-    const fechaFormateada = `0 0 ${day < 10 ? '0' : ''}${day} ${month < 10 ? '0' : ''}${month}`;
-    
-    res.send(fechaFormateada)
+   controllerHistorial.insertHistorial=async(req,res)=>{
+        //     const currentDate = new Date();
+        //     let datos=`SELECT 
+        //    segmento,
+        //    zona,
+        //    CASE 
+        //        WHEN segmento = 'Cadena de suministro' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
+        //        WHEN segmento = 'Industriales' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
+        //        WHEN segmento = 'Inmuebles no operativos' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
+        //        WHEN segmento = 'Operaciones' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
+        //        WHEN segmento = 'Transporte' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
+        //        WHEN segmento = 'Promexma' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
+        //        WHEN segmento = 'Constructores' THEN SUM(porcentaje_cumplimiento) / COUNT(id_planta)
+        //        ELSE 0
+        //    END AS resultados
+        // FROM unidad_operativa
+        // WHERE zona IN ('Centro', 'Noreste', 'Sureste', 'Pacífico')
+        // GROUP BY zona, segmento;`
+        
+        // const  insertar=`
+        // INSERT INTO historial(segmento,zona,cumplimiento,fecha)  values (?,?,?,?) 
+        // `
+        // try{
+        //     const year = currentDate.getFullYear();
+        // const month = currentDate.getMonth() + 1;  // Nota: Los meses son indexados desde 0
+        // const day = currentDate.getDate();
+        
+        
+        // let fecha =(`${year}-${month}-${day}`);
+        // console.log(fecha)
+        
+        // const [respuesta]= await pool.query(datos);
+        // for(let i =0; i< respuesta.length;i++){
+        
+        
+        //  resultados={
+        //     segmento:respuesta[i].segmento,
+        //     zona:respuesta[i].zona,
+        //     resultado:respuesta[i].resultados,
+        //     fecha:fecha
+          
+        // }
+        //     // await pool.query(insertar,[respuesta[i].segmento,respuesta[i].zona,respuesta[i].resultados,fecha])
+        //     console.log(resultados);
+        
+        // }
+        // res.json("se inserto");
+        
+        // }
+        // catch(exepcion){
+        //     res.status(500).json({message:"error del servidor"})
+        // }
+        const currentDate = new Date();
+        const ultimoDiaDelMes = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        const year = currentDate.getFullYear();
+        
+        
+        // Formatear la fecha para ejecutar el cron en el último día del mes a las 00:00
+        const yearCron = ultimoDiaDelMes.getFullYear();
+        const monthCron = ultimoDiaDelMes.getMonth() + 1;  // Nota: Los meses son indexados desde 0
+        const dayCron = ultimoDiaDelMes.getDate();
+        
+        const fechaFormateada = `50 23 ${dayCron} ${monthCron} *`;
 
-}
+        console.log(fechaFormateada)
+        res.send(fechaFormateada)
+
+   }
 
 
 
