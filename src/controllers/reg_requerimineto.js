@@ -506,16 +506,20 @@ controladorRequerimiento.Conteozonas=async(req,res)=>{
     // GROUP BY zona`
 
     const zonas =
-    `select SUM(CASE WHEN zona='Centro' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'Centro' ,
-    SUM(CASE WHEN zona='Noreste' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'Noreste',
+    `SELECT 
+    SUM(CASE WHEN zona='Centro' AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'Centro',
+    SUM(CASE WHEN zona='Noreste' AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'Noreste',
     SUM(CASE WHEN zona='Pacífico' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'Pasifico',
-    SUM(CASE WHEN zona='Sureste' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'Sureste',
-    SUM(CASE WHEN zona ='Centro' and estatus != 'Vigente' or zona='Pacífico' or zona='Sureste' or zona ='Noreste' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'total'
-    FROM registro ,unidad_operativa where registro.id_planta = unidad_operativa.id_planta
+    SUM(CASE WHEN zona='Sureste' AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'Sureste',
+    SUM(CASE WHEN (zona ='Centro' OR zona='Pacífico' OR zona='Sureste' OR zona ='Noreste') AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'total'
+  FROM registro
+  JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta;
+  
     `
     try{
         const [zonasconteo]= await pool.query(zonas)
         res.json(zonasconteo)
+        console.log(zonasconteo)
         console.log("Zonas enviadas")
     }catch(esepcion){
         console.log(esepcion)
