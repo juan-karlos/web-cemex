@@ -202,13 +202,13 @@ FROM (
     -- Tu consulta original aquí
     SELECT 
         segmento,
-        SUM(CASE WHEN zona = 'Centro' THEN porcentaje_cumplimiento ELSE 0 END) / 
+        SUM(CASE WHEN zona = 'Centro' and activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
             NULLIF((SELECT COUNT(id_planta) FROM unidad_operativa WHERE segmento = uo.segmento AND zona = 'Centro'), 0) AS "Centro",
-        SUM(CASE WHEN zona = 'Pacífico' THEN porcentaje_cumplimiento ELSE 0 END) / 
+        SUM(CASE WHEN zona = 'Pacífico' and activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
             NULLIF((SELECT COUNT(id_planta) FROM unidad_operativa WHERE segmento = uo.segmento AND zona = 'Pacífico'), 0) AS "Pacífico",
-        SUM(CASE WHEN zona = 'Noreste' THEN porcentaje_cumplimiento ELSE 0 END) / 
+        SUM(CASE WHEN zona = 'Noreste' and activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
             NULLIF((SELECT COUNT(id_planta) FROM unidad_operativa WHERE segmento = uo.segmento AND zona = 'Noreste'), 0) AS "Noreste",
-        SUM(CASE WHEN zona = 'Sureste' THEN porcentaje_cumplimiento ELSE 0 END) / 
+        SUM(CASE WHEN zona = 'Sureste' and activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
             NULLIF((SELECT COUNT(id_planta) FROM unidad_operativa WHERE segmento = uo.segmento AND zona = 'Sureste'), 0) AS "Sureste"
     FROM unidad_operativa uo
     WHERE 
