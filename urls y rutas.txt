@@ -306,6 +306,13 @@ app.use('/api/historial',require("./routes/historial.routes")); --> Ruta que tom
             "segmento":""
         }
 
+        --> router.post('/ObtenerMesPasadoPorSegmento',historial.obtenerMesPasado);   -->Devuelve un areglo de jsons de historial filtrado segmento y solo los del mes pasado
+    -->INGRESA ESTA URL PARA USAR EN THUNDER CLIENT                --> http://localhost:3200/api/historial/ObtenerMesPasadoPorSegmento
+        PARAMETROS QUE NECESITAS EN EL body copea y pega en el body --> JSON
+        {
+            "segmento":""
+        }
+
 //////////////////////////////---  CONTROL DE LA LOGICA ---/////////////////////////////////////////////
 
 app.use('/api/logica',require("./routes/logica.routes"));       --> Ruta que tomara para controlar la logica <-- Se solicita desde app
