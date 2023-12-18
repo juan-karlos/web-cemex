@@ -167,15 +167,44 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
           res.status(500).json("error");
         }
     }
+    
   controllerHistorial.actualizar=async(req,res)=>{
-    const {segmento,zona,cumplimiento,fecha,id_historial}=req.body
-    try{
-        await pool.query(`UPDATE Historial SET segmento=IFNULL(?,segmento), zona=IFNULL(?,zona), cumplimineto=IFNULL(?,cumplimiento),fecha=IFNULL(?,fecha)`);
-        res.json("Se actualizo el historial")
-    }catch(exepcion){
-        res.status(500).json({mesage:"error interno del servidor"})
+    const { segmento } = req.body; // Obtener datos del cuerpo de la solicitud
+      
+    try {
+      console.log('Datos de la solicitud:',segmento); // Agrega un log para los datos de la solicitud
+  
+      const [cumplimiento] = await pool.query('SELECT * FROM Historial WHERE segmento = ?', [segmento]);
+  
+      console.log('Resultado de la consulta:', cumplimiento); // Agrega un log para los resultados de la consulta
+  
+      res.json(cumplimiento);
+    } catch (excepcion) {
+      console.error('Error en el backend:', excepcion); // Agrega un log para cualquier error
+      res.status(500).json("error");
     }
   }
+
+  controllerHistorial.obtenerMesPasado = async (req, res) => {
+    const { segmento } = req.body; // Obtener datos del cuerpo de la solicitud
+  
+    try {
+      const currentDate = new Date();
+      const lastMonth = new Date(currentDate);
+      lastMonth.setMonth(currentDate.getMonth() - 1);
+  
+      const query = 'SELECT zona, cumplimiento FROM historial WHERE segmento = ? AND MONTH(fecha) = ? AND YEAR(fecha) = ?';
+      const [cumplimiento] = await pool.query(query, [segmento, lastMonth.getMonth() + 1, lastMonth.getFullYear()]);
+  
+      console.log('Resultado de la consulta:', cumplimiento); // Agrega un log para los resultados de la consulta
+  
+      res.json(cumplimiento);
+    } catch (excepcion) {
+      console.error('Error en el backend:', excepcion); // Agrega un log para cualquier error
+      res.status(500).json("error");
+    }
+  };
+
 
    controllerHistorial.insertHistorial=async(req,res)=>{
         //     const currentDate = new Date();
