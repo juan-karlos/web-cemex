@@ -191,6 +191,45 @@ GROUP BY subquery.segmento;`
     console.log(porcentaje)
 }
 
+controllersLogica.fijas=async(req,res)=>{
+    const sentencia= `SELECT 
+    zona,
+    COUNT(*) AS total_plantas,
+    SUM(porcentaje_cumplimiento) AS suma_porcentaje_cumplimiento,
+    (SUM(porcentaje_cumplimiento) / COUNT(*)) AS porcentaje_cumplimiento_promedio
+FROM unidad_operativa
+WHERE 
+    segmento = 'constructores'
+    AND zona IN ('Centro', 'Pacífico', 'Noreste', 'Sureste')
+    AND activo = true
+    AND fija = true
+GROUP BY zona;`
+
+    const [porcentaje]= await pool.query(sentencia)
+    res.json(porcentaje)
+    console.log(porcentaje)
+}
+
+
+controllersLogica.moviles=async(req,res)=>{
+    const sentencia= `SELECT 
+    zona,
+    COUNT(*) AS total_plantas,
+    SUM(porcentaje_cumplimiento) AS suma_porcentaje_cumplimiento,
+    (SUM(porcentaje_cumplimiento) / COUNT(*)) AS porcentaje_cumplimiento_promedio
+FROM unidad_operativa
+WHERE 
+    segmento = 'constructores'
+    AND zona IN ('Centro', 'Pacífico', 'Noreste', 'Sureste')
+    AND activo = true
+    AND fija = false
+GROUP BY zona;`
+
+    const [porcentaje]= await pool.query(sentencia)
+    res.json(porcentaje)
+    console.log(porcentaje)
+}
+
 controllersLogica.zonas=async(req,res)=>{
     const zonas=`SELECT 
     segmento,
