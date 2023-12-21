@@ -67,10 +67,16 @@ const ultimoDiaDelMes = new Date(currentDate.getFullYear(), currentDate.getMonth
 // Formatear la fecha para ejecutar el cron en el último día del mes a las 00:00
 // const yearCron = ultimoDiaDelMes.getFullYear();
 const monthCron = ultimoDiaDelMes.getMonth() + 1;  // Nota: Los meses son indexados desde 0
-const dayCron = ultimoDiaDelMes.getDate();
-const fechaFormateada = `50 23 ${dayCron} ${monthCron} *`;
+// const dayCron = ultimoDiaDelMes.getDate();
+const fechaFormateada = `50 23 L ${monthCron} *`;
+
 schedule.scheduleJob(fechaFormateada,insertar)
 
+// function prueba(){
+// // console.log(monthCron +"  " +"  "+ fechaFormateada)
+// console.log(ultimoDiaDelMes)
+// }
+// schedule.scheduleJob('* * * * *',prueba)
 
 const controllerHistorial = {}
 
