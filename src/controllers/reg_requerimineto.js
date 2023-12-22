@@ -422,6 +422,7 @@ controladorRequerimiento.conteo = async (req, res) => {
             FROM 
                 registro
             RIGHT JOIN 
+            
                 unidad_operativa ON unidad_operativa.id_planta = registro.id_planta
             RIGHT JOIN 
                 requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
@@ -505,16 +506,20 @@ controladorRequerimiento.Conteozonas=async(req,res)=>{
     // GROUP BY zona`
 
     const zonas =
-    `select SUM(CASE WHEN zona='Centro' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'Centro' ,
-    SUM(CASE WHEN zona='Noreste' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'Noreste',
+    `SELECT 
+    SUM(CASE WHEN zona='Centro' AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'Centro',
+    SUM(CASE WHEN zona='Noreste' AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'Noreste',
     SUM(CASE WHEN zona='Pacífico' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'Pasifico',
-    SUM(CASE WHEN zona='Sureste' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'Sureste',
-    SUM(CASE WHEN zona ='Centro' and estatus != 'Vigente' or zona='Pacífico' or zona='Sureste' or zona ='Noreste' and estatus != 'Vigente' THEN 1 ELSE 0 END) as 'total'
-    FROM registro ,unidad_operativa where registro.id_planta = unidad_operativa.id_planta
+    SUM(CASE WHEN zona='Sureste' AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'Sureste',
+    SUM(CASE WHEN (zona ='Centro' OR zona='Pacífico' OR zona='Sureste' OR zona ='Noreste') AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'total'
+  FROM registro
+  JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta;
+  
     `
     try{
         const [zonasconteo]= await pool.query(zonas)
         res.json(zonasconteo)
+        console.log(zonasconteo)
         console.log("Zonas enviadas")
     }catch(esepcion){
         console.log(esepcion)
@@ -759,7 +764,8 @@ controladorRequerimiento.cumplimiento = async (req, res) => {
     }
 };
 
-
+// HACEMOS LA SUMA DEL PESO DE TODOS LOS REQUERIMIENTOS TOTALES QUE HAY EN LA BASE DE DATOS DE UNA SOLA PLANTA
+// DESPUES HACEMOS LA SUMA DE TODOS LOS REQUERIMINETOS TOTALES QUE ESTAN EN VIGENTE DE UNA SOLA PLANTA  
 controladorRequerimiento.cumplimiento1 = async (req, res) => {
     try {
         let totalPlantas = [];
@@ -801,7 +807,7 @@ controladorRequerimiento.cumplimiento1 = async (req, res) => {
                 resul
             });
 
-            console.log(`Planta: ${nombrePlanta}, Total: ${resultado[0].totalAQcapulco}`);
+            console.log(`Planta: ${nombrePlanta}, Total: ${resultado[0].total}`);
         }
 
         res.json(totalPlantas);
@@ -809,7 +815,52 @@ controladorRequerimiento.cumplimiento1 = async (req, res) => {
         console.error("Error en el método cumplimiento1:", error);
         res.status(500).json({ error: "Error interno del servidor" });
     }
+    
 };
+
+//NO ES UTILIZADO METODO
+
+controladorRequerimiento.porsentajeActual=async(req,res)=>{
+    let nombrePlanta= req.body.nombre_planta
+    try {
+
+        const quer = `
+            SELECT SUM(peso) as total
+            FROM unidad_operativa, registro, requerimiento 
+            WHERE nombre_planta = ? AND 
+            unidad_operativa.id_planta = registro.id_planta AND 
+            registro.id_requerimiento = requerimiento.id_requerimiento
+        `;
+
+        const quer2= ` SELECT SUM(peso) as parcial
+        FROM unidad_operativa, registro, requerimiento 
+        WHERE estatus = "Vigente" and nombre_planta = ? AND 
+        unidad_operativa.id_planta = registro.id_planta AND 
+        registro.id_requerimiento = requerimiento.id_requerimiento`;
+
+        const actualiza=`update unidad_operativa set porcentaje_cumplimiento=? where nombre_planta=?;`
+        
+        
+            const [resultado] = await pool.query(quer, [nombrePlanta]);
+            const total= parseFloat(resultado[0].total)
+
+            const [resultado2]= await pool.query(quer2,[nombrePlanta]);
+            const parcial=parseFloat(resultado2[0].parcial)
+
+            let resul= (parcial/total*100).toString();
+            console.log("se envio la peticon")
+
+            await pool.query(actualiza,[resul,nombrePlanta])
+
+            const [planta] = await pool.query('Select nombre_planta, porcentaje_cumplimiento From unidad_operativa where nombre_planta=?',[nombrePlanta])
+            console.log(resul)
+            res.json(planta);
+    } catch (error) {
+        console.error("Error en el método cumplimiento1:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+
+}
 
 
 

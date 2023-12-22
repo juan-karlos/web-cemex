@@ -1,5 +1,5 @@
+
 const  pool  = require("../database");
-const controllerPlanta = require("./unidad_operativa");
 const controllersLogica={}
 
 //Controlador que trae la suma total de pesos sin importar el estatus de una planata que se le indique 
@@ -159,5 +159,112 @@ controllersLogica.sumTotalZonaSegmento=async(req,res)=>{
         })
     }    
 }
+
+/*SUMA DE TODOS LOS PORSENTAJES DE CUMPLIMIENTO DE UNA ZONA ENTRE 
+EL TOTAL DE PLANTAS DE CADA UNA DE LOS SEGMENTOS */
+
+
+
+controllersLogica.fijas=async(req,res)=>{ 
+    const sentencia= `SELECT  
+    zona, 
+    COUNT(*) AS total_plantas, 
+    SUM(porcentaje_cumplimiento) AS suma_porcentaje_cumplimiento, 
+    (SUM(porcentaje_cumplimiento) / COUNT(*)) AS porcentaje_cumplimiento_promedio 
+FROM unidad_operativa 
+WHERE  
+    segmento = 'constructores' 
+    AND zona IN ('Centro', 'Pacífico', 'Noreste', 'Sureste') 
+    AND activo = true 
+    AND fija = true 
+GROUP BY zona;` 
+ 
+    const [porcentaje]= await pool.query(sentencia) 
+    res.json(porcentaje) 
+    console.log(porcentaje) 
+} 
+ 
+ 
+controllersLogica.moviles=async(req,res)=>{ 
+    const sentencia= `SELECT  
+    zona, 
+    COUNT(*) AS total_plantas, 
+    SUM(porcentaje_cumplimiento) AS suma_porcentaje_cumplimiento, 
+    (SUM(porcentaje_cumplimiento) / COUNT(*)) AS porcentaje_cumplimiento_promedio 
+FROM unidad_operativa 
+WHERE  
+    segmento = 'constructores' 
+    AND zona IN ('Centro', 'Pacífico', 'Noreste', 'Sureste') 
+    AND activo = true 
+    AND fija = false 
+GROUP BY zona;` 
+ 
+    const [porcentaje]= await pool.query(sentencia) 
+    res.json(porcentaje) 
+    console.log(porcentaje) 
+} 
+ 
+
+controllersLogica.porcentaje=async(req,res)=>{
+    const sentencia= `SELECT 
+    subquery.segmento,
+    SUM(CASE WHEN subquery.segmento = 'Cadena de suministro' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Cadena_suministro",
+    SUM(CASE WHEN subquery.segmento = 'Industriales' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Industriales",
+    SUM(CASE WHEN subquery.segmento = 'Inmuebles no operativos' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Inmuebles_operativos",
+    SUM(CASE WHEN subquery.segmento = 'Operaciones' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Operaciones",
+    SUM(CASE WHEN subquery.segmento = 'Transporte' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Transporte",
+    SUM(CASE WHEN subquery.segmento = 'Promexma' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Promexma",
+    SUM(CASE WHEN subquery.segmento = 'Constructores' THEN porcentaje_cumplimiento ELSE 0 END) / COUNT(uo.id_planta) AS "Constructores"
+FROM unidad_operativa uo
+JOIN (
+    SELECT id_planta, segmento
+    FROM unidad_operativa
+    WHERE zona = 'Centro'
+) subquery ON uo.id_planta = subquery.id_planta
+WHERE uo.zona = 'Centro'
+GROUP BY subquery.segmento;`
+
+    const [porcentaje]= await pool.query(sentencia)
+    res.json(porcentaje)
+    console.log(porcentaje)
+}
+
+controllersLogica.zonas=async(req,res)=>{
+    const zonas=`SELECT 
+    segmento,
+    SUM(Centro) AS Centro,
+    SUM(Pacífico) AS Pacífico,
+    SUM(Noreste) AS Noreste,
+    SUM(Sureste) AS Sureste,
+    SUM(Centro + Pacífico + Noreste + Sureste) AS Total
+FROM (
+    -- Tu consulta original aquí
+    SELECT 
+        segmento,
+        SUM(CASE WHEN zona = 'Centro' and activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
+            NULLIF((SELECT COUNT(id_planta) FROM unidad_operativa WHERE segmento = uo.segmento AND zona = 'Centro'), 0) AS "Centro",
+        SUM(CASE WHEN zona = 'Pacífico' and activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
+            NULLIF((SELECT COUNT(id_planta) FROM unidad_operativa WHERE segmento = uo.segmento AND zona = 'Pacífico'), 0) AS "Pacífico",
+        SUM(CASE WHEN zona = 'Noreste' and activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
+            NULLIF((SELECT COUNT(id_planta) FROM unidad_operativa WHERE segmento = uo.segmento AND zona = 'Noreste'), 0) AS "Noreste",
+        SUM(CASE WHEN zona = 'Sureste' and activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
+            NULLIF((SELECT COUNT(id_planta) FROM unidad_operativa WHERE segmento = uo.segmento AND zona = 'Sureste'), 0) AS "Sureste"
+    FROM unidad_operativa uo
+    WHERE 
+        zona IN ('Centro', 'Pacífico', 'Noreste', 'Sureste') AND 
+        segmento IN ('Cadena de suministro', 'Industriales', 'Inmuebles no operativos', 'Operaciones', 'Transporte', 'Promexma', 'Constructores')
+    GROUP BY segmento
+) AS Subconsulta
+GROUP BY segmento
+ORDER BY segmento;`
+
+const [zon]=await pool.query(zonas)
+
+res.json(zon)
+}
+
+
+
+// sacar los porcentajes de cumplimiento para todos los segmentos divididos por zonas cadena_suministro{centro=? }
 
 module.exports=controllersLogica;

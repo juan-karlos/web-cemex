@@ -18,8 +18,15 @@ router.get('/fechaVenAAMM',controladorRegistro.buscarFechaAAMMT)//busca las fech
 router.get('/fechaVenAnio',controladorRegistro.buscarFechaAT)//busca todas las fechas de vencimiento de un año
 router.get('/fechaVenR',controladorRegistro.buscarFechRango)// busca un rango de fechas de vencimiento especificado
 router.patch('/actualizarEs',controladorRegistro.actualizarEstado)//actualiza el estado del registro
-
+router.get('/grafica',controladorRegistro.graficatotal)
 // router.patch('/actualizar',controladorRegistro.actualizarRegistro)
+// router.get('/graficaCentro',controladorRegistro.graficaCentro)
+// router.get('/graficaNoreste',controladorRegistro.graficaNoreste)
+// router.get('/graficaPasifico',controladorRegistro.graficaPasifico)
+// router.get('/graficaSureste',controladorRegistro.graficaSureste)
+
+router.get('/graficaTotal',controladorRegistro.Graficatotal)
+
 
 router.get('/permiso/:cb',controladorRegistro.obtenerUnRegi);
 
