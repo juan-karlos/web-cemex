@@ -642,66 +642,65 @@ controladorRegistro.actualizarEstado = async (req, res) => {
 //   }
 //   res.json(res)
 // };
+
 controladorRegistro.graficatotal = async (req, res) => {
 
-  // Clausura: rojo 
-  // Multa: amarillo
-  // Administrativo: gris 
-  // Si no tiene nada: verde 
+   const segmento = req.body.segmento
 
   let nacional = `SELECT
-    uo.nombre_planta AS UnidadOperativa,
-    COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
-    COUNT(CASE WHEN req.impacto = 'Clausura' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Clausuras,
-    COUNT(CASE WHEN req.impacto = 'Administrativo' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Administrativos
-  FROM unidad_operativa uo
-  JOIN registro r ON uo.id_planta = r.id_planta
-  JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
-  GROUP BY uo.nombre_planta; `;
-
-  
-  let centro = `SELECT
-    uo.nombre_planta AS UnidadOperativa,
-    COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
-    COUNT(CASE WHEN req.impacto = 'Clausura' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Clausuras,
-    COUNT(CASE WHEN req.impacto = 'Administrativo' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Administrativos
-  FROM unidad_operativa uo
-  JOIN registro r ON uo.id_planta = r.id_planta
-  JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
-  WHERE zona = 'Centro'
-  GROUP BY uo.nombre_planta; `;
-
-  let noreste = `SELECT
   uo.nombre_planta AS UnidadOperativa,
-  COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
-  COUNT(CASE WHEN req.impacto = 'Clausura' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Clausuras,
-  COUNT(CASE WHEN req.impacto = 'Administrativo' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Administrativos
+  COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
+  COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
+  COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
 FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
-WHERE zona = 'Noreste'
+where segmento=?
+GROUP BY uo.nombre_planta; `;
+
+  
+  let centro = `SELECT
+  uo.nombre_planta AS UnidadOperativa,
+  COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
+  COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
+  COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
+FROM unidad_operativa uo
+JOIN registro r ON uo.id_planta = r.id_planta
+JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
+where zona ='Centro' and segmento=?
+GROUP BY uo.nombre_planta;`;
+
+  let noreste = `SELECT
+  uo.nombre_planta AS UnidadOperativa,
+  COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
+  COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
+  COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
+FROM unidad_operativa uo
+JOIN registro r ON uo.id_planta = r.id_planta
+JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
+where zona ='Noreste' and segmento=?
 GROUP BY uo.nombre_planta; `;
 
 let Pasifico = `SELECT
 uo.nombre_planta AS UnidadOperativa,
-COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
-COUNT(CASE WHEN req.impacto = 'Clausura' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Clausuras,
-COUNT(CASE WHEN req.impacto = 'Administrativo' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Administrativos
+COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
+COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
+COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
 FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
-where zona ='Pacífico'
+where zona ='Pacífico' and segmento=?
 GROUP BY uo.nombre_planta;`;
 
 let sureste= `SELECT
 uo.nombre_planta AS UnidadOperativa,
-COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
-COUNT(CASE WHEN req.impacto = 'Clausura' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Clausuras,
-COUNT(CASE WHEN req.impacto = 'Administrativo' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Administrativos
+COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
+COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
+COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
 FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
-WHERE zona = 'Sureste'
+where zona ='Sureste' and segmento=?
 GROUP BY uo.nombre_planta; `;
 
   let clausuradasnas = [];
@@ -731,7 +730,8 @@ GROUP BY uo.nombre_planta; `;
   
 
 
-  let [resultados] = await pool.query(nacional);
+  let [resultados] = await pool.query(nacional,[segmento]);
+  
   for (let i = 0; i < resultados.length; i++) {
     if (
       (resultados[i].Clausuras === 1) &&
@@ -761,11 +761,13 @@ GROUP BY uo.nombre_planta; `;
     }
   }
 
+  // console.log(resultados)
+
 console.log("")
 console.log("estadisticas de centro........................................................")
 console.log("")
 
-  let [resultadoscen] = await pool.query(centro);
+  let [resultadoscen] = await pool.query(centro,[segmento]);
   for (let i = 0; i < resultadoscen.length; i++) {
     if (
       (resultadoscen[i].Clausuras === 1) &&
@@ -798,7 +800,7 @@ console.log("")
   console.log("estadisticas de noreste.....................................................")
 console.log("")
 
-  let [resultadosnor] = await pool.query(noreste);
+  let [resultadosnor] = await pool.query(noreste,[segmento]);
   for (let i = 0; i < resultadosnor.length; i++) {
     if (
       (resultadosnor[i].Clausuras === 1) &&
@@ -830,10 +832,12 @@ console.log("")
 
   console.log("")
   console.log("estadisticas de pasifico.....................................................")
+
+  
 console.log("")
 
 
-  let [resultadospas] = await pool.query(Pasifico);
+  let [resultadospas] = await pool.query(Pasifico,[segmento]);
   for (let i = 0; i < resultadospas.length; i++) {
     if (
       (resultadospas[i].Clausuras === 1) &&
@@ -863,7 +867,12 @@ console.log("")
     }
   }
 
-  let [resultadossur] = await pool.query(sureste);
+
+  console.log("..........................")
+  console.log(resultadospas)
+  console.log("......................................")
+
+  let [resultadossur] = await pool.query(sureste,[segmento]);
   for (let i = 0; i < resultadossur.length; i++) {
     if (
       (resultadossur[i].Clausuras === 1) &&
@@ -892,6 +901,8 @@ console.log("")
       optimaspas.push(resultadossur[i]);
     }
   }
+  console.log(" Estos son los resultados de la consulta sql")
+  console.log(resultadossur)
 
   clausuradasnas    = clausuradasnas.length
   multasnas         = multasnas.length
@@ -963,6 +974,57 @@ console.log("")
   res.json(jeison);
 
 }
+
+// controladorRegistro.graficatotal = async (req, res) => {
+//   const segmento = req.body.segmento;
+
+//   const nacional = `SELECT
+//     uo.nombre_planta AS UnidadOperativa,
+//     COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
+//     COUNT(CASE WHEN req.impacto = 'Clausura' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Clausuras,
+//     COUNT(CASE WHEN req.impacto = 'Administrativo' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Administrativos
+//   FROM unidad_operativa uo
+//   JOIN registro r ON uo.id_planta = r.id_planta
+//   JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
+//   WHERE segmento = ?
+//   GROUP BY uo.nombre_planta;`;
+
+//   // Las demás consultas para las otras zonas siguen el mismo formato con "WHERE zona = '...'" y "AND segmento = ?".
+
+//   const consultas = [
+//     { nombre: "grafica_total", consulta: nacional },
+//     // Agrega las demás consultas para las diferentes zonas aquí.
+//   ];
+
+//   const resultados = [];
+
+//   for (const consultaObj of consultas) {
+//     const { nombre, consulta } = consultaObj;
+//     let estadisticas = { zona: nombre };
+
+//     try {
+//       const [resultadosConsulta] = await pool.query(consulta, [segmento]);
+
+//       // Lógica para clasificar en clausuradas, multas, administrativas, optimas.
+//       // ...
+
+//       estadisticas = {
+//         ...estadisticas,
+//         clausuradas,
+//         multas,
+//         administrativas,
+//         optimas,
+//       };
+
+//       resultados.push(estadisticas);
+//     } catch (error) {
+//       console.error(`Error en consulta ${nombre}: ${error.message}`);
+//     }
+//   }
+
+//   res.json(resultados);
+// };
+
 
 const obtenerEstadisticas = async (consulta) => {
   const [resultados] = await pool.query(consulta);
