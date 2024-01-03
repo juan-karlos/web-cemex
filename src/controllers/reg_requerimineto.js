@@ -412,7 +412,7 @@ controladorRequerimiento.nacional=async(req,res)=>{
 // };
 
 controladorRequerimiento.conteo = async (req, res) => {
-
+        const reqi=req.body.segmento
     try {
         const query = `
             SELECT 
@@ -427,12 +427,11 @@ controladorRequerimiento.conteo = async (req, res) => {
             RIGHT JOIN 
                 requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
             WHERE 
-                estatus != 'Vigente'
+                estatus != 'Vigente' and segmento =?
             GROUP BY 
-                nombre_requerimiento, zona;
-        `;
+                nombre_requerimiento, zona; `;
         
-        const [results] = await pool.query(query);
+        const [results] = await pool.query(query,[reqi]);
         const sentencia = [];
 
         // Obtener todos los nombres de requerimientos únicos
@@ -505,6 +504,7 @@ controladorRequerimiento.Conteozonas=async(req,res)=>{
     // where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento
     // GROUP BY zona`
 
+    const segmento= req.body.segmento
     const zonas =
     `SELECT 
     SUM(CASE WHEN zona='Centro' AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'Centro',
@@ -513,11 +513,11 @@ controladorRequerimiento.Conteozonas=async(req,res)=>{
     SUM(CASE WHEN zona='Sureste' AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'Sureste',
     SUM(CASE WHEN (zona ='Centro' OR zona='Pacífico' OR zona='Sureste' OR zona ='Noreste') AND estatus != 'Vigente' THEN 1 ELSE 0 END) AS 'total'
   FROM registro
-  JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta;
-  
+  JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
+  WHERE segmento=?;
     `
     try{
-        const [zonasconteo]= await pool.query(zonas)
+        const [zonasconteo]= await pool.query(zonas,[segmento])
         res.json(zonasconteo)
         console.log(zonasconteo)
         console.log("Zonas enviadas")
