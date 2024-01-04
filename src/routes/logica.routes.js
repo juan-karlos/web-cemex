@@ -11,7 +11,7 @@ router.get('/porcentajePlanta', controllersLogica.porcentaje)
 router.get('/zonas', controllersLogica.zonas)
 router.get('/fijas', controllersLogica.fijas) 
 router.get('/moviles', controllersLogica.moviles)
-router.get('/vencidas', controllersLogica.vencida)
-router.get('/vigentes', controllersLogica.vigente)
+router.post('/vencidas', controllersLogica.vencida)
+router.post('/vigentes', controllersLogica.vigente)
 
 module.exports=router;
