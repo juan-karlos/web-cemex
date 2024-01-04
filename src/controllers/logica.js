@@ -263,7 +263,82 @@ const [zon]=await pool.query(zonas)
 res.json(zon)
 }
 
+/*
+zona 
+segmento 
+riesgo-->estatus
 
+--> nombre pla,siglas que esten vencidos filtrados por riesgo, %cumplimiento <--json --> registro ordenado
+*/
+
+controllersLogica.vencida=async(req,res)=>{
+    try {
+        const {zona,segmento,estatus} = req.body
+        const [rows] = await pool.query(`
+        SELECT
+            unidad_operativa.nombre_planta,
+            requerimiento.siglas,
+            unidad_operativa.porcentaje_cumplimiento
+        FROM
+            unidad_operativa
+        JOIN
+            registro ON unidad_operativa.id_planta = registro.id_planta
+        JOIN
+            requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+        WHERE
+            zona = ?
+            AND segmento = ?
+            AND estatus = ?`, [zona,segmento,estatus]);
+        if (rows.length>0) {
+            res.status(200).json(
+                rows
+            )
+        } else {
+            res.status(404).json({
+                message:'no se encontraron datos'
+            })
+        }
+    } catch (error) {
+        res.status(500).json({
+            message: "No se pudo acceder a la base de datos"
+        })
+    }
+}
+
+
+controllersLogica.vigente=async(req,res)=>{
+    try {
+        const {zona,segmento} = req.body
+        const [rows] = await pool.query(`
+        SELECT
+            unidad_operativa.nombre_planta,
+            requerimiento.siglas,
+            unidad_operativa.porcentaje_cumplimiento
+        FROM
+            unidad_operativa
+        JOIN
+            registro ON unidad_operativa.id_planta = registro.id_planta
+        JOIN
+            requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+        WHERE
+            zona = ?
+            AND segmento = ?
+            AND estatus = 'Vigente'`, [zona,segmento]);
+        if(rows.length>0){
+            res.status(200).json(rows)
+        }else{
+            res.status(404).json({
+                message:'no se encontraron datos'
+            })
+        }
+        
+    } catch (error) {
+        res.status(500).json({
+            message: 'No se pudo conectar al servidor'
+        })
+    }
+    
+}
 
 // sacar los porcentajes de cumplimiento para todos los segmentos divididos por zonas cadena_suministro{centro=? }
 
