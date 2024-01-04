@@ -21,7 +21,6 @@ controladorUsuario.regisUsu=async(req,res)=>{
         let passwordHash = await bcryptjs.hash(contra, 8);  // <-- este se esta agregando al inicio que es el token de la contraseña
 
         const token = await generateRandomToken();          //< --genera un token para la verificacion del correo
-
         const tokenData = jwt.sign({  correo, user, apellidos, passwordHash }, 'secreto', { expiresIn: '15m' }); //<--envuelvo todos los datos que mandare
         
         // Enviar correo electrónico con el token
@@ -76,15 +75,15 @@ controladorUsuario.regisUsu=async(req,res)=>{
                     <button id="aceptar">Aceptar</button>
                 </a>
                 <a href="http://localhost:3200/api/login/cancelar/${token}">
-                    <button id="cancelar">Cancelar</button>
+                    <button id="cancelar">Cancelar</button> 
                 </a>
             </body>
             </html>
             `,
         });
-    
-        res.status(200).json({ message: "Se ha enviado un correo para verificar el registro con tiempo limite de 15 minutos" });
 
+        res.status(200).json({ message: "Se ha enviado un correo para verificar el registro con tiempo limite de 15 minutos" });
+        console.log(tokenData)
     } catch (error) {
         res.json({
             message: 'Verica que hayas insertado los datos adecuadamente'
