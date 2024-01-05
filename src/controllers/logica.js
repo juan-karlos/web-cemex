@@ -273,11 +273,13 @@ riesgo-->estatus
 
 controllersLogica.vencida=async(req,res)=>{
     try {
-        const {zona,segmento,estatus} = req.body
+        const {zona,segmento,impacto} = req.body
         const [rows] = await pool.query(`
         SELECT
             unidad_operativa.nombre_planta,
             requerimiento.siglas,
+            requerimiento.impacto,
+            registro.estatus,
             unidad_operativa.porcentaje_cumplimiento
         FROM
             unidad_operativa
@@ -288,7 +290,8 @@ controllersLogica.vencida=async(req,res)=>{
         WHERE
             zona = ?
             AND segmento = ?
-            AND estatus = ?`, [zona,segmento,estatus]);
+            AND estatus = 'Vencido'
+            AND impacto = ?`, [zona,segmento,impacto]);
         if (rows.length>0) {
             res.status(200).json(
                 rows
