@@ -159,7 +159,7 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
     
   controllerHistorial.zonaSegmento = async (req, res) => {
         const { zona, segmento } = req.body; // Obtener datos del cuerpo de la solicitud
-      
+      console.log(zona,segmento)
         try {
           console.log('Datos de la solicitud:', zona, segmento); // Agrega un log para los datos de la solicitud
       
@@ -202,7 +202,7 @@ controllerHistorial.insertarHitorial= async (req,res)=>{
       const query = 'SELECT zona, cumplimiento FROM historial WHERE segmento = ? AND MONTH(fecha) = ? AND YEAR(fecha) = ?';
       const [cumplimiento] = await pool.query(query, [segmento, lastMonth.getMonth() + 1, lastMonth.getFullYear()]);
   
-      console.log('Resultado de la consulta:', cumplimiento); // Agrega un log para los resultados de la consulta
+      // console.log('Resultado de la consulta:', cumplimiento); // Agrega un log para los resultados de la consulta
   
       res.json(cumplimiento);
     } catch (excepcion) {
