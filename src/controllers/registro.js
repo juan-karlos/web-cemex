@@ -101,7 +101,7 @@ controladorRegistro.descargas = async (req, res) => {
       const urlObj = new URL(urlCompleta);
       const rutaDecodificada = decodeURIComponent(urlObj.pathname);
     
-      console.log('Ruta del archivo:', rutaDecodificada);
+      // console.log('Ruta del archivo:', rutaDecodificada);
     
       const nombreArchivo = path.basename(rutaDecodificada);
       const rutaRelativa = path.join('./src/recursos', nombreArchivo); // Ruta relativa al archivo en tu proyecto
