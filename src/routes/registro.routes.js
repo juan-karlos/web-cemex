@@ -28,6 +28,7 @@ router.post('/grafica',controladorRegistro.graficatotal)
 
 router.get('/graficaTotal',controladorRegistro.Graficatotal)
 
+router.post('/descargas',controladorRegistro.descargas)
 
 
 router.get('/permiso/:cb',controladorRegistro.obtenerUnRegi);
