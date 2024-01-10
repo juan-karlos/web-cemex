@@ -2,6 +2,7 @@ const { Router } = require('express');
 
 const router = Router()
 const controladorRegistro= require('../controllers/registro');
+const controladorVencimiento = require('../controllers/verifacadorVencidos');
 const { route } = require('./reg_requeriminto.routes');
 
 // router.post('/load_pdf',controladorRegistro.insertpdf)
@@ -25,6 +26,8 @@ router.post('/grafica',controladorRegistro.graficatotal)
 // router.get('/graficaNoreste',controladorRegistro.graficaNoreste)
 // router.get('/graficaPasifico',controladorRegistro.graficaPasifico)
 // router.get('/graficaSureste',controladorRegistro.graficaSureste)
+router.patch('/updateToVencido', controladorVencimiento.updateToVencimiento);
+
 
 router.get('/graficaTotal',controladorRegistro.Graficatotal)
 
