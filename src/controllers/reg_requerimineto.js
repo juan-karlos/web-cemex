@@ -455,7 +455,7 @@ controladorRequerimiento.conteo = async (req, res) => {
             for (const resultado of resultadosRequerimiento) {
                 // Sumar los resultados según la zona
                 switch (resultado.zona) {
-                    case 'Pacífico':
+                    case 'Pacifico':
                         jos.plantaspas += resultado.plantas_encontradas;
                         break;
                     case 'Centro':

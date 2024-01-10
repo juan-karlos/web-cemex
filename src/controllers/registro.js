@@ -2,10 +2,154 @@ const { json, text } = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
 const pool = require("../database");
-const fs = require("fs");
+const fs = require("fs",'fs-extra');
 const { url } = require("inspector");
+const archiver = require('archiver')
+const fse = require('fs-extra');
+const iconv = require('iconv-lite');
 
 const controladorRegistro = {};
+
+
+
+// controladorRegistro.descargas = async (req, res) => {
+//   try {
+//     const { fecha1, fecha2 } = req.body;
+
+//     if (!fecha1 || !fecha2) {
+//       return res.status(400).json({ message: "Se requieren los parámetros de fechas para la descarga de archivos" });
+//     }
+
+//     const url = `
+//       SELECT url
+//       FROM registro
+//       WHERE url IS NOT NULL AND TRIM(fecha_inicio) BETWEEN ? AND ?;
+//     `;
+
+//     const [rutas] = await pool.query(url, [fecha1, fecha2]);
+
+//     if (rutas.length === 0) {
+//       return res.status(404).json({ message: "No se encontraron datos en la ruta" });
+//     }
+
+//     const urls = rutas.map((ruta) => ruta.url);
+
+//     const archive = archiver('zip', {
+//       zlib: { level: 9 } // Nivel de compresión máximo
+//     });
+
+//     res.attachment('descarga-masiva.zip');
+//     archive.pipe(res);
+
+//     const rutasRelativas = urls.map(urlCompleta => {
+//       const urlObj = new URL(urlCompleta);
+//       const rutaDecodificada = decodeURIComponent(urlObj.pathname);
+//       return rutaDecodificada;
+//     });
+    
+//     // console.log(rutasRelativas)
+//     for (let i = 0; i < rutasRelativas.length; i++) {
+//       const nombreArchivo = path.basename(rutasRelativas[i]);
+//       console.log(nombreArchivo)
+//       archive.file(rutasRelativas[i], { name: nombreArchivo });
+//     }
+
+//     await new Promise((resolve, reject) => {
+//       archive.finalize();
+//       archive.on('end', resolve);
+//       archive.on('error', reject);
+//     });
+
+//     console.log('Descarga masiva completada');
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Hay problemas en el servidor" });
+//   }
+// };
+
+
+
+controladorRegistro.descargas = async (req, res) => {
+  try {
+    const { fecha1, fecha2 } = req.body;
+
+    if (!fecha1 || !fecha2) {
+      return res.status(400).json({ message: "Se requieren los parámetros de fechas para la descarga de archivos" });
+    }
+
+    const url = `
+      SELECT url
+      FROM registro
+      WHERE url IS NOT NULL AND TRIM(fecha_inicio) BETWEEN ? AND ?;
+    `;
+
+    const [rutas] = await pool.query(url, [fecha1, fecha2]);
+
+    if (rutas.length === 0) {
+      return res.status(404).json({ message: "No se encontraron datos en la ruta" });
+    }
+
+    const urls = rutas.map((ruta) => ruta.url);
+
+    const carpetaTemporal = 'archivos_temporales';
+
+    // Crear la carpeta temporal si no existe
+    await fse.ensureDir(carpetaTemporal);
+
+    // Copiar los archivos a la carpeta temporal
+    for (const urlCompleta of urls) {
+      const urlObj = new URL(urlCompleta);
+      const rutaDecodificada = decodeURIComponent(urlObj.pathname);
+    
+      // console.log('Ruta del archivo:', rutaDecodificada);
+    
+      const nombreArchivo = path.basename(rutaDecodificada);
+      const rutaRelativa = path.join('./src/recursos', nombreArchivo); // Ruta relativa al archivo en tu proyecto
+      const destino = path.join(carpetaTemporal, nombreArchivo);
+    
+      // Leer el archivo con fs.readFile y escribirlo en la carpeta temporal
+      const contenidoArchivo = fs.readFileSync(rutaRelativa); // Leer desde la ruta relativa
+      fs.writeFileSync(destino, contenidoArchivo); // Escribir en la carpeta temporal
+    }
+    
+
+    // Crear el archivo ZIP
+    const archive = archiver('zip', {
+      zlib: { level: 9 } // Nivel de compresión máximo
+    });
+
+    res.attachment('descarga-masiva.zip');
+    archive.pipe(res);
+
+    // Agregar la carpeta temporal al archivo ZIP
+    archive.directory(carpetaTemporal, 'archivos_deseados');
+
+    // Finalizar el archivo ZIP
+    await new Promise((resolve, reject) => {
+      archive.finalize();
+      archive.once('end', resolve);
+      archive.once('error', reject);
+    });
+
+    // Eliminar la carpeta temporal después de comprimir
+    await fse.remove(carpetaTemporal);
+
+    console.log('Descarga masiva completada');
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Hay problemas en el servidor" });
+  }
+};
+
+
+
+
+
+
+
+
+
+
 
 
 // controller para elegir el registro para actualizarlo
@@ -646,12 +790,11 @@ controladorRegistro.actualizarEstado = async (req, res) => {
 controladorRegistro.graficatotal = async (req, res) => {
 
    const segmento = req.body.segmento
-
   let nacional = `SELECT
   uo.nombre_planta AS UnidadOperativa,
-  COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
-  COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
-  COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
+  COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+  COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+  COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
 FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
@@ -661,9 +804,9 @@ GROUP BY uo.nombre_planta; `;
   
   let centro = `SELECT
   uo.nombre_planta AS UnidadOperativa,
-  COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
-  COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
-  COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
+  COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+  COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+  COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
 FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
@@ -672,9 +815,9 @@ GROUP BY uo.nombre_planta;`;
 
   let noreste = `SELECT
   uo.nombre_planta AS UnidadOperativa,
-  COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
-  COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
-  COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
+  COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+  COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+  COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
 FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
@@ -683,25 +826,30 @@ GROUP BY uo.nombre_planta; `;
 
 let Pasifico = `SELECT
 uo.nombre_planta AS UnidadOperativa,
-COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
-COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
-COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
+COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
 FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
-where zona ='Pacífico' and segmento=?
+where zona ='Pacifico' and segmento=?
 GROUP BY uo.nombre_planta;`;
 
 let sureste= `SELECT
 uo.nombre_planta AS UnidadOperativa,
-COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' THEN 1 END) AS Multas,
-COUNT(CASE WHEN req.impacto = 'Clausura' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Clausuras,
-COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' THEN 1 END) AS Administrativos
+COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+COUNT(CASE WHEN req.impacto = 'Clausura Total ' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
 FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where zona ='Sureste' and segmento=?
 GROUP BY uo.nombre_planta; `;
+
+
+console.log("despues de esta linia sigue el segemnto resivido")
+console.log(segmento,"Este es el segmento")
+
 
   let clausuradasnas = [];
   let multasnas = [];
@@ -732,177 +880,171 @@ GROUP BY uo.nombre_planta; `;
 
   let [resultados] = await pool.query(nacional,[segmento]);
   
+
+  // console.log(".....................")
+  // console.log("")
+  // console.log(resultados)
+  // console.log("")
+
+
   for (let i = 0; i < resultados.length; i++) {
     if (
-      (resultados[i].Clausuras === 1) &&
-      (resultados[i].Multas === 0 || resultados[i].Multas === 1) &&
-      (resultados[i].Administrativos === 1 || resultados[i].Administrativos === 0)
+      (resultados[i].Clausuras >= 1)
     ) {
-      console.log(resultados[i].UnidadOperativa + " ....... Clausuradas");
+      // console.log(resultados[i].UnidadOperativa + " ....... Clausuradas");
+
       clausuradasnas.push(resultados[i]);
     } else if (
       (resultados[i].Clausuras === 0) &&
-      (resultados[i].Multas === 1) &&
-      (resultados[i].Administrativos === 0 || resultados[i].Administrativos === 1)
+      (resultados[i].Multas >= 1) 
     ) {
-      console.log(resultados[i].UnidadOperativa + " ....... Multado");
+      // console.log(resultados[i].UnidadOperativa + " ....... Multado");
       multasnas.push(resultados[i]);
 
     } else if (
       (resultados[i].Clausuras === 0) &&
       (resultados[i].Multas === 0) &&
-      (resultados[i].Administrativos === 1)
+      (resultados[i].Administrativos >=1)
     ) {
-      console.log(resultados[i].UnidadOperativa + " ......... Administrativos");
+      // console.log(resultados[i].UnidadOperativa + " ......... Administrativos");
       administrativasnas.push(resultados[i]);
     } else {
-      console.log(resultados[i].UnidadOperativa + " ......... Libres");
+      // console.log(resultados[i].UnidadOperativa + " ......... Libres");
       optimasnas.push(resultados[i]);
     }
   }
 
   // console.log(resultados)
 
-console.log("")
-console.log("estadisticas de centro........................................................")
-console.log("")
+// console.log("")
+// console.log("estadisticas de centro........................................................")
+// console.log("")
 
   let [resultadoscen] = await pool.query(centro,[segmento]);
   for (let i = 0; i < resultadoscen.length; i++) {
     if (
-      (resultadoscen[i].Clausuras === 1) &&
-      (resultadoscen[i].Multas === 0 || resultadoscen[i].Multas === 1) &&
-      (resultadoscen[i].Administrativos === 1 || resultadoscen[i].Administrativos === 0)
+      (resultadoscen[i].Clausuras >= 1)
     ) {
-      console.log(resultadoscen[i].UnidadOperativa + " ....... Clausuradas");
+      // console.log(resultadoscen[i].UnidadOperativa + " ....... Clausuradas");
       clausuradascen.push(resultadoscen[i]);
     } else if (
       (resultadoscen[i].Clausuras === 0) &&
-      (resultadoscen[i].Multas === 1) &&
-      (resultadoscen[i].Administrativos === 0 || resultadoscen[i].Administrativos === 1)
+      (resultadoscen[i].Multas >= 1) 
     ) {
-      console.log(resultadoscen[i].UnidadOperativa + " ....... Multado");
+      // console.log(resultadoscen[i].UnidadOperativa + " ....... Multado");
       multascen.push(resultadoscen[i]);
 
     } else if (
       (resultadoscen[i].Clausuras === 0) &&
       (resultadoscen[i].Multas === 0) &&
-      (resultadoscen[i].Administrativos === 1)
+      (resultadoscen[i].Administrativos >= 1)
     ) {
-      console.log(resultadoscen[i].UnidadOperativa + " ......... Administrativos");
+      // console.log(resultadoscen[i].UnidadOperativa + " ......... Administrativos");
       administrativascen.push(resultadoscen[i]);
     } else {
-      console.log(resultadoscen[i].UnidadOperativa + " ......... Libres");
+      // console.log(resultadoscen[i].UnidadOperativa + " ......... Libres");
       optimascen.push(resultadoscen[i]);
     }
   }
-console.log("")
-  console.log("estadisticas de noreste.....................................................")
-console.log("")
+// console.log("")
+//   console.log("estadisticas de noreste.....................................................")
+// console.log("")
 
   let [resultadosnor] = await pool.query(noreste,[segmento]);
   for (let i = 0; i < resultadosnor.length; i++) {
     if (
-      (resultadosnor[i].Clausuras === 1) &&
-      (resultadosnor[i].Multas === 0 || resultadosnor[i].Multas === 1) &&
-      (resultadosnor[i].Administrativos === 1 || resultadosnor[i].Administrativos === 0)
+      (resultadosnor[i].Clausuras >= 1)
     ) {
-      console.log(resultadosnor[i].UnidadOperativa + " ....... Clausuradas");
+      // console.log(resultadosnor[i].UnidadOperativa + " ....... Clausuradas");
       clausuradasnor.push(resultadosnor[i]);
     } else if (
       (resultadosnor[i].Clausuras === 0) &&
-      (resultadosnor[i].Multas === 1) &&
-      (resultadosnor[i].Administrativos === 0 || resultadosnor[i].Administrativos === 1)
+      (resultadosnor[i].Multas >= 1)
+      
     ) {
-      console.log(   resultadosnor[i].UnidadOperativa + " ....... Multado");
+      // console.log(   resultadosnor[i].UnidadOperativa + " ....... Multado");
       multasnor.push(resultadosnor[i]);
 
     } else if (
       (resultadosnor[i].Clausuras === 0) &&
       (resultadosnor[i].Multas === 0) &&
-      (resultadosnor[i].Administrativos === 1)
+      (resultadosnor[i].Administrativos >= 1)
     ) {
-      console.log(resultadosnor[i].UnidadOperativa + " ......... Administrativos");
+      // console.log(resultadosnor[i].UnidadOperativa + " ......... Administrativos");
       administrativascen.push(resultadosnor[i]);
     } else {
-      console.log(resultadosnor[i].UnidadOperativa + " ......... Libres");
+      // console.log(resultadosnor[i].UnidadOperativa + " ......... Libres");
       optimascen.push(resultadosnor[i]);
     }
   }
 
-  console.log("")
-  console.log("estadisticas de pasifico.....................................................")
-
-  
+//   console.log("")
+//   console.log("estadisticas de pasifico.....................................................")
 console.log("")
+
+
 
 
   let [resultadospas] = await pool.query(Pasifico,[segmento]);
   for (let i = 0; i < resultadospas.length; i++) {
     if (
-      (resultadospas[i].Clausuras === 1) &&
-      (resultadospas[i].Multas === 0 || resultadospas[i].Multas === 1) &&
-      (resultadospas[i].Administrativos === 1 || resultadospas[i].Administrativos === 0)
+      (resultadospas[i].Clausuras >= 1) 
     ) {
-      console.log(resultadospas[i].UnidadOperativa + " ....... Clausuradas");
+      // console.log(resultadospas[i].UnidadOperativa + " ....... Clausuradas");
       clausuradaspas.push(resultadospas[i]);
     } else if (
       (resultadospas[i].Clausuras === 0) &&
-      (resultadospas[i].Multas === 1) &&
-      (resultadospas[i].Administrativos === 0 || resultadospas[i].Administrativos === 1)
+      (resultadospas[i].Multas >= 1)
     ) {
-      console.log(   resultadospas[i].UnidadOperativa + " ....... Multado");
+      // console.log(   resultadospas[i].UnidadOperativa + " ....... Multado");
       multaspas.push(resultadospas[i]);
 
     } else if (
       (resultadospas[i].Clausuras === 0) &&
       (resultadospas[i].Multas === 0) &&
-      (resultadospas[i].Administrativos === 1)
+      (resultadospas[i].Administrativos >= 1)
     ) {
-      console.log(resultadospas[i].UnidadOperativa + " ......... Administrativos");
+      // console.log(resultadospas[i].UnidadOperativa + " ......... Administrativos");
       administrativaspas.push(resultadospas[i]);
     } else {
-      console.log(resultadospas[i].UnidadOperativa + " ......... Libres");
+      // console.log(resultadospas[i].UnidadOperativa + " ......... Libres");
       optimaspas.push(resultadospas[i]);
     }
   }
 
 
-  console.log("..........................")
-  console.log(resultadospas)
-  console.log("......................................")
+  // console.log("..........................")
+  // console.log(resultadospas)
+  // console.log("......................................")
 
   let [resultadossur] = await pool.query(sureste,[segmento]);
   for (let i = 0; i < resultadossur.length; i++) {
     if (
-      (resultadossur[i].Clausuras === 1) &&
-      (resultadossur[i].Multas === 0 || resultadossur[i].Multas === 1) &&
-      (resultadossur[i].Administrativos === 1 || resultadossur[i].Administrativos === 0)
+      (resultadossur[i].Clausuras >= 1)
     ) {
-      console.log(resultadossur[i].UnidadOperativa + " ....... Clausuradas");
-      clausuradaspas.push(resultadossur[i]);
+      // console.log(resultadossur[i].UnidadOperativa + " ....... Clausuradas");
+      clausuradassur.push(resultadossur[i]);
     } else if (
       (resultadossur[i].Clausuras === 0) &&
-      (resultadossur[i].Multas === 1) &&
-      (resultadossur[i].Administrativos === 0 || resultadossur[i].Administrativos === 1)
+      (resultadossur[i].Multas >= 1) 
     ) {
-      console.log(   resultadossur[i].UnidadOperativa + " ....... Multado");
-      multaspas.push(resultadossur[i]);
+      // console.log(   resultadossur[i].UnidadOperativa + " ....... Multado");
+      multassur.push(resultadossur[i]);
 
     } else if (
       (resultadossur[i].Clausuras === 0) &&
       (resultadossur[i].Multas === 0) &&
-      (resultadossur[i].Administrativos === 1)
+      (resultadossur[i].Administrativos >= 1)
     ) {
-      console.log(resultadossur[i].UnidadOperativa + " ......... Administrativos");
-      administrativaspas.push(resultadossur[i]);
+      // console.log(resultadossur[i].UnidadOperativa + " ......... Administrativos");
+      administrativassur.push(resultadossur[i]);
     } else {
-      console.log(resultadossur[i].UnidadOperativa + " ......... Libres");
-      optimaspas.push(resultadossur[i]);
+      // console.log(resultadossur[i].UnidadOperativa + " ......... Libres");
+      optimassur.push(resultadossur[i]);
     }
   }
   console.log(" Estos son los resultados de la consulta sql")
-  console.log(resultadossur)
+  // console.log(resultadossur)
 
   clausuradasnas    = clausuradasnas.length
   multasnas         = multasnas.length
