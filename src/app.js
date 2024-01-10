@@ -1,3 +1,4 @@
+const cron = require('node-cron');
 const express = require ('express')
 const morgan = require('morgan')
 const cors = require("cors")
@@ -6,6 +7,8 @@ const app = express()
 const fileUpload = require('express-fileupload');
 const bodyParser = require('body-parser')
 const path = require("path");
+const controladorVencimiento = require('./controllers/verifacadorVencidos')
+
 
 const whitelist=[
     "http://localhost:4200",
@@ -47,6 +50,11 @@ app.use('/api/unidad',require("./routes/uni_opera.routes"));
 app.use('/api/regi',require("./routes/registro.routes"));
 app.use('/api/historial',require("./routes/historial.routes"));
 app.use('/api/logica',require("./routes/logica.routes"));
+
+// Programar la tarea diaria a la 12 am
+cron.schedule('29 08 * * *', () => {
+    controladorVencimiento.updateToVencimiento();
+}); 
 
 app.use((req,res ,next)=>{
     res.status(404).json({
