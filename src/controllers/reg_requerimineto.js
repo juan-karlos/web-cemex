@@ -773,14 +773,14 @@ controladorRequerimiento.cumplimiento1 = async (req, res) => {
         const quer = `
             SELECT SUM(peso) as total
             FROM unidad_operativa, registro, requerimiento 
-            WHERE nombre_planta = ? AND 
+            WHERE nombre_planta = ? and estatus!= "No Aplica" AND 
             unidad_operativa.id_planta = registro.id_planta AND 
             registro.id_requerimiento = requerimiento.id_requerimiento
         `;
 
         const quer2= ` SELECT SUM(peso) as parcial
         FROM unidad_operativa, registro, requerimiento 
-        WHERE estatus = "Vigente" and nombre_planta = ? AND 
+        WHERE estatus = "Vigente" and estatus!= "No Aplica" and nombre_planta = ? AND 
         unidad_operativa.id_planta = registro.id_planta AND 
         registro.id_requerimiento = requerimiento.id_requerimiento`;
 
@@ -790,7 +790,12 @@ controladorRequerimiento.cumplimiento1 = async (req, res) => {
         const [plantas] = await pool.query('SELECT DISTINCT(nombre_planta) FROM unidad_operativa');
 
         for (let i = 0; i < plantas.length; i++) {
-            const nombrePlanta = plantas[i].nombre_planta;
+            let nombrePlanta = plantas[i].nombre_planta;
+
+            if(typeof nombrePlanta==='number'){
+                nombrePlanta=nombre_planta.toString
+            }        
+
 
             const [resultado] = await pool.query(quer, [nombrePlanta]);
             const total= parseFloat(resultado[0].total)
