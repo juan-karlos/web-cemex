@@ -971,10 +971,10 @@ console.log(segmento,"Este es el segmento")
       (resultadosnor[i].Administrativos >= 1)
     ) {
       // console.log(resultadosnor[i].UnidadOperativa + " ......... Administrativos");
-      administrativascen.push(resultadosnor[i]);
+      administrativasnor.push(resultadosnor[i]);
     } else {
       // console.log(resultadosnor[i].UnidadOperativa + " ......... Libres");
-      optimascen.push(resultadosnor[i]);
+      optimasnor.push(resultadosnor[i]);
     }
   }
 
@@ -1112,6 +1112,7 @@ console.log("")
 }
 
   const jeison = [nas,cen,nor,pas,sur]
+  console.log(jeison)
   
   res.json(jeison);
 
