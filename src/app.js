@@ -52,7 +52,7 @@ app.use('/api/historial',require("./routes/historial.routes"));
 app.use('/api/logica',require("./routes/logica.routes"));
 
 // Programar la tarea diaria a la 12 am
-cron.schedule('29 08 * * *', () => {
+cron.schedule('00 00 * * *', () => {
     controladorVencimiento.updateToVencimiento();
 }); 
 
@@ -61,4 +61,5 @@ app.use((req,res ,next)=>{
         message:'enpoint no encontrado'
     })
 });
+
 module.exports=app
