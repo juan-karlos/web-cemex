@@ -270,77 +270,77 @@ riesgo-->estatus
 --> nombre pla,siglas que esten vencidos filtrados por riesgo, %cumplimiento <--json --> registro ordenado
 */
 
-controllersLogica.vencida=async(req,res)=>{
+controllersLogica.vencida = async (req, res) => {
     try {
-        const {zona,segmento,impacto} = req.body
+        const { zona, segmento, impacto } = req.body;
         const [rows] = await pool.query(`
-        SELECT
-            unidad_operativa.nombre_planta,
-            requerimiento.siglas,
-            requerimiento.impacto,
-            registro.estatus,
-            unidad_operativa.porcentaje_cumplimiento
-        FROM
-            unidad_operativa
-        JOIN
-            registro ON unidad_operativa.id_planta = registro.id_planta
-        JOIN
-            requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-        WHERE
-            zona = ?
-            AND segmento = ?
-            AND estatus = 'Vencido'
-            AND impacto = ?`, [zona,segmento,impacto]);
-        if (rows.length>0) {
-            res.status(200).json(
-                rows
-            )
+            SELECT
+                unidad_operativa.nombre_planta,
+                requerimiento.siglas,
+                requerimiento.impacto,
+                registro.estatus,
+                unidad_operativa.porcentaje_cumplimiento
+            FROM
+                unidad_operativa
+            JOIN
+                registro ON unidad_operativa.id_planta = registro.id_planta
+            JOIN
+                requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+            WHERE
+                zona = ?
+                AND segmento = ?
+                AND estatus = 'Vencido' and estatus != 'No Aplica'
+                AND impacto = ?`, [zona, segmento, impacto]);
+
+        if (rows.length > 0) {
+            res.status(200).json(rows);
         } else {
             res.status(404).json({
-                message:'no se encontraron datos'
-            })
+                message: 'No se encontraron datos',
+            });
         }
     } catch (error) {
         res.status(500).json({
-            message: "No se pudo acceder a la base de datos"
-        })
+            message: 'No se pudo acceder a la base de datos',
+        });
     }
-}
+};
 
 
-controllersLogica.vigente=async(req,res)=>{
+controllersLogica.vigente = async (req, res) => {
     try {
-        const {zona,segmento} = req.body
+        const { zona, segmento } = req.body;
         const [rows] = await pool.query(`
-        SELECT
-            unidad_operativa.nombre_planta,
-            requerimiento.siglas,
-            unidad_operativa.porcentaje_cumplimiento
-        FROM
-            unidad_operativa
-        JOIN
-            registro ON unidad_operativa.id_planta = registro.id_planta
-        JOIN
-            requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-        WHERE
-            zona = ?
-            AND segmento = ?
-            AND estatus = 'Vigente'`, [zona,segmento]);
-        if(rows.length>0){
-            res.status(200).json(rows)
-        }else{
+            SELECT
+                unidad_operativa.nombre_planta,
+                requerimiento.siglas,
+                unidad_operativa.porcentaje_cumplimiento
+            FROM
+                unidad_operativa
+            JOIN
+                registro ON unidad_operativa.id_planta = registro.id_planta
+            JOIN
+                requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+            WHERE
+                zona = ?
+                AND segmento = ?
+                AND porcentaje_cumplimiento = 100
+                and estatus !='No Aplica'`, [zona, segmento]);
+
+        if (rows.length > 0) {
+            res.status(200).json(rows);
+        } else {
             res.status(404).json({
-                message:'no se encontraron datos'
-            })
+                message: 'No se encontraron datos',
+            });
         }
-        
     } catch (error) {
         res.status(500).json({
-            message: 'No se pudo conectar al servidor'
-        })
+            message: 'No se pudo conectar al servidor',
+        });
     }
-    
-}
+};
+
 
 // sacar los porcentajes de cumplimiento para todos los segmentos divididos por zonas cadena_suministro{centro=? }
 
