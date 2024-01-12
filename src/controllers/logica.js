@@ -181,7 +181,7 @@ GROUP BY zona;`
  
     const [porcentaje]= await pool.query(sentencia) 
     res.json(porcentaje) 
-    console.log(porcentaje) 
+    // console.log(porcentaje) 
 } 
  
  
@@ -238,7 +238,6 @@ controllersLogica.zonas=async(req,res)=>{
     SUM(Sureste) AS Sureste,
     SUM(Centro + Pacífico + Noreste + Sureste) AS Total
 FROM (
-    -- Tu consulta original aquí
     SELECT 
         segmento,
         SUM(CASE WHEN zona = 'Centro' and activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
