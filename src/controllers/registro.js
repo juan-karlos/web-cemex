@@ -12,78 +12,29 @@ const controladorRegistro = {};
 
 
 
-// controladorRegistro.descargas = async (req, res) => {
-//   try {
-//     const { fecha1, fecha2 } = req.body;
-
-//     if (!fecha1 || !fecha2) {
-//       return res.status(400).json({ message: "Se requieren los parámetros de fechas para la descarga de archivos" });
-//     }
-
-//     const url = `
-//       SELECT url
-//       FROM registro
-//       WHERE url IS NOT NULL AND TRIM(fecha_inicio) BETWEEN ? AND ?;
-//     `;
-
-//     const [rutas] = await pool.query(url, [fecha1, fecha2]);
-
-//     if (rutas.length === 0) {
-//       return res.status(404).json({ message: "No se encontraron datos en la ruta" });
-//     }
-
-//     const urls = rutas.map((ruta) => ruta.url);
-
-//     const archive = archiver('zip', {
-//       zlib: { level: 9 } // Nivel de compresión máximo
-//     });
-
-//     res.attachment('descarga-masiva.zip');
-//     archive.pipe(res);
-
-//     const rutasRelativas = urls.map(urlCompleta => {
-//       const urlObj = new URL(urlCompleta);
-//       const rutaDecodificada = decodeURIComponent(urlObj.pathname);
-//       return rutaDecodificada;
-//     });
-    
-//     // console.log(rutasRelativas)
-//     for (let i = 0; i < rutasRelativas.length; i++) {
-//       const nombreArchivo = path.basename(rutasRelativas[i]);
-//       console.log(nombreArchivo)
-//       archive.file(rutasRelativas[i], { name: nombreArchivo });
-//     }
-
-//     await new Promise((resolve, reject) => {
-//       archive.finalize();
-//       archive.on('end', resolve);
-//       archive.on('error', reject);
-//     });
-
-//     console.log('Descarga masiva completada');
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Hay problemas en el servidor" });
-//   }
-// };
-
-
 
 controladorRegistro.descargas = async (req, res) => {
   try {
-    const { fecha1, fecha2 } = req.body;
+    const nombre_rec=req.body.requerimiento;
+    // const { fecha1, fecha2 } = req.body;
 
-    if (!fecha1 || !fecha2) {
-      return res.status(400).json({ message: "Se requieren los parámetros de fechas para la descarga de archivos" });
-    }
+    // if (!fecha1 || !fecha2) {
+    //   return res.status(400).json({ message: "Se requieren los parámetros de fechas para la descarga de archivos" });
+    // }
 
-    const url = `
-      SELECT url
-      FROM registro
-      WHERE url IS NOT NULL AND TRIM(fecha_inicio) BETWEEN ? AND ?;
-    `;
+    const url=`SELECT url 
+    FROM registro JOIN unidad_operativa on registro.id_planta = unidad_operativa.id_planta JOIN requerimiento on requerimiento.id_requerimiento = registro.id_requerimiento
+    WHERE url IS NOT NULL AND nombre_requerimiento='Almacén Temporal de Residuos Peligrosos ';`
 
-    const [rutas] = await pool.query(url, [fecha1, fecha2]);
+    // const url = `
+    //   SELECT url
+    //   FROM registro
+    //   WHERE url IS NOT NULL AND TRIM(fecha_inicio) BETWEEN ? AND ?;
+    // `;
+
+    // const [rutas] = await pool.query(url, [fecha1, fecha2]);
+    
+    const [rutas] = await pool.query(url, [nombre_rec]);
 
     if (rutas.length === 0) {
       return res.status(404).json({ message: "No se encontraron datos en la ruta" });
@@ -143,15 +94,6 @@ controladorRegistro.descargas = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
 // controller para elegir el registro para actualizarlo
  
 controladorRegistro.obtenerUnRegi=async(req,res)=>{
@@ -171,8 +113,6 @@ controladorRegistro.obtenerUnRegi=async(req,res)=>{
 }
 
 
-
-
 //controlador que trae todos los registros
 controladorRegistro.obtenerRegistro = async (req, res) => {
   try {
@@ -181,6 +121,7 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
     where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento
      `);
     res.json(registros);
+    console.log("se enviaron los registros")
   } catch (Excepcion) {
     console.log(Excepcion)
     res.status(500).json({message:"hay un error en el systema intente mas tarde"})
