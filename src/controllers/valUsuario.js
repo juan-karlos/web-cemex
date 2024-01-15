@@ -132,29 +132,62 @@ controladorUsuario.cancelacion = async (req,res)=>{
     }
 }
 
-controladorUsuario.comparacion= async(req,res)=>{ ///----------revisar
+// controladorUsuario.comparacion= async(req,res)=>{ ///----------revisar
+//     try {
+//         const correo= req.body.correo;
+//         const contra = req.body.password;
+
+//         const [bdpassword] =  await pool.query('select contrasena, id_usuario from usuarios where correo_electronico= ? ',[correo]); 
+//         if (bdpassword.length>0) {
+//             console.log('DATOS: ', bdpassword)
+//             const encriptedbd = bdpassword[0]['contrasena']
+//             let compare =bcryptjs.compareSync(contra,encriptedbd);
+//             if(compare){
+//                 res.json("Bienvenido");
+//             }else{
+//                 res.json("no se encuentra el usuario");
+//             }
+//         } else {
+//             res.status(400).json('Verifica que este escrito bien tu correo.')
+//         }
+
+//     } catch (error) {
+//         res.status(500).json('No se pudo establecer conexion con el servidor.')
+//     }
+    
+// }
+
+controladorUsuario.comparacion = async (req, res) => {
     try {
-        const correo= req.body.correo;
+        const correo = req.body.correo;
         const contra = req.body.password;
 
-        const [bdpassword] =  await pool.query('select contrasena from usuarios where correo_electronico= ? ',[correo]); 
-        if (bdpassword.length>0) {
-            const encriptedbd = bdpassword[0]['contrasena']
-            let compare =bcryptjs.compareSync(contra,encriptedbd);
-            if(compare){
-                res.json("Bienvenido");
-            }else{
-                res.json("no se encuentra el usuario");
+        const [usuario] = await pool.query('select contrasena, id_usuario from usuarios where correo_electronico = ?', [correo]);
+
+        if (usuario.length > 0) {
+           
+            const encriptedbd = usuario[0]['contrasena'];
+            const userId = usuario[0]['id_usuario'];
+
+            let compare = bcryptjs.compareSync(contra, encriptedbd);
+
+            if (compare) {
+                // Credenciales válidas, genera un token
+                const access_token = jwt.sign({ userId, correo }, '1a2b3c4d5', { expiresIn: '12h' });
+
+                // Envía el token como respuesta
+                res.json({ access_token });
+            } else {
+                res.status(401).json("Contraseña incorrecta");
             }
         } else {
-            res.status(400).json('Verifica que este escrito bien tu correo.')
+            res.status(404).json('No se encuentra el usuario');
         }
 
     } catch (error) {
-        res.status(500).json('No se pudo establecer conexion con el servidor.')
+        res.status(500).json('No se pudo establecer conexión con el servidor.');
     }
-    
-}
+};
 
 controladorUsuario.eliminar =async(req,res)=>{////---revisar
     try {
