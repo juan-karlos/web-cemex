@@ -7,7 +7,7 @@ const app = express()
 const fileUpload = require('express-fileupload');
 const bodyParser = require('body-parser')
 const path = require("path");
-const controladorVencimiento = require('./controllers/verifacadorVencidos')
+const controladorVencimiento = require('./controllers/verificadorVencidos')
 
 
 const whitelist=[
@@ -54,6 +54,20 @@ app.use('/api/logica',require("./routes/logica.routes"));
 // Programar la tarea diaria a la 12 am
 cron.schedule('00 00 * * *', () => {
     controladorVencimiento.updateToVencimiento();
+    controladorVencimiento.vencSiguienteDia();
+}); 
+
+//Programa la tarea cada semana a las 12:00am los dias domingo
+cron.schedule('01 0 * * 0', () => {
+    controladorVencimiento.VencenEstaSemana();
+}); 
+
+cron.schedule('02 0 1 * *', () => {
+    controladorVencimiento.unMes();
+}); 
+
+cron.schedule('04 0 1 */3 *', () => {
+    controladorVencimiento.tresMeses();
 }); 
 
 app.use((req,res ,next)=>{

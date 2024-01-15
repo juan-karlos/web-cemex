@@ -4,7 +4,6 @@ const router = Router()
 const controladorRegistro= require('../controllers/registro');
 const controladorVencimiento = require('../controllers/verifacadorVencidos');
 const controladorinsertmasiva= require('../controllers/exel');
-const { route } = require('./reg_requeriminto.routes');
 
 // router.post('/load_pdf',controladorRegistro.insertpdf)
 
