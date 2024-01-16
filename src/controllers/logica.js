@@ -289,7 +289,7 @@ controllersLogica.vencida = async (req, res) => {
             WHERE
                 zona = ?
                 AND segmento = ?
-                AND estatus = 'Vencido' and estatus != 'No Aplica'
+                AND estatus != 'Vigente' and estatus != 'No Aplica'
                 AND impacto = ?`, [zona, segmento, impacto]);
 
         if (rows.length > 0) {
