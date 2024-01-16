@@ -732,7 +732,7 @@ controladorRegistro.graficatotal = async (req, res) => {
 
    const segmento = req.body.segmento
   let nacional = `SELECT
-  uo.nombre_planta AS UnidadOperativa,
+  uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,
   COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
   COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
   COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
@@ -740,11 +740,11 @@ FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where segmento=?
-GROUP BY uo.nombre_planta; `;
+GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento ; `;
 
   
   let centro = `SELECT
-  uo.nombre_planta AS UnidadOperativa,
+  uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,
   COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
   COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
   COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
@@ -752,10 +752,10 @@ FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where zona ='Centro' and segmento=?
-GROUP BY uo.nombre_planta;`;
+GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento ;  ;`;
 
   let noreste = `SELECT
-  uo.nombre_planta AS UnidadOperativa,
+  uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,
   COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
   COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
   COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
@@ -763,10 +763,10 @@ FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where zona ='Noreste' and segmento=?
-GROUP BY uo.nombre_planta; `;
+GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento ; `;
 
 let Pasifico = `SELECT
-uo.nombre_planta AS UnidadOperativa,
+uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,
 COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
 COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
 COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
@@ -774,10 +774,10 @@ FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where zona ='Pacifico' and segmento=?
-GROUP BY uo.nombre_planta;`;
+GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento ; `;
 
 let sureste= `SELECT
-uo.nombre_planta AS UnidadOperativa,
+uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,
 COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
 COUNT(CASE WHEN req.impacto = 'Clausura Total ' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
 COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
@@ -785,7 +785,7 @@ FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where zona ='Sureste' and segmento=?
-GROUP BY uo.nombre_planta; `;
+GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
 
 
 console.log("despues de esta linia sigue el segemnto resivido")
@@ -849,7 +849,7 @@ console.log(segmento,"Este es el segmento")
     ) {
       // console.log(resultados[i].UnidadOperativa + " ......... Administrativos");
       administrativasnas.push(resultados[i]);
-    } else {
+    } else if(resultados[i].porcentaje_cumplimiento>=100){
       // console.log(resultados[i].UnidadOperativa + " ......... Libres");
       optimasnas.push(resultados[i]);
     }
@@ -882,7 +882,7 @@ console.log(segmento,"Este es el segmento")
     ) {
       // console.log(resultadoscen[i].UnidadOperativa + " ......... Administrativos");
       administrativascen.push(resultadoscen[i]);
-    } else {
+    } else if(resultadoscen[i].porcentaje_cumplimiento>=100) {
       // console.log(resultadoscen[i].UnidadOperativa + " ......... Libres");
       optimascen.push(resultadoscen[i]);
     }
@@ -913,7 +913,7 @@ console.log(segmento,"Este es el segmento")
     ) {
       // console.log(resultadosnor[i].UnidadOperativa + " ......... Administrativos");
       administrativasnor.push(resultadosnor[i]);
-    } else {
+    } else if(resultadosnor[i].porcentaje_cumplimiento>=100){
       // console.log(resultadosnor[i].UnidadOperativa + " ......... Libres");
       optimasnor.push(resultadosnor[i]);
     }
@@ -947,7 +947,7 @@ console.log("")
     ) {
       // console.log(resultadospas[i].UnidadOperativa + " ......... Administrativos");
       administrativaspas.push(resultadospas[i]);
-    } else {
+    } else if(resultadospas[i].porcentaje_cumplimiento>=100){
       // console.log(resultadospas[i].UnidadOperativa + " ......... Libres");
       optimaspas.push(resultadospas[i]);
     }
@@ -979,7 +979,7 @@ console.log("")
     ) {
       // console.log(resultadossur[i].UnidadOperativa + " ......... Administrativos");
       administrativassur.push(resultadossur[i]);
-    } else {
+    } else if(resultadossur[i].porcentaje_cumplimiento>=100){
       // console.log(resultadossur[i].UnidadOperativa + " ......... Libres");
       optimassur.push(resultadossur[i]);
     }
