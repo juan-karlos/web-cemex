@@ -2,7 +2,7 @@ const { Router } = require('express');
 
 const router = Router()
 const controladorRegistro= require('../controllers/registro');
-const controladorVencimiento = require('../controllers/verifacadorVencidos');
+const controladorVencimiento = require('../controllers/verificadorVencidos');
 const controladorinsertmasiva= require('../controllers/exel');
 
 // router.post('/load_pdf',controladorRegistro.insertpdf)

@@ -15,8 +15,8 @@ const controladorRegistro = {};
 
 controladorRegistro.descargas = async (req, res) => {
   try {
-    const nombre_rec=req.body.requerimiento;
-    // const { fecha1, fecha2 } = req.body;
+    // const nombre_rec=req.body.requerimiento;
+    const { requerimiento,zona,segmento } = req.body;
 
     // if (!fecha1 || !fecha2) {
     //   return res.status(400).json({ message: "Se requieren los parámetros de fechas para la descarga de archivos" });
@@ -24,7 +24,7 @@ controladorRegistro.descargas = async (req, res) => {
 
     const url=`SELECT url 
     FROM registro JOIN unidad_operativa on registro.id_planta = unidad_operativa.id_planta JOIN requerimiento on requerimiento.id_requerimiento = registro.id_requerimiento
-    WHERE url IS NOT NULL AND nombre_requerimiento='Almacén Temporal de Residuos Peligrosos ';`
+    WHERE url IS NOT NULL AND nombre_requerimiento=? and zona =? and segmento=?;`
 
     // const url = `
     //   SELECT url
@@ -34,7 +34,7 @@ controladorRegistro.descargas = async (req, res) => {
 
     // const [rutas] = await pool.query(url, [fecha1, fecha2]);
     
-    const [rutas] = await pool.query(url, [nombre_rec]);
+    const [rutas] = await pool.query(url, [requerimiento,zona,segmento]);
 
     if (rutas.length === 0) {
       return res.status(404).json({ message: "No se encontraron datos en la ruta" });

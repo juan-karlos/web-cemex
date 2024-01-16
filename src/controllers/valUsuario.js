@@ -178,14 +178,15 @@ controladorUsuario.comparacion = async (req, res) => {
                 // Envía el token como respuesta
                 res.json({ access_token });
             } else {
-                res.status(401).json("Contraseña incorrecta");
+                res.status(404).json({message:"Contraseña incorrecta"});
             }
         } else {
-            res.status(404).json('No se encuentra el usuario');
+            res.status(404).json({message:'No se encuentra el usuario'});
         }
 
     } catch (error) {
-        res.status(500).json('No se pudo establecer conexión con el servidor.');
+        
+        res.status(500).json({message:'No se pudo establecer conexión con el servidor.'});
     }
 };
 
