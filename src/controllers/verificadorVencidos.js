@@ -21,12 +21,20 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
 
         const fecha = adjustedLocalDate.toISOString().split('T')[0]; //recupero solo la fecha actual
 
+        function formatoFecha(fecha) {           //formatea la fecha.
+            const partesFecha = fecha.split('-');
+            const anio = partesFecha[0];
+            const mes = partesFecha[1];
+            const dia = partesFecha[2];
+            return `${anio}/${mes}/${dia}`;
+        }
+        const fechaFormateada = formatoFecha(fecha);
+
         // Obtener registros con fecha de vencimiento igual o anterior a la fecha actual
         const [registrosVencidos] = await pool.query(
             'SELECT id_registro FROM registro WHERE fecha_vencimiento <= ? AND estatus = "Vigente"',
-            [adjustedLocalDate]
+            [fechaFormateada]
         );
-        
         if (registrosVencidos.length > 0) {
             // Actualizar el estado de los registros a "Vencido"
             await pool.query(
@@ -102,12 +110,14 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
 
             console.log('Estado de registros actualizado a "Vencido".');
         }else{
+            res.status(400).send("no hay datos disponibles para mostrar")
             console.error('no hay requerimientos vencidos');
         }
-  
+        res.status(200).send("Se ejecuto correctamente")
       console.log('Tarea programada ejecutada correctamente.');
     } catch (excepcion) {
       console.error('Error en la tarea programada:', excepcion);
+      res.status(500).send("hay un problema con el servidor")
     }
   };
 
@@ -209,6 +219,7 @@ controladorVencimiento.vencSiguienteDia = async (req, res) => {
                 });
     
                 console.log('envio de emails correctamente')
+                res.status(200).json({message:"Se enviaron los imails correctamente"})
     
             } else {
                 res.status(200).json({
@@ -218,11 +229,12 @@ controladorVencimiento.vencSiguienteDia = async (req, res) => {
 
             console.log('Estos son los requerimientos que venceran mañana".');
         }else{
+            res.status(400).json({message:"no hay requerimientos que vencen mañana"} )
             console.error('Ningun requerimiento vence mañana');
         }
-  
       console.log('Tarea programada ejecutada correctamente.');
     } catch (excepcion) {
+        res.status(500).send("hay un error en el servidor")
       console.error('Error en la tarea programada:', excepcion);
     }
   };
@@ -445,9 +457,10 @@ controladorVencimiento.unMes = async (req, res) => {
                 });
     
                 console.log('envio de emails correctamente')
+                res.status(200).send("se ejecuto correctamente")
     
             } else {
-                res.status(200).json({
+                res.status(400).json({
                     message: 'Ningun requerimiento vence este mes'
                 });
             }
@@ -455,11 +468,14 @@ controladorVencimiento.unMes = async (req, res) => {
             console.log('Estos son los requerimientos que venceran este mes".');
         }else{
             console.error('Ningun requerimiento vence este mes');
+            res.status(400).send("ningun requerimiento vence")
         }
   
       console.log('Tarea programada ejecutada correctamente.');
     } catch (excepcion) {
-      console.error('Error en la tarea programada:', excepcion);
+        console.error('Error en la tarea programada:', excepcion);
+        res.status(500).send("hay un error en el servidor")
+     
     }
 };
 
@@ -565,8 +581,10 @@ controladorVencimiento.tresMeses = async (req, res) => {
                 });
     
                 console.log('envio de emails correctamente')
+                res.status(200).send("Se ejecuto correctamente")
     
             } else {
+            console.log("se ejecuto correctamente")
                 res.status(200).json({
                     message: 'Ningun requerimiento vence este mes'
                 });
@@ -575,11 +593,13 @@ controladorVencimiento.tresMeses = async (req, res) => {
             console.log('Estos son los requerimientos que venceran en estos tres meses".');
         }else{
             console.error('Ningun requerimiento vencera en este lapso');
+            res.status(400).send("No se encontraron permisos que se vencieran")
         }
   
       console.log('Tarea programada ejecutada correctamente.');
     } catch (excepcion) {
       console.error('Error en la tarea programada:', excepcion);
+      res.status(500).send("hay un problema con el servidor ")
     }
 };
 
