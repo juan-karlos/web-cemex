@@ -1,10 +1,7 @@
 const pool = require("../database.js");
 const axios = require('axios');
-const nodemailer = require('nodemailer');
 const exceljs = require('exceljs');
-const generateRandomToken = require('../emails/tokenGenerator.js');
 const transporter = require ('../emails/mailer.js');
-const { json } = require("body-parser");
 
 const controladorVencimiento = {}; 
 // hace la actualizacion de permisos y realiza el envio de emails a los que estan registrados en la base de datos.
@@ -43,13 +40,15 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
                 requerimiento.siglas as siglas,
                 requerimiento.impacto as impacto,
                 unidad_operativa.nombre_planta as planta,
-                registro.estatus as estatus
+                registro.estatus as estatus,
+                registro.fecha_vencimiento as data
             FROM
                 registro
                 JOIN requerimiento  ON registro.id_requerimiento = requerimiento.id_requerimiento
                 JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
             WHERE
-                registro.id_registro IN (?)`, 
+                registro.id_registro IN (?)
+                ORDER BY registro.fecha_vencimiento ASC`, 
             [registrosVencidos.map((registro) => registro.id_registro)]);
             
             if (rows.length > 0) {
@@ -63,7 +62,8 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
                     { header: 'Requerimiento', key: 'requerimiento', width: 40 },
                     { header: 'Siglas', key: 'siglas', width: 10  },
                     { header: 'Impacto', key: 'impacto', width: 15  },
-                    { header: 'Estatus', key: 'estatus', width: 10  }
+                    { header: 'Estatus', key: 'estatus', width: 10  },
+                    { header: 'Fecha Vencimiento', key: 'data', width: 10 }
                 ];
     
                 // Agregar datos al libro de Excel
@@ -128,7 +128,7 @@ controladorVencimiento.vencSiguienteDia = async (req, res) => {
         //solo trae la fecha 
         const fechaR = adjustedLocalDate.toISOString().split('T')[0];
 
-        function formatoFecha(fecha) {
+        function formatoFecha(fecha) {           //formatea la fecha.
             const partesFecha = fecha.split('-');
             const anio = partesFecha[0];
             const mes = partesFecha[1];
