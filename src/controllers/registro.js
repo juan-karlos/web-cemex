@@ -2,47 +2,34 @@ const { json, text } = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
 const pool = require("../database");
-const fs = require("fs",'fs-extra');
+const fs = require("fs", "fs-extra");
 const { url } = require("inspector");
-const archiver = require('archiver')
-const fse = require('fs-extra');
-const iconv = require('iconv-lite');
+const archiver = require("archiver");
+const fse = require("fs-extra");
+const iconv = require("iconv-lite");
+const moment = require("moment");
 
 const controladorRegistro = {};
 
-
-
-
 controladorRegistro.descargas = async (req, res) => {
   try {
-    // const nombre_rec=req.body.requerimiento;
-    const { requerimiento,zona,segmento } = req.body;
+    const { requerimiento, zona, segmento } = req.body;
 
-    // if (!fecha1 || !fecha2) {
-    //   return res.status(400).json({ message: "Se requieren los parámetros de fechas para la descarga de archivos" });
-    // }
-
-    const url=`SELECT url 
+    const url = `SELECT url 
     FROM registro JOIN unidad_operativa on registro.id_planta = unidad_operativa.id_planta JOIN requerimiento on requerimiento.id_requerimiento = registro.id_requerimiento
-    WHERE url IS NOT NULL AND nombre_requerimiento=? and zona =? and segmento=?;`
+    WHERE url IS NOT NULL AND nombre_requerimiento=? and zona =? and segmento=?;`;
 
-    // const url = `
-    //   SELECT url
-    //   FROM registro
-    //   WHERE url IS NOT NULL AND TRIM(fecha_inicio) BETWEEN ? AND ?;
-    // `;
-
-    // const [rutas] = await pool.query(url, [fecha1, fecha2]);
-    
-    const [rutas] = await pool.query(url, [requerimiento,zona,segmento]);
+    const [rutas] = await pool.query(url, [requerimiento, zona, segmento]);
 
     if (rutas.length === 0) {
-      return res.status(404).json({ message: "No se encontraron datos en la ruta" });
+      return res
+        .status(404)
+        .json({ message: "No se encontraron datos en la ruta" });
     }
 
     const urls = rutas.map((ruta) => ruta.url);
 
-    const carpetaTemporal = 'archivos_temporales';
+    const carpetaTemporal = "archivos_temporales";
 
     // Crear la carpeta temporal si no existe
     await fse.ensureDir(carpetaTemporal);
@@ -51,213 +38,241 @@ controladorRegistro.descargas = async (req, res) => {
     for (const urlCompleta of urls) {
       const urlObj = new URL(urlCompleta);
       const rutaDecodificada = decodeURIComponent(urlObj.pathname);
-    
-      // console.log('Ruta del archivo:', rutaDecodificada);
-    
+
       const nombreArchivo = path.basename(rutaDecodificada);
-      const rutaRelativa = path.join('./src/recursos', nombreArchivo); // Ruta relativa al archivo en tu proyecto
+      const rutaRelativa = path.join("./src/recursos", nombreArchivo);
       const destino = path.join(carpetaTemporal, nombreArchivo);
-    
+
       // Leer el archivo con fs.readFile y escribirlo en la carpeta temporal
       const contenidoArchivo = fs.readFileSync(rutaRelativa); // Leer desde la ruta relativa
       fs.writeFileSync(destino, contenidoArchivo); // Escribir en la carpeta temporal
     }
-    
 
     // Crear el archivo ZIP
-    const archive = archiver('zip', {
-      zlib: { level: 9 } // Nivel de compresión máximo
+    const archive = archiver("zip", {
+      zlib: { level: 9 }, // Nivel de compresión máximo
     });
 
-    res.attachment('descarga-masiva.zip');
+    res.attachment("descarga-masiva.zip");
     archive.pipe(res);
 
     // Agregar la carpeta temporal al archivo ZIP
-    archive.directory(carpetaTemporal, 'archivos_deseados');
+    archive.directory(carpetaTemporal, "archivos_deseados");
 
     // Finalizar el archivo ZIP
     await new Promise((resolve, reject) => {
       archive.finalize();
-      archive.once('end', resolve);
-      archive.once('error', reject);
+      archive.once("end", resolve);
+      archive.once("error", reject);
     });
 
     // Eliminar la carpeta temporal después de comprimir
     await fse.remove(carpetaTemporal);
 
-    console.log('Descarga masiva completada');
+    console.log("Descarga masiva completada");
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Hay problemas en el servidor" });
   }
 };
 
-
-
 // controller para elegir el registro para actualizarlo
- 
-controladorRegistro.obtenerUnRegi=async(req,res)=>{
-  const registro =({id_requerimiento:req.params.cb})
-  id=JSON.stringify(registro);
-  const recid=/(\d+)/g;
-  const idrecu= id.match(recid);
-   try{
-    const [permiso]=await pool.query(`SELECT id_registro,nombre_requerimiento,nombre_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
-    FROM registro,unidad_operativa,requerimiento
-    where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento and registro.id_registro=?`,[idrecu])
-    res.json(permiso)
-   }catch(error){
-    console.log(error)
-    res.status(500).json({message:"error en el servidor"})
-   }
-}
 
+controladorRegistro.obtenerUnRegi = async (req, res) => {
+  const registro = { id_requerimiento: req.params.cb };
+  id = JSON.stringify(registro);
+  const recid = /(\d+)/g;
+  const idrecu = id.match(recid);
+  try {
+    const [permiso] = await pool.query(
+      `SELECT id_registro,nombre_requerimiento,nombre_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+    FROM registro,unidad_operativa,requerimiento
+    where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento and registro.id_registro=?`,
+      [idrecu]
+    );
+    res.json(permiso);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "error en el servidor" });
+  }
+};
 
 //controlador que trae todos los registros
 controladorRegistro.obtenerRegistro = async (req, res) => {
   try {
-    const [registros] = await pool.query(`SELECT id_registro,nombre_requerimiento,nombre_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+    const [registros] =
+      await pool.query(`SELECT id_registro,nombre_requerimiento,nombre_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
     FROM registro,unidad_operativa,requerimiento
     where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento
      `);
     res.json(registros);
-    console.log("se enviaron los registros")
+    console.log("se enviaron los registros");
   } catch (Excepcion) {
-    console.log(Excepcion)
-    res.status(500).json({message:"hay un error en el systema intente mas tarde"})
+    console.log(Excepcion);
+    res
+      .status(500)
+      .json({ message: "hay un error en el systema intente mas tarde" });
   }
-  /*
-  nombre_requerimiento,
-  nombre_planta,
-  fecha_inicio,
-  fecha_vencimiento,
-  observaciones,
-  url,
-  validez_unica
-  */ 
-
 };
 
 // Controlador para cargar el archivo PDF y agregar un nuevo registro
 controladorRegistro.insertarPdf = async (req, res) => {
-
-
-const sqlQuery=
-`INSERT INTO registro (id_planta, id_requerimiento, fecha_inicio, fecha_vencimiento, observaciones, estatus, url, validez_unica)
+  const sqlQuery = `INSERT INTO registro (id_planta, id_requerimiento, fecha_inicio, fecha_vencimiento, observaciones, estatus, url, validez_unica)
 SELECT uo.id_planta, req.id_requerimiento, ?, ?, ?, ?, ?, ?
 FROM unidad_operativa AS uo
 JOIN requerimiento AS req ON uo.nombre_planta = ? AND req.nombre_requerimiento = ?
-WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerimiento FROM registro);`
-
-
+WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerimiento FROM registro);`;
 
   // Verifica si se envió un archivo PDF
-  console.log("se resivio la peticion")
+  console.log("se resivio la peticion");
 
   let {
     nombre_requerimiento,
     nombre_planta,
-    fechaAcomodada,
     fechaAcomodada2,
     estatus,
     observaciones,
-    pdfUrls
+    pdfUrls,
   } = req.body;
 
-  if(fechaAcomodada && fechaAcomodada2== 'Fecha inválida'){
-    fechaAcomodada=null,
-    fechaAcomodada2=null
-  } 
-  
-  if (!req.files || !req.files.pdfFile) {
-    pdfUrls=null
-    // console.log(pdfUrls)
-  }else{
-
-      const pdfFile = req.files.pdfFile;
-      const nomarchi = pdfFile.name;
-
-       pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
-      console.log(pdfUrls)
-
-  if (!fs.existsSync("./src/recursos")) {
-    fs.mkdirSync("./src/recursos");
-   }
-  
-      pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), (err) => {
-        if (err) {
-          console.log("truena aqui");
-          console.log(err);
-          return res.status(500).json({ message: "{Error al cargar el archivo}" });
-        }
-      });
-  
+  if (fechaAcomodada2 == "Fecha inválida") {
+    (let = fechaAcomodada = moment().format("YYYY/MM/DD")),
+      (fechaAcomodada2 = null);
   }
+  const val = req.body.validez_unica;
+  const validez_unica = val === "true" ? true : false;
+  try {
+    const [afectaciones] = await pool.execute(sqlQuery, [
+      fechaAcomodada,
+      fechaAcomodada2,
+      observaciones,
+      estatus,
+      null,
+      validez_unica,
+      nombre_planta,
+      nombre_requerimiento,
+    ]);
 
-  const val=req.body.validez_unica
-  const validez_unica=val==="true"? true:false;
+    if (afectaciones.affectedRows > 0) {
+      if (!req.files || !req.files.pdfFile) {
+        pdfUrls = null;
+        console.log(pdfUrls);
+      } else {
+        const pdfFile = req.files.pdfFile;
+        const nombreOriginal = pdfFile.name;
 
+        // Obtener la fecha y hora actual
+        const fechaHoraActual = new Date();
+        const formatoFechaHora = fechaHoraActual
+          .toISOString()
+          .replace(/[-:.T]/g, "");
 
-   // if(existe ==""){
-  // Construye la URL del PDF
-  // const pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
+        // Generar un nuevo nombre con la fecha y hora
+        const nuevoNombre = `${nombreOriginal}_${formatoFechaHora}.pdf`;
 
-  try{
-    
-  // await pool.query('INSERT INTO registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
-  // console.log(pdfUrls)
+        pdfUrls = `http://localhost:3200/recursos/${nuevoNombre}`;
+        console.log(pdfUrls);
 
-  
+        if (!fs.existsSync("./src/recursos")) {
+          fs.mkdirSync("./src/recursos");
+        }
 
-      const [afectaciones] =await pool.execute(sqlQuery,[fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica,nombre_planta,nombre_requerimiento])
+        const rutaArchivoOriginal = path.join(
+          __dirname,
+          "../recursos",
+          nombreOriginal
+        );
+        const rutaNuevoArchivo = path.join(
+          __dirname,
+          "../recursos",
+          nuevoNombre
+        );
 
-      if(afectaciones.affectedRows>0){
-    
+        pdfFile.mv(rutaArchivoOriginal, (err) => {
+          if (err) {
+            console.log("Error al cargar el archivo");
+            console.log(err);
+            return res
+              .status(500)
+              .json({ message: "Error al cargar el archivo" });
+          }
 
-          const quer = `
+          // Renombrar el archivo
+          fs.rename(rutaArchivoOriginal, rutaNuevoArchivo, (err) => {
+            if (err) {
+              console.log("Error al renombrar el archivo");
+              console.log(err);
+              return res
+                .status(500)
+                .json({ message: "Error al renombrar el archivo" });
+            }
+          });
+        });
+      }
+
+      const quer = `
               SELECT SUM(peso) as total
               FROM unidad_operativa, registro, requerimiento 
               WHERE nombre_planta = ? AND 
               unidad_operativa.id_planta = registro.id_planta AND 
               registro.id_requerimiento = requerimiento.id_requerimiento
           `;
-  
-          const quer2= ` SELECT SUM(peso) as parcial
+
+      const quer2 = ` SELECT SUM(peso) as parcial
           FROM unidad_operativa, registro, requerimiento 
           WHERE estatus = "Vigente" and nombre_planta = ? AND 
           unidad_operativa.id_planta = registro.id_planta AND 
           registro.id_requerimiento = requerimiento.id_requerimiento`;
-  
-          const actualiza=`update unidad_operativa set porcentaje_cumplimiento=? where nombre_planta=?;`
-          
-          
-              const [resultado] = await pool.query(quer, [nombre_planta]);
-              const total= parseFloat(resultado[0].total)
-  
-              const [resultado2]= await pool.query(quer2,[nombre_planta]);
-              const parcial=parseFloat(resultado2[0].parcial)
-  
-              let resul= (parcial/total*100).toString();
-              console.log("se envio la peticon")
-  
-              await pool.query(actualiza,[resul,nombre_planta])
-              console.log(resul)
-  
-        res.status(200).json({message:'{"Estatus":"Producto insertado"}'})
-        console.log(nombre_planta,nombre_requerimiento,fechaAcomodada,fechaAcomodada2,estatus,observaciones,pdfUrls,validez_unica)
-      }else{
-        res.status(404).json({message:"verifica que la planta este registrada o ya existe la relacion entre permiso-planta "})
-      }
-  }catch(exepcion){
-    console.log(exepcion)
-  res.status(500).json({message:"error interno"})
+
+      const actualiza = `update unidad_operativa set porcentaje_cumplimiento=?  where nombre_planta=?;`;
+      const actualizaurl = `UPDATE registro AS r
+          JOIN unidad_operativa AS uo ON r.id_planta = uo.id_planta
+          JOIN requerimiento AS req ON r.id_requerimiento = req.id_requerimiento
+          SET r.url =?
+          WHERE uo.nombre_planta = ?
+            AND req.nombre_requerimiento = ?`;
+
+      const [resultado] = await pool.query(quer, [nombre_planta]);
+      const total = parseFloat(resultado[0].total);
+
+      const [resultado2] = await pool.query(quer2, [nombre_planta]);
+      const parcial = parseFloat(resultado2[0].parcial);
+
+      let resul = ((parcial / total) * 100).toString();
+      console.log("se envio la peticon");
+
+      await pool.query(actualiza, [resul, nombre_planta]);
+      console.log("Se actualizo el porcentaje de cumplimineto");
+      await pool.query(actualizaurl, [
+        pdfUrls,
+        nombre_planta,
+        nombre_requerimiento,
+      ]);
+      console.log("Se Actualizo la url de los datos");
+
+      res.status(200).json({ message: "Producto insertado" });
+      console.log(
+        nombre_planta,
+        nombre_requerimiento,
+        fechaAcomodada,
+        fechaAcomodada2,
+        estatus,
+        observaciones,
+        pdfUrls,
+        validez_unica
+      );
+    } else {
+      res
+        .status(404)
+        .json({
+          message:
+            "verifica que la planta este registrada o ya existe la relacion entre permiso-planta ",
+        });
+    }
+  } catch (exepcion) {
+    console.log(exepcion);
+    res.status(500).json({ message: "error interno" });
   }
-
-
-  // }else{
-  //   res.status(500).json({message:"ya existe un registro con esos datos"})
-  // }
-
 };
 
 //controlador para buscar por fecha especifica de inicio
@@ -337,7 +352,7 @@ controladorRegistro.buscarFechaAnioT = async (req, res) => {
       res.join("formato de fechas invalido");
     }
   } catch (Excepcion) {
-    res.status(500).json({message:"No se pudo conectar a la base de datos"});
+    res.status(500).json({ message: "No se pudo conectar a la base de datos" });
   }
 };
 
@@ -356,7 +371,7 @@ controladorRegistro.buscarFechaAAMMT = async (req, res) => {
       res.json("No se encontro un registro con este año y mes especificado");
     }
   } catch (Excepcion) {
-    res.status(200).json({message:"No se pudo conectar a la base de datos"});
+    res.status(200).json({ message: "No se pudo conectar a la base de datos" });
   }
 };
 
@@ -374,7 +389,7 @@ controladorRegistro.buscarFechaAT = async (req, res) => {
       res.json("no se encontraron registros de este año");
     }
   } catch (Excepcion) {
-    res.status(500).json({message:"No se pudo conectar a la base de datos"});
+    res.status(500).json({ message: "No se pudo conectar a la base de datos" });
   }
 };
 
@@ -398,141 +413,9 @@ controladorRegistro.buscarFechRango = async (req, res) => {
       res.json("formato de fecha invalida");
     }
   } catch (Excepcion) {
-    res.status(500).json({message:"No se pudo conectar a la base de datos"});
+    res.status(500).json({ message: "No se pudo conectar a la base de datos" });
   }
 };
-
-
-
-
-//controlador de registros para actualizar registros
-// controladorRegistro.actualizarRegistro = async (req, res) => {
-//   const qery=`UPDATE registro
-//   SET id_planta = uo.id_planta,
-//       id_requerimiento = req.id_requerimiento,
-//       fecha_inicio =ifNULL(?,fecha_inicio),
-//       fecha_vencimiento =ifNULL(?,fecha_vencimiento) ,
-//       observaciones = ifNULL(?,observaciones),
-//       estatus = ifNULL(?,estatus),
-//       url = ifNULL(?,url),
-//       validez_unica = ifNULL(?,validez_unica)
-//   FROM unidad_operativa AS uo
-//   JOIN requerimiento AS req ON uo.nombre_planta = ? AND req.nombre_requerimiento = ?
-//   WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerimiento FROM registro);`;
-
-//   let {
-//     id_registro,
-//     nombre_requerimiento,
-//     nombre_planta,
-//     fecha1,
-//     fecha2,
-//     estatus,
-//     observaciones,
-//     pdfUrls
-//   } = req.body;
-
-
-  
-// //  if(fechaAcomodada && fechaAcomodada2== 'Fecha inválida'){
-// //     fechaAcomodada=null,
-// //     fechaAcomodada2=null
-// //   } 
-
-
-//   // if (!req.files || !req.files.pdfFile) {
-//   //   pdfUrls=null
-//   //   console.log(pdfUrls)
-//   // }else{
-
-//   //     const pdfFile = req.files.pdfFile;
-//   //     const nomarchi = pdfFile.name;
-//   //      pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
-//   //     console.log(pdfUrls)
-
-//   // if (!fs.existsSync("./src/recursos")) {
-//   //   fs.mkdirSync("./src/recursos");
-//   //  }
-  
-//   //     pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), (err) => {
-//   //       if (err) {
-//   //         console.log("truena aqui");
-//   //         console.log(err);
-//   //         return res.status(500).json({ message: "{Error al cargar el archivo}" });
-//   //       }
-//   //     });
-//   // }
-
-
-
-
-//   const val=req.body.validez_unica
-//   const validez_unica=val==="true"? true:false;
-
-// console.log(id_registro,
-//   nombre_requerimiento,
-//   nombre_planta,
-//   fecha1,
-//   fecha2,
-//   estatus,
-//   observaciones,
-//   pdfUrls,
-//   validez_unica
-//   )
-
-//   try {
-//     console.log("llega aqui")
-//     const [registro]= await pool.query(`SELECT * FROM registro where id_registro=?`,[id_registro])
-//     if(registro==""){
-//       console.log("llega hasta aqui")
-//       await pool.execute(qery, [fecha1, fecha2, observaciones, estatus, pdfUrls,validez_unica,nombre_planta,nombre_requerimiento /* Aquí deberías proporcionar los valores que faltan, como la planta y el requerimiento */]);
-//       const [regis]= await pool.query(`SELECT * FROM registro where id_registro=?`,[id_registro])
-//      res.json(regis)
-   
-//  }
-
-
-
-
-//     // const [rows] = await pool.query(
-//     //   "UPDATE registro set id_requerimiento=ifNULL(?,id_requerimiento), id_planta=ifNULL(?,id_planta), fecha_inicio=ifNULL(?,fecha_inicio), fecha_vencimiento=ifNULL(?,fecha_vencimiento), observaciones=ifNULL(?,observaciones), Estatus=ifNULL(?,Estatus), url=ifNULL(?,url), validez_unica=ifNULL(?,validez_unica) where id_registro = ?",
-//     //   [
-//     //     id_requerimiento,
-//     //     id_planta,
-//     //     fecha_inicio,
-//     //     fecha_vencimiento,
-//     //     observaciones,
-//     //     Estatus,
-//     //     url,
-//     //     validez_unica,
-//     //     id_registro,
-//     //   ]
-//     // );
-
-
-//     // if (rows.affectedRows > 0) {
-//     //   res.json("actualizacion realizada con exito");
-//     // } else {
-//     //   res.json("verifique si existe el registro en la base de datos");
-//     // }
-
-// // res.json(registro);
-    
-//     // console.log(nombre_requerimiento,
-//     //   nombre_planta,
-//     //   fecha1,
-//     //   fecha2,
-//     //   estatus,
-//     //   observaciones,
-//     //   pdfUrls)
-//     //  res.json(registro)
-      
-//   } catch (Excepcion) {
-//     console.log(Excepcion)
-//     res.json("No se pudo conectar a la base de datos");
-//   }
-// };
-
-
 
 controladorRegistro.actualizarRegistro = async (req, res) => {
   const query = `
@@ -558,7 +441,7 @@ controladorRegistro.actualizarRegistro = async (req, res) => {
   registro.id_requerimiento = requerimiento.id_requerimiento
 `;
 
-const quer2= ` SELECT SUM(peso) as parcial
+  const quer2 = ` SELECT SUM(peso) as parcial
 FROM unidad_operativa, registro, requerimiento 
 WHERE estatus = "Vigente" and nombre_planta = ? AND 
 unidad_operativa.id_planta = registro.id_planta AND 
@@ -568,77 +451,116 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
     id_registro,
     nombre_requerimiento,
     nombre_planta,
-    fechaAcomodada,
     fechaAcomodada2,
     estatus,
     observaciones,
-    pdfUrls
+    pdfUrls,
   } = req.body;
+  let fechaAcomodada;
   try {
-  if(fechaAcomodada && fechaAcomodada2== 'Fecha inválida'){
-    fechaAcomodada=null,
-    fechaAcomodada2=null
-  } 
+    if (fechaAcomodada2 == "Fecha inválida") {
+      fechaAcomodada = moment().format("YYYY/MM/DD");
+      fechaAcomodada2 = null;
+    }
 
-  if (!req.files || !req.files.pdfFile) {
-    pdfUrls=null
-    console.log(pdfUrls)
-  }else{
-
+    if (!req.files || !req.files.pdfFile) {
+      pdfUrls = null;
+      console.log(pdfUrls);
+    } else {
       const pdfFile = req.files.pdfFile;
-      const nomarchi = pdfFile.name;
-       pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
-      console.log(pdfUrls)
+      const nombreOriginal = pdfFile.name;
 
-  if (!fs.existsSync("./src/recursos")) {
-    fs.mkdirSync("./src/recursos");
-   }
-      pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), (err) => {
+      // Obtener la fecha y hora actual
+      const fechaHoraActual = new Date();
+      const formatoFechaHora = fechaHoraActual
+        .toISOString()
+        .replace(/[-:.T]/g, "");
+
+      // Generar un nuevo nombre con la fecha y hora
+      const nuevoNombre = `${nombreOriginal}_${formatoFechaHora}.pdf`;
+
+      pdfUrls = `http://localhost:3200/recursos/${nuevoNombre}`;
+      console.log(pdfUrls);
+
+      if (!fs.existsSync("./src/recursos")) {
+        fs.mkdirSync("./src/recursos");
+      }
+
+      const rutaArchivoOriginal = path.join(
+        __dirname,
+        "../recursos",
+        nombreOriginal
+      );
+      const rutaNuevoArchivo = path.join(__dirname, "../recursos", nuevoNombre);
+
+      pdfFile.mv(rutaArchivoOriginal, (err) => {
         if (err) {
-          console.log("truena aqui");
+          console.log("Error al cargar el archivo");
           console.log(err);
-          return res.status(500).json({ message: "{Error al cargar el archivo}" });
+          return res
+            .status(500)
+            .json({ message: "Error al cargar el archivo" });
         }
-      });
-  
-  }
-  const val = req.body.validez_unica;
-  const validez_unica = val === "true" ? true : false;
 
- 
-    const [registro] = await pool.query(`SELECT * FROM registro WHERE id_registro=?`, [id_registro]);
-    // console.log(registro);
+        // Renombrar el archivo
+        fs.rename(rutaArchivoOriginal, rutaNuevoArchivo, (err) => {
+          if (err) {
+            console.log("Error al renombrar el archivo");
+            console.log(err);
+            return res
+              .status(500)
+              .json({ message: "Error al renombrar el archivo" });
+          }
+        });
+      });
+    }
+    const val = req.body.validez_unica;
+    const validez_unica = val === "true" ? true : false;
+
+    const [registro] = await pool.query(
+      `SELECT * FROM registro WHERE id_registro=?`,
+      [id_registro]
+    );
 
     if (registro.length > 0) {
-      await pool.query(query, [nombre_planta, nombre_requerimiento,  fechaAcomodada,fechaAcomodada2, observaciones, estatus, pdfUrls, validez_unica, id_registro]);
-       
+      await pool.query(query, [
+        nombre_planta,
+        nombre_requerimiento,
+        fechaAcomodada,
+        fechaAcomodada2,
+        observaciones,
+        estatus,
+        pdfUrls,
+        validez_unica,
+        id_registro,
+      ]);
 
-        const actualiza=`update unidad_operativa set porcentaje_cumplimiento=? where nombre_planta=?;`
-        
-            const [resultado] = await pool.query(quer, [nombre_planta]);
-            const total= parseFloat(resultado[0].total)
+      const actualiza = `update unidad_operativa set porcentaje_cumplimiento=? where nombre_planta=?;`;
 
-            const [resultado2]= await pool.query(quer2,[nombre_planta]);
-            const parcial=parseFloat(resultado2[0].parcial)
+      const [resultado] = await pool.query(quer, [nombre_planta]);
+      const total = parseFloat(resultado[0].total);
 
-            let resul= (parcial/total*100).toString();
+      const [resultado2] = await pool.query(quer2, [nombre_planta]);
+      const parcial = parseFloat(resultado2[0].parcial);
 
-            console.log(resul)
+      let resul = ((parcial / total) * 100).toString();
 
-            await pool.query(actualiza,[resul,nombre_planta])
+      console.log(resul);
 
-      const [regis] = await pool.query(`SELECT * FROM registro WHERE id_registro=?`, [id_registro]);
-      res.json(regis);
-      console.log("SE Actualizo el registro")
+      await pool.query(actualiza, [resul, nombre_planta]);
+      res.status(200).json({ message: "Se actualizo con exito" });
+      console.log("SE Actualizo el registro");
 
-      console.log(resultado)
-      console.log(resultado2)
+      console.log(resultado);
+      console.log(resultado2);
     } else {
       res.status(400).json({ error: "El registro no existe." });
     }
   } catch (excepcion) {
     console.error(excepcion);
-    res.status(500).json({ error: "Error al actualizar el registro en la base de datos." });
+    res
+      .status(500)
+      .json({ error: "Error al actualizar el registro en la base de datos." });
   }
 };
 
@@ -657,80 +579,17 @@ controladorRegistro.actualizarEstado = async (req, res) => {
       res.json("No se pudo actualizar el estado");
     }
   } catch (Exception) {
-    res.status(500).json({message:
-      "verifica no haber metido un caracter especial o tener conexion a la base de datos"
-  });
+    res
+      .status(500)
+      .json({
+        message:
+          "verifica no haber metido un caracter especial o tener conexion a la base de datos",
+      });
   }
 };
 
-
-// controladorRegistro.grafica = async (req, res) => {
-
-//   // Clausura: rojo 
-//   // Multa: amarillo
-//   // Administrativo: gris 
-//   // Si no tiene nada: verde 
-
-//   const consulta = `SELECT
-//     uo.nombre_planta AS UnidadOperativa,
-//     COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
-//     COUNT(CASE WHEN req.impacto = 'Clausura' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Clausuras,
-//     COUNT(CASE WHEN req.impacto = 'Administrativo' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Administrativos
-//   FROM unidad_operativa uo
-//   JOIN registro r ON uo.id_planta = r.id_planta
-//   JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
-//   GROUP BY uo.nombre_planta; `;
-
-//   let clausuradas = [];
-//   let multas = [];
-//   let administrativas = [];
-//   let optimas = [];
-
-//   const [resultados] = await pool.query(consulta);
-
-//   for (let i = 0; i < resultados.length; i++) {
-//     if (
-//       (resultados[i].Clausuras === 1) &&
-//       (resultados[i].Multas === 0 || resultados[i].Multas === 1)&&
-//       (resultados[i].Administrativos === 1 || resultados[i].Administrativos===0)
-//     ) {
-//       console.log(resultados[i].UnidadOperativa + " ....... Clausuradas");
-//       clausuradas.push(resultados)
-
-
-//     } else 
-//     if (
-//       (resultados[i].Clausuras === 0 )&&
-//       (resultados[i].Multas === 1 )&&
-//       (resultados[i].Administrativos === 0 || resultados[i].Administrativos === 1)
-//     ) {
-//       console.log(resultados[i].UnidadOperativa + " ....... Multado");
-//       multas.push(resultados)
-
-//     } else if (
-//       (resultados[i].Clausuras === 0) &&
-//       (resultados[i].Multas === 0) &&
-//       (resultados[i].Administrativos === 1)
-//     ) {
-//       console.log(resultados[i].UnidadOperativa + " ......... Administrativos");
-//       administrativas.push(resultados)
-//     } else {
-//       console.log(resultados[i].UnidadOperativa + " ......... Libres");
-//       optimas.push(resultados)
-//     }
-//   }
-//   const res = {
-//     clausuradas,
-//     multas,
-//     administrativas,
-//     optimas
-//   }
-//   res.json(res)
-// };
-
 controladorRegistro.graficatotal = async (req, res) => {
-
-   const segmento = req.body.segmento
+  const segmento = req.body.segmento;
   let nacional = `SELECT
   uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,
   COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
@@ -742,7 +601,6 @@ JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where segmento=?
 GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento ; `;
 
-  
   let centro = `SELECT
   uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,
   COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
@@ -765,7 +623,7 @@ JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where zona ='Noreste' and segmento=?
 GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento ; `;
 
-let Pasifico = `SELECT
+  let Pasifico = `SELECT
 uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,
 COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
 COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
@@ -776,7 +634,7 @@ JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where zona ='Pacifico' and segmento=?
 GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento ; `;
 
-let sureste= `SELECT
+  let sureste = `SELECT
 uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,
 COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
 COUNT(CASE WHEN req.impacto = 'Clausura Total ' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
@@ -787,328 +645,208 @@ JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where zona ='Sureste' and segmento=?
 GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
 
-
-console.log("despues de esta linia sigue el segemnto resivido")
-console.log(segmento,"Este es el segmento")
-
+  console.log("despues de esta linia sigue el segemnto resivido");
+  console.log(segmento, "Este es el segmento");
 
   let clausuradasnas = [];
   let multasnas = [];
   let administrativasnas = [];
   let optimasnas = [];
 
-  let clausuradascen=[];
-  let multascen=[];
-  let administrativascen=[];
-  let optimascen=[];
+  let clausuradascen = [];
+  let multascen = [];
+  let administrativascen = [];
+  let optimascen = [];
 
-  let clausuradasnor=[];
-  let multasnor=[];
-  let administrativasnor=[];
-  let optimasnor=[];
+  let clausuradasnor = [];
+  let multasnor = [];
+  let administrativasnor = [];
+  let optimasnor = [];
 
-  let clausuradaspas=[];
-  let multaspas=[];
-  let administrativaspas=[];
-  let optimaspas=[];
+  let clausuradaspas = [];
+  let multaspas = [];
+  let administrativaspas = [];
+  let optimaspas = [];
 
-  let clausuradassur=[];
-  let multassur=[];
-  let administrativassur=[];
-  let optimassur=[];
-  
+  let clausuradassur = [];
+  let multassur = [];
+  let administrativassur = [];
+  let optimassur = [];
 
-
-  let [resultados] = await pool.query(nacional,[segmento]);
-  
-
-  // console.log(".....................")
-  // console.log("")
-  // console.log(resultados)
-  // console.log("")
-
+  let [resultados] = await pool.query(nacional, [segmento]);
 
   for (let i = 0; i < resultados.length; i++) {
-    if (
-      (resultados[i].Clausuras >= 1)
-    ) {
-      // console.log(resultados[i].UnidadOperativa + " ....... Clausuradas");
-
+    if (resultados[i].Clausuras >= 1) {
       clausuradasnas.push(resultados[i]);
+    } else if (resultados[i].Clausuras === 0 && resultados[i].Multas >= 1) {
     } else if (
-      (resultados[i].Clausuras === 0) &&
-      (resultados[i].Multas >= 1) 
+      resultados[i].Clausuras === 0 &&
+      resultados[i].Multas === 0 &&
+      resultados[i].Administrativos >= 1
     ) {
-      // console.log(resultados[i].UnidadOperativa + " ....... Multado");
-      multasnas.push(resultados[i]);
-
-    } else if (
-      (resultados[i].Clausuras === 0) &&
-      (resultados[i].Multas === 0) &&
-      (resultados[i].Administrativos >=1)
-    ) {
-      // console.log(resultados[i].UnidadOperativa + " ......... Administrativos");
       administrativasnas.push(resultados[i]);
-    } else if(resultados[i].porcentaje_cumplimiento>=100){
-      // console.log(resultados[i].UnidadOperativa + " ......... Libres");
+    } else if (resultados[i].porcentaje_cumplimiento >= 100) {
       optimasnas.push(resultados[i]);
     }
   }
 
-  // console.log(resultados)
-
-// console.log("")
-// console.log("estadisticas de centro........................................................")
-// console.log("")
-
-  let [resultadoscen] = await pool.query(centro,[segmento]);
+  let [resultadoscen] = await pool.query(centro, [segmento]);
   for (let i = 0; i < resultadoscen.length; i++) {
-    if (
-      (resultadoscen[i].Clausuras >= 1)
-    ) {
+    if (resultadoscen[i].Clausuras >= 1) {
       // console.log(resultadoscen[i].UnidadOperativa + " ....... Clausuradas");
       clausuradascen.push(resultadoscen[i]);
     } else if (
-      (resultadoscen[i].Clausuras === 0) &&
-      (resultadoscen[i].Multas >= 1) 
+      resultadoscen[i].Clausuras === 0 &&
+      resultadoscen[i].Multas >= 1
     ) {
       // console.log(resultadoscen[i].UnidadOperativa + " ....... Multado");
       multascen.push(resultadoscen[i]);
-
     } else if (
-      (resultadoscen[i].Clausuras === 0) &&
-      (resultadoscen[i].Multas === 0) &&
-      (resultadoscen[i].Administrativos >= 1)
+      resultadoscen[i].Clausuras === 0 &&
+      resultadoscen[i].Multas === 0 &&
+      resultadoscen[i].Administrativos >= 1
     ) {
       // console.log(resultadoscen[i].UnidadOperativa + " ......... Administrativos");
       administrativascen.push(resultadoscen[i]);
-    } else if(resultadoscen[i].porcentaje_cumplimiento>=100) {
+    } else if (resultadoscen[i].porcentaje_cumplimiento >= 100) {
       // console.log(resultadoscen[i].UnidadOperativa + " ......... Libres");
       optimascen.push(resultadoscen[i]);
     }
   }
-// console.log("")
-//   console.log("estadisticas de noreste.....................................................")
-// console.log("")
 
-  let [resultadosnor] = await pool.query(noreste,[segmento]);
+  let [resultadosnor] = await pool.query(noreste, [segmento]);
   for (let i = 0; i < resultadosnor.length; i++) {
-    if (
-      (resultadosnor[i].Clausuras >= 1)
-    ) {
-      // console.log(resultadosnor[i].UnidadOperativa + " ....... Clausuradas");
+    if (resultadosnor[i].Clausuras >= 1) {
       clausuradasnor.push(resultadosnor[i]);
     } else if (
-      (resultadosnor[i].Clausuras === 0) &&
-      (resultadosnor[i].Multas >= 1)
-      
+      resultadosnor[i].Clausuras === 0 &&
+      resultadosnor[i].Multas >= 1
     ) {
-      // console.log(   resultadosnor[i].UnidadOperativa + " ....... Multado");
       multasnor.push(resultadosnor[i]);
-
     } else if (
-      (resultadosnor[i].Clausuras === 0) &&
-      (resultadosnor[i].Multas === 0) &&
-      (resultadosnor[i].Administrativos >= 1)
+      resultadosnor[i].Clausuras === 0 &&
+      resultadosnor[i].Multas === 0 &&
+      resultadosnor[i].Administrativos >= 1
     ) {
-      // console.log(resultadosnor[i].UnidadOperativa + " ......... Administrativos");
       administrativasnor.push(resultadosnor[i]);
-    } else if(resultadosnor[i].porcentaje_cumplimiento>=100){
-      // console.log(resultadosnor[i].UnidadOperativa + " ......... Libres");
+    } else if (resultadosnor[i].porcentaje_cumplimiento >= 100) {
       optimasnor.push(resultadosnor[i]);
     }
   }
 
-//   console.log("")
-//   console.log("estadisticas de pasifico.....................................................")
-console.log("")
+  console.log("");
 
-
-
-
-  let [resultadospas] = await pool.query(Pasifico,[segmento]);
+  let [resultadospas] = await pool.query(Pasifico, [segmento]);
   for (let i = 0; i < resultadospas.length; i++) {
-    if (
-      (resultadospas[i].Clausuras >= 1) 
-    ) {
-      // console.log(resultadospas[i].UnidadOperativa + " ....... Clausuradas");
+    if (resultadospas[i].Clausuras >= 1) {
       clausuradaspas.push(resultadospas[i]);
     } else if (
-      (resultadospas[i].Clausuras === 0) &&
-      (resultadospas[i].Multas >= 1)
+      resultadospas[i].Clausuras === 0 &&
+      resultadospas[i].Multas >= 1
     ) {
-      // console.log(   resultadospas[i].UnidadOperativa + " ....... Multado");
       multaspas.push(resultadospas[i]);
-
     } else if (
-      (resultadospas[i].Clausuras === 0) &&
-      (resultadospas[i].Multas === 0) &&
-      (resultadospas[i].Administrativos >= 1)
+      resultadospas[i].Clausuras === 0 &&
+      resultadospas[i].Multas === 0 &&
+      resultadospas[i].Administrativos >= 1
     ) {
-      // console.log(resultadospas[i].UnidadOperativa + " ......... Administrativos");
       administrativaspas.push(resultadospas[i]);
-    } else if(resultadospas[i].porcentaje_cumplimiento>=100){
-      // console.log(resultadospas[i].UnidadOperativa + " ......... Libres");
+    } else if (resultadospas[i].porcentaje_cumplimiento >= 100) {
       optimaspas.push(resultadospas[i]);
     }
   }
 
-
-  // console.log("..........................")
-  // console.log(resultadospas)
-  // console.log("......................................")
-
-  let [resultadossur] = await pool.query(sureste,[segmento]);
+  let [resultadossur] = await pool.query(sureste, [segmento]);
   for (let i = 0; i < resultadossur.length; i++) {
-    if (
-      (resultadossur[i].Clausuras >= 1)
-    ) {
-      // console.log(resultadossur[i].UnidadOperativa + " ....... Clausuradas");
+    if (resultadossur[i].Clausuras >= 1) {
       clausuradassur.push(resultadossur[i]);
     } else if (
-      (resultadossur[i].Clausuras === 0) &&
-      (resultadossur[i].Multas >= 1) 
+      resultadossur[i].Clausuras === 0 &&
+      resultadossur[i].Multas >= 1
     ) {
-      // console.log(   resultadossur[i].UnidadOperativa + " ....... Multado");
       multassur.push(resultadossur[i]);
-
     } else if (
-      (resultadossur[i].Clausuras === 0) &&
-      (resultadossur[i].Multas === 0) &&
-      (resultadossur[i].Administrativos >= 1)
+      resultadossur[i].Clausuras === 0 &&
+      resultadossur[i].Multas === 0 &&
+      resultadossur[i].Administrativos >= 1
     ) {
-      // console.log(resultadossur[i].UnidadOperativa + " ......... Administrativos");
       administrativassur.push(resultadossur[i]);
-    } else if(resultadossur[i].porcentaje_cumplimiento>=100){
-      // console.log(resultadossur[i].UnidadOperativa + " ......... Libres");
+    } else if (resultadossur[i].porcentaje_cumplimiento >= 100) {
       optimassur.push(resultadossur[i]);
     }
   }
-  console.log(" Estos son los resultados de la consulta sql")
-  // console.log(resultadossur)
+  console.log(" Estos son los resultados de la consulta sql");
 
-  clausuradasnas    = clausuradasnas.length
-  multasnas         = multasnas.length
-  administrativasnas= administrativasnas.length
-  optimasnas        =optimasnas.length
+  clausuradasnas = clausuradasnas.length;
+  multasnas = multasnas.length;
+  administrativasnas = administrativasnas.length;
+  optimasnas = optimasnas.length;
 
-  clausuradascen      = clausuradascen.length
-  multascen           = multascen.length
-  administrativascen  = administrativascen.length
-  optimascen          = optimascen.length
- 
-  clausuradasnor    = clausuradasnor.length    
-  multasnor         = multasnor.length
-  administrativasnor= administrativasnor.length
-  optimasnor         = optimasnor.length
+  clausuradascen = clausuradascen.length;
+  multascen = multascen.length;
+  administrativascen = administrativascen.length;
+  optimascen = optimascen.length;
 
-  administrativaspas  = administrativaspas.length
-  clausuradaspas       = clausuradaspas.length
-  multaspas           = multaspas.length
-  optimaspas          = optimaspas.length
+  clausuradasnor = clausuradasnor.length;
+  multasnor = multasnor.length;
+  administrativasnor = administrativasnor.length;
+  optimasnor = optimasnor.length;
 
-  administrativassur = administrativassur.length
-  clausuradassur = clausuradassur.length
-  multaspassur = multassur.length
-  optimaspassur = optimassur.length
- 
+  administrativaspas = administrativaspas.length;
+  clausuradaspas = clausuradaspas.length;
+  multaspas = multaspas.length;
+  optimaspas = optimaspas.length;
+
+  administrativassur = administrativassur.length;
+  clausuradassur = clausuradassur.length;
+  multaspassur = multassur.length;
+  optimaspassur = optimassur.length;
+
   const nas = {
-    zona:"grafica_total",
+    zona: "grafica_total",
     clausuradasnas,
     multasnas,
     administrativasnas,
-    optimasnas        
-  };
-  
-  const cen = {
-    zona:"grafica_cen",
-    clausuradascen,   
-    multascen,         
-    administrativascen,
-    optimascen        
+    optimasnas,
   };
 
-  const nor={
-    zona:"Grafica_nor",
+  const cen = {
+    zona: "grafica_cen",
+    clausuradascen,
+    multascen,
+    administrativascen,
+    optimascen,
+  };
+
+  const nor = {
+    zona: "Grafica_nor",
     clausuradasnor,
     multasnor,
     administrativasnor,
     optimasnor,
-  }
+  };
 
-  const pas={
-    zona:"Grafica_pas",
+  const pas = {
+    zona: "Grafica_pas",
     clausuradaspas,
     multaspas,
     administrativaspas,
-    optimaspas          ,
-  }
+    optimaspas,
+  };
 
-  const sur={
-    zona:"Grafica_sur",
+  const sur = {
+    zona: "Grafica_sur",
     administrativassur,
     clausuradassur,
     multaspassur,
-    optimaspassur
-}
+    optimaspassur,
+  };
 
-  const jeison = [nas,cen,nor,pas,sur]
-  console.log(jeison)
-  
+  const jeison = [nas, cen, nor, pas, sur];
+  console.log(jeison);
+
   res.json(jeison);
-
-}
-
-// controladorRegistro.graficatotal = async (req, res) => {
-//   const segmento = req.body.segmento;
-
-//   const nacional = `SELECT
-//     uo.nombre_planta AS UnidadOperativa,
-//     COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
-//     COUNT(CASE WHEN req.impacto = 'Clausura' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Clausuras,
-//     COUNT(CASE WHEN req.impacto = 'Administrativo' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Administrativos
-//   FROM unidad_operativa uo
-//   JOIN registro r ON uo.id_planta = r.id_planta
-//   JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
-//   WHERE segmento = ?
-//   GROUP BY uo.nombre_planta;`;
-
-//   // Las demás consultas para las otras zonas siguen el mismo formato con "WHERE zona = '...'" y "AND segmento = ?".
-
-//   const consultas = [
-//     { nombre: "grafica_total", consulta: nacional },
-//     // Agrega las demás consultas para las diferentes zonas aquí.
-//   ];
-
-//   const resultados = [];
-
-//   for (const consultaObj of consultas) {
-//     const { nombre, consulta } = consultaObj;
-//     let estadisticas = { zona: nombre };
-
-//     try {
-//       const [resultadosConsulta] = await pool.query(consulta, [segmento]);
-
-//       // Lógica para clasificar en clausuradas, multas, administrativas, optimas.
-//       // ...
-
-//       estadisticas = {
-//         ...estadisticas,
-//         clausuradas,
-//         multas,
-//         administrativas,
-//         optimas,
-//       };
-
-//       resultados.push(estadisticas);
-//     } catch (error) {
-//       console.error(`Error en consulta ${nombre}: ${error.message}`);
-//     }
-//   }
-
-//   res.json(resultados);
-// };
-
+};
 
 const obtenerEstadisticas = async (consulta) => {
   const [resultados] = await pool.query(consulta);
@@ -1120,17 +858,23 @@ const obtenerEstadisticas = async (consulta) => {
   };
 
   for (const resultado of resultados) {
-    if (resultado.Clausuras === 1 &&
-        (resultado.Multas === 0 || resultado.Multas === 1) &&
-        (resultado.Administrativos === 1 || resultado.Administrativos === 0)) {
+    if (
+      resultado.Clausuras === 1 &&
+      (resultado.Multas === 0 || resultado.Multas === 1) &&
+      (resultado.Administrativos === 1 || resultado.Administrativos === 0)
+    ) {
       estadisticas.clausuradas++;
-    } else if (resultado.Clausuras === 0 &&
-               resultado.Multas === 1 &&
-               (resultado.Administrativos === 0 || resultado.Administrativos === 1)) {
+    } else if (
+      resultado.Clausuras === 0 &&
+      resultado.Multas === 1 &&
+      (resultado.Administrativos === 0 || resultado.Administrativos === 1)
+    ) {
       estadisticas.multas++;
-    } else if (resultado.Clausuras === 0 &&
-               resultado.Multas === 0 &&
-               resultado.Administrativos === 1) {
+    } else if (
+      resultado.Clausuras === 0 &&
+      resultado.Multas === 0 &&
+      resultado.Administrativos === 1
+    ) {
       estadisticas.administrativas++;
     } else {
       estadisticas.optimas++;
@@ -1151,7 +895,7 @@ const obtenerYProcesarEstadisticas = async (consulta, zona) => {
   };
 };
 
-controladorRegistro. Graficatotal = async (req, res) => {
+controladorRegistro.Graficatotal = async (req, res) => {
   const nacional = `SELECT
     uo.nombre_planta AS UnidadOperativa,
     COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
@@ -1206,87 +950,35 @@ controladorRegistro. Graficatotal = async (req, res) => {
   WHERE zona = 'Sureste'
   GROUP BY uo.nombre_planta; `;
 
-  const estadisticasNas = await obtenerYProcesarEstadisticas(nacional, "grafica_total");
-  const estadisticasCen = await obtenerYProcesarEstadisticas(centro, "grafica_cen");
-  const estadisticasNor = await obtenerYProcesarEstadisticas(noreste, "Grafica_nor");
-  const estadisticasPas = await obtenerYProcesarEstadisticas(Pasifico, "Grafica_pas");
-  const estadisticasSur = await obtenerYProcesarEstadisticas(sureste, "Grafica_sur");
+  const estadisticasNas = await obtenerYProcesarEstadisticas(
+    nacional,
+    "grafica_total"
+  );
+  const estadisticasCen = await obtenerYProcesarEstadisticas(
+    centro,
+    "grafica_cen"
+  );
+  const estadisticasNor = await obtenerYProcesarEstadisticas(
+    noreste,
+    "Grafica_nor"
+  );
+  const estadisticasPas = await obtenerYProcesarEstadisticas(
+    Pasifico,
+    "Grafica_pas"
+  );
+  const estadisticasSur = await obtenerYProcesarEstadisticas(
+    sureste,
+    "Grafica_sur"
+  );
 
-  const jeison = [estadisticasNas, estadisticasCen, estadisticasNor, estadisticasPas, estadisticasSur];
+  const jeison = [
+    estadisticasNas,
+    estadisticasCen,
+    estadisticasNor,
+    estadisticasPas,
+    estadisticasSur,
+  ];
   res.json(jeison);
 };
-
-
-
-
-
-
-// controladorRegistro.graficaCentro= async (req, res) => {
-
-//   // Clausura: rojo 
-//   // Multa: amarillo
-//   // Administrativo: gris 
-//   // Si no tiene nada: verde 
-
-//   const consulta = `SELECT
-//     uo.nombre_planta AS UnidadOperativa,
-//     COUNT(CASE WHEN req.impacto = 'Multa' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Multas,
-//     COUNT(CASE WHEN req.impacto = 'Clausura' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Clausuras,
-//     COUNT(CASE WHEN req.impacto = 'Administrativo' AND uo.activo = 1 AND r.estatus != 'Vigente' THEN 1 END) AS Administrativos
-//   FROM unidad_operativa uo
-//   JOIN registro r ON uo.id_planta = r.id_planta
-//   JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
-//   WHERE zona = 'Centro'
-//   GROUP BY uo.nombre_planta; `;
-
-//   let clausuradas = [];
-//   let multas = [];
-//   let administrativas = [];
-//   let optimas = [];
-
-//   const [resultados] = await pool.query(consulta);
-//   for (let i = 0; i < resultados.length; i++) {
-//     if (
-//       (resultados[i].Clausuras === 1) &&
-//       (resultados[i].Multas === 0 || resultados[i].Multas === 1) &&
-//       (resultados[i].Administrativos === 1 || resultados[i].Administrativos === 0)
-//     ) {
-//       console.log(resultados[i].UnidadOperativa + " ....... Clausuradas");
-//       clausuradas.push(resultados[i]);
-//     } else if (
-//       (resultados[i].Clausuras === 0) &&
-//       (resultados[i].Multas === 1) &&
-//       (resultados[i].Administrativos === 0 || resultados[i].Administrativos === 1)
-//     ) {
-//       console.log(resultados[i].UnidadOperativa + " ....... Multado");
-//       multas.push(resultados[i]);
-
-//     } else if (
-//       (resultados[i].Clausuras === 0) &&
-//       (resultados[i].Multas === 0) &&
-//       (resultados[i].Administrativos === 1)
-//     ) {
-//       console.log(resultados[i].UnidadOperativa + " ......... Administrativos");
-//       administrativas.push(resultados[i]);
-//     } else {
-//       console.log(resultados[i].UnidadOperativa + " ......... Libres");
-//       optimas.push(resultados[i]);
-//     }
-//   }
-//   const clau= clausuradas.length
-//   const mul= multas.length
-//   const admin = administrativas.length
-//   const opt=optimas.length
-
-//   const respuesta = {
-//     clau,
-//     mul,
-//     admin,
-//     opt
-//   };
-
-//   res.json(respuesta);
-// };
-
 
 module.exports = controladorRegistro;
