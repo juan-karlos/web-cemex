@@ -4,6 +4,9 @@ const exceljs = require("exceljs");
 const transporter = require("../emails/mailer.js");
 
 const controladorVencimiento = {};
+
+const gmail = "devsolidit@gmail.com"
+
 // hace la actualizacion de permisos y realiza el envio de emails a los que estan registrados en la base de datos.
 controladorVencimiento.updateToVencimiento = async (req, res) => {
   try {
@@ -96,10 +99,10 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
 
         // Enviar correo electrónico con el archivo adjunto
         const info = await transporter.sendMail({
-          from: '"Admin" <fortijc@gmail.com>',
+          from: `"Admin" <${gmail}>`,
           to: correo, //a quien se le envia el correo
           subject: "Requerimientos Vencidos",
-          text: "Adjunto encontrarás los requerimientos vencidos.",
+          text: "Adjunto encontrarás los requerimientos vencidos del dia de hoy.",
           attachments: [
             {
               filename: excelFileName,
@@ -227,10 +230,10 @@ controladorVencimiento.vencSiguienteDia = async (req, res) => {
 
         // Enviar correo electrónico con el archivo adjunto
         const info = await transporter.sendMail({
-          from: '"Admin" <fortijc@gmail.com>',
+          from: `"Admin" <${gmail}>`,
           to: correo, //a quien se le envia el correo
           subject: "Requerimientos que venceran mañana",
-          text: "Adjunto encontrarás los requerimientos que estan apunto de vencer",
+          text: "Adjunto encontrarás los requerimientos que venceran mañana",
           attachments: [
             {
               filename: excelFileName,
@@ -359,7 +362,7 @@ controladorVencimiento.VencenEstaSemana = async (req, res) => {
 
         // Enviar correo electrónico con el archivo adjunto
         const info = await transporter.sendMail({
-          from: '"Admin" <fortijc@gmail.com>',
+          from: `"Admin" <${gmail}>`,
           to: correo, //a quien se le envia el correo
           subject: "Requerimientos que venceran esta semana",
           text: "Adjunto encontrarás los requerimientos que vencen esta semana.",
@@ -488,7 +491,7 @@ controladorVencimiento.unMes = async (req, res) => {
 
         // Enviar correo electrónico con el archivo adjunto
         const info = await transporter.sendMail({
-          from: '"Admin" <fortijc@gmail.com>',
+          from: `"Admin" <${gmail}>`,
           to: correo, //a quien se le envia el correo
           subject: "Requerimientos que venceran este mes",
           text: "Adjunto encontrarás los requerimientos que vencen este mes.",
@@ -620,10 +623,10 @@ controladorVencimiento.tresMeses = async (req, res) => {
 
         // Enviar correo electrónico con el archivo adjunto
         const info = await transporter.sendMail({
-          from: '"Admin" <fortijc@gmail.com>',
+          from: `"Admin" <${gmail}>`,
           to: correo, //a quien se le envia el correo
           subject: "Requerimientos que venceran durante estos 3 meses",
-          text: "Adjunto encontrarás los requerimientos que vencen en estos meses.",
+          text: "Adjunto encontrarás los requerimientos que vencen en estos 3 meses.",
           attachments: [
             {
               filename: excelFileName,
