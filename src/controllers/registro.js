@@ -7,6 +7,7 @@ const { url } = require("inspector");
 const archiver = require('archiver')
 const fse = require('fs-extra');
 const iconv = require('iconv-lite');
+const moment = require('moment')
 
 const controladorRegistro = {};
 
@@ -154,66 +155,80 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
   // Verifica si se envió un archivo PDF
   console.log("se resivio la peticion")
 
+
+
   let {
     nombre_requerimiento,
     nombre_planta,
-    fechaAcomodada,
     fechaAcomodada2,
     estatus,
     observaciones,
     pdfUrls
   } = req.body;
+  
 
-  if(fechaAcomodada && fechaAcomodada2== 'Fecha inválida'){
-    fechaAcomodada=null,
+  if(fechaAcomodada2== 'Fecha inválida'){
+     
+    let =fechaAcomodada= moment().format('YYYY/MM/DD'),
     fechaAcomodada2=null
   } 
   
-  if (!req.files || !req.files.pdfFile) {
-    pdfUrls=null
-    // console.log(pdfUrls)
-  }else{
-
-      const pdfFile = req.files.pdfFile;
-      const nomarchi = pdfFile.name;
-
-       pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
-      console.log(pdfUrls)
-
-  if (!fs.existsSync("./src/recursos")) {
-    fs.mkdirSync("./src/recursos");
-   }
-  
-      pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), (err) => {
-        if (err) {
-          console.log("truena aqui");
-          console.log(err);
-          return res.status(500).json({ message: "{Error al cargar el archivo}" });
-        }
-      });
-  
-  }
-
+ 
   const val=req.body.validez_unica
   const validez_unica=val==="true"? true:false;
 
-
-   // if(existe ==""){
-  // Construye la URL del PDF
-  // const pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
-
   try{
-    
-  // await pool.query('INSERT INTO registro (id_requerimiento,id_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica) VALUES (?,?,?,?,?,?,?,?)',[id_requerimiento,id_planta,fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica])
-  // console.log(pdfUrls)
 
-  
-
-      const [afectaciones] =await pool.execute(sqlQuery,[fechaAcomodada,fechaAcomodada2,observaciones,estatus,pdfUrls,validez_unica,nombre_planta,nombre_requerimiento])
+      const [afectaciones] =await pool.execute(sqlQuery,[fechaAcomodada,fechaAcomodada2,observaciones,estatus,null,validez_unica,nombre_planta,nombre_requerimiento])
 
       if(afectaciones.affectedRows>0){
-    
 
+        if (!req.files || !req.files.pdfFile) {
+          pdfUrls = null;
+          console.log(pdfUrls);
+      
+        }else{
+      
+          const pdfFile = req.files.pdfFile;
+          const nombreOriginal = pdfFile.name;
+      
+           // Obtener la fecha y hora actual
+           const fechaHoraActual = new Date();
+           const formatoFechaHora = fechaHoraActual.toISOString().replace(/[-:.T]/g, '');
+       
+           // Generar un nuevo nombre con la fecha y hora
+           const nuevoNombre = `${nombreOriginal}_${formatoFechaHora}.pdf`;
+       
+      
+           pdfUrls = `http://localhost:3200/recursos/${nuevoNombre}`;
+           console.log(pdfUrls);
+      
+        if (!fs.existsSync("./src/recursos")) {
+          fs.mkdirSync("./src/recursos");
+         }
+        
+         const rutaArchivoOriginal = path.join(__dirname, "../recursos", nombreOriginal);
+         const rutaNuevoArchivo = path.join(__dirname, "../recursos", nuevoNombre);
+      
+            pdfFile.mv(rutaArchivoOriginal, (err) => {
+                  if (err) {
+                    console.log("Error al cargar el archivo");
+                    console.log(err);
+                    return res.status(500).json({ message: "Error al cargar el archivo" });
+                  }
+            
+                  // Renombrar el archivo
+                  fs.rename(rutaArchivoOriginal, rutaNuevoArchivo, (err) => {
+                    if (err) {
+                      console.log("Error al renombrar el archivo");
+                      console.log(err);
+                      return res.status(500).json({ message: "Error al renombrar el archivo" });
+                    }
+                   
+                  });
+                });
+        }
+      
           const quer = `
               SELECT SUM(peso) as total
               FROM unidad_operativa, registro, requerimiento 
@@ -228,8 +243,13 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
           unidad_operativa.id_planta = registro.id_planta AND 
           registro.id_requerimiento = requerimiento.id_requerimiento`;
   
-          const actualiza=`update unidad_operativa set porcentaje_cumplimiento=? where nombre_planta=?;`
-          
+          const actualiza=`update unidad_operativa set porcentaje_cumplimiento=?  where nombre_planta=?;`
+          const actualizaurl=`UPDATE registro AS r
+          JOIN unidad_operativa AS uo ON r.id_planta = uo.id_planta
+          JOIN requerimiento AS req ON r.id_requerimiento = req.id_requerimiento
+          SET r.url =?
+          WHERE uo.nombre_planta = ?
+            AND req.nombre_requerimiento = ?`
           
               const [resultado] = await pool.query(quer, [nombre_planta]);
               const total= parseFloat(resultado[0].total)
@@ -241,9 +261,11 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
               console.log("se envio la peticon")
   
               await pool.query(actualiza,[resul,nombre_planta])
-              console.log(resul)
-  
-        res.status(200).json({message:'{"Estatus":"Producto insertado"}'})
+              console.log("Se actualizo el porcentaje de cumplimineto")
+              await pool.query(actualizaurl,[pdfUrls,nombre_planta,nombre_requerimiento])
+              console.log("Se Actualizo la url de los datos")
+
+        res.status(200).json({message:"Producto insertado"})
         console.log(nombre_planta,nombre_requerimiento,fechaAcomodada,fechaAcomodada2,estatus,observaciones,pdfUrls,validez_unica)
       }else{
         res.status(404).json({message:"verifica que la planta este registrada o ya existe la relacion entre permiso-planta "})
@@ -568,38 +590,62 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
     id_registro,
     nombre_requerimiento,
     nombre_planta,
-    fechaAcomodada,
     fechaAcomodada2,
     estatus,
     observaciones,
     pdfUrls
   } = req.body;
+  let fechaAcomodada
   try {
-  if(fechaAcomodada && fechaAcomodada2== 'Fecha inválida'){
-    fechaAcomodada=null,
+
+  if(fechaAcomodada2== 'Fecha inválida'){
+    fechaAcomodada= moment().format('YYYY/MM/DD');
     fechaAcomodada2=null
   } 
 
   if (!req.files || !req.files.pdfFile) {
-    pdfUrls=null
-    console.log(pdfUrls)
+    pdfUrls = null;
+    console.log(pdfUrls);
+
   }else{
 
-      const pdfFile = req.files.pdfFile;
-      const nomarchi = pdfFile.name;
-       pdfUrls = `http://localhost:3200/recursos/${nomarchi}`;
-      console.log(pdfUrls)
+       const pdfFile = req.files.pdfFile;
+    const nombreOriginal = pdfFile.name;
+
+     // Obtener la fecha y hora actual
+     const fechaHoraActual = new Date();
+     const formatoFechaHora = fechaHoraActual.toISOString().replace(/[-:.T]/g, '');
+ 
+     // Generar un nuevo nombre con la fecha y hora
+     const nuevoNombre = `${nombreOriginal}_${formatoFechaHora}.pdf`;
+ 
+
+     pdfUrls = `http://localhost:3200/recursos/${nuevoNombre}`;
+     console.log(pdfUrls);
 
   if (!fs.existsSync("./src/recursos")) {
     fs.mkdirSync("./src/recursos");
    }
-      pdfFile.mv(path.join(__dirname, "../recursos", nomarchi), (err) => {
-        if (err) {
-          console.log("truena aqui");
-          console.log(err);
-          return res.status(500).json({ message: "{Error al cargar el archivo}" });
-        }
-      });
+
+   const rutaArchivoOriginal = path.join(__dirname, "../recursos", nombreOriginal);
+   const rutaNuevoArchivo = path.join(__dirname, "../recursos", nuevoNombre);
+
+   pdfFile.mv(rutaArchivoOriginal, (err) => {
+    if (err) {
+      console.log("Error al cargar el archivo");
+      console.log(err);
+      return res.status(500).json({ message: "Error al cargar el archivo" });
+    }
+
+    // Renombrar el archivo
+    fs.rename(rutaArchivoOriginal, rutaNuevoArchivo, (err) => {
+      if (err) {
+        console.log("Error al renombrar el archivo");
+        console.log(err);
+        return res.status(500).json({ message: "Error al renombrar el archivo" });
+      }
+    });
+  });
   
   }
   const val = req.body.validez_unica;
@@ -626,9 +672,7 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
             console.log(resul)
 
             await pool.query(actualiza,[resul,nombre_planta])
-
-      const [regis] = await pool.query(`SELECT * FROM registro WHERE id_registro=?`, [id_registro]);
-      res.json(regis);
+            res.status(200).json({message:"Se actualizo con exito"})
       console.log("SE Actualizo el registro")
 
       console.log(resultado)
