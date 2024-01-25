@@ -1,15 +1,14 @@
 const { Router } = require("express");
-const router = Router()
+const router = Router();
 
-const historial = require("../controllers/historial")
+const historial = require("../controllers/historial");
 
-router.get('/segmento',historial.buseg);
-router.get('/zona',historial.buzon);
-router.get('/cumplimineto',historial.buscumpli);
-router.get('/fecha',historial.busfecha);
-router.post('/reghis',historial.insertarHitorial);
-router.post('/ZonaSegmento',historial.zonaSegmento);
-router.get('/insHistori',historial.insertHistorial)
-router.post('/ObtenerMesPasadoPorSegmento',historial.obtenerMesPasado);
-module.exports=router
-
+router.get("/segmento", historial.buseg);
+router.get("/zona", historial.buzon);
+router.get("/cumplimineto", historial.buscumpli);
+router.get("/fecha", historial.busfecha);
+router.post("/reghis", historial.insertarHitorial);
+router.post("/ZonaSegmento", historial.zonaSegmento); //si
+router.get("/insHistori", historial.insertHistorial);
+router.post("/ObtenerMesPasadoPorSegmento", historial.obtenerMesPasado); //si
+module.exports = router;
