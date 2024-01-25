@@ -8,6 +8,8 @@ const { token } = require("morgan");
 
 const controladorUsuario = {};
 
+const gmail = "devsolidit@gmail.com"
+
 controladorUsuario.uniUsuario = async (req, res) => {
   try {
     const [usuario] = await pool.query("select *  From usuarios ");
@@ -33,7 +35,7 @@ controladorUsuario.regisUsu = async (req, res) => {
 
     // Enviar correo electrónico con el token
     await transporter.sendMail({
-      from: '"Admin" <fortijc@gmail.com>', // Envia el correo
+      from: `"Admin" <${gmail}>`, // Envia el correo
       to: correo, // Lista de los correos que lo recibirán
       subject: "Verificación de seguridad.", // Este será el asunto
       html: `
