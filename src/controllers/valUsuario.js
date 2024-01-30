@@ -99,6 +99,8 @@ controladorUsuario.regisUsu = async (req, res) => {
           "Se ha enviado un correo para verificar el registro con tiempo limite de 15 minutos",
       });
   } catch (error) {
+    console.log(error)
+    console.log("faltaron datos")
     res.status(500).json({
       message: "No fue posible establecer conexion con el servidor.",
     });

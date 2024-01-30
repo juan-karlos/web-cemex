@@ -15,37 +15,71 @@ controladorRegistro.descargas = async (req, res) => {
   try {
     const { requerimiento, zona, segmento } = req.body;
 
-    const url = `SELECT url 
-    FROM registro JOIN unidad_operativa on registro.id_planta = unidad_operativa.id_planta JOIN requerimiento on requerimiento.id_requerimiento = registro.id_requerimiento
-    WHERE url IS NOT NULL AND nombre_requerimiento=? and zona =? and segmento=?;`;
+    const urlQuery = `
+      SELECT url
+      FROM registro
+      JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
+      JOIN requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
+      WHERE url IS NOT NULL AND nombre_requerimiento=? AND zona=? AND segmento=?;
+    `;
 
-    const [rutas] = await pool.query(url, [requerimiento, zona, segmento]);
+    const [rutas] = await pool.query(urlQuery, [requerimiento, zona, segmento]);
+
+    console.log(rutas);
 
     if (rutas.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No se encontraron datos en la ruta" });
+      console.log("No se encontraron datos en la ruta");
+      return res.status(404).json({ message: "No se encontraron datos en la ruta" });
     }
 
     const urls = rutas.map((ruta) => ruta.url);
+    console.log("Rutas mapeadas:", urls);
 
-    const carpetaTemporal = "archivos_temporales";
+    const carpetaTemporal = `C:/Users/juank/OneDrive/Documentos/Cemex/web-cemex/web-cemex/archivos_temporales`;
 
     // Crear la carpeta temporal si no existe
-    await fse.ensureDir(carpetaTemporal);
+    try {
+      await fse.ensureDir(carpetaTemporal);
+      console.log("Carpeta temporal creada exitosamente");
+    } catch (error) {
+      console.error("Error al crear la carpeta temporal:", error);
+      return res.status(500).json({ message: "Error al crear la carpeta temporal" });
+    }
 
     // Copiar los archivos a la carpeta temporal
+    let archivosCopiados = 0;
+
     for (const urlCompleta of urls) {
       const urlObj = new URL(urlCompleta);
       const rutaDecodificada = decodeURIComponent(urlObj.pathname);
+      console.log("Ruta decodificada:", rutaDecodificada);
 
       const nombreArchivo = path.basename(rutaDecodificada);
-      const rutaRelativa = path.join("./src/recursos", nombreArchivo);
-      const destino = path.join(carpetaTemporal, nombreArchivo);
+      console.log("Nombre del archivo:", nombreArchivo);
 
-      // Leer el archivo con fs.readFile y escribirlo en la carpeta temporal
-      const contenidoArchivo = fs.readFileSync(rutaRelativa); // Leer desde la ruta relativa
-      fs.writeFileSync(destino, contenidoArchivo); // Escribir en la carpeta temporal
+      const rutaArchivoOriginal = path.join(__dirname, "..", "..", "recursos", nombreArchivo);
+      console.log("Ruta original:", rutaArchivoOriginal);
+
+      const destino = path.join(carpetaTemporal);
+      console.log("Destino:", destino);
+      console.log(".........................................................")
+      console.log("                ")
+
+      try {
+        const destino = path.join(carpetaTemporal, nombreArchivo);
+        await fse.copy(rutaArchivoOriginal, destino);
+        console.log(`Archivo ${nombreArchivo} copiado exitosamente.`);
+        archivosCopiados++;
+      } catch (error) {
+        console.error(`Error al copiar el archivo ${nombreArchivo}: ${error.message}`);
+        return res.status(500).json({ message: "Error al procesar archivos" });
+      }
+    }
+
+    // Verificar si se copió al menos un archivo a la carpeta temporal
+    if (archivosCopiados === 0) {
+      console.log("No hay archivos disponibles para descargar");
+      return res.status(404).json({ message: "No hay archivos disponibles para descargar" });
     }
 
     // Crear el archivo ZIP
@@ -53,21 +87,23 @@ controladorRegistro.descargas = async (req, res) => {
       zlib: { level: 9 }, // Nivel de compresión máximo
     });
 
+    // Agregar archivos de la carpeta temporal al archivo ZIP
+    archive.directory(carpetaTemporal, "archivos_temporales");
+
     res.attachment("descarga-masiva.zip");
     archive.pipe(res);
 
-    // Agregar la carpeta temporal al archivo ZIP
-    archive.directory(carpetaTemporal, "archivos_deseados");
-
-    // Finalizar el archivo ZIP
-    await new Promise((resolve, reject) => {
-      archive.finalize();
-      archive.once("end", resolve);
-      archive.once("error", reject);
+    // Manejar errores en la creación del archivo ZIP
+    archive.on("error", (err) => {
+      console.error(`Error al crear el archivo ZIP: ${err.message}`);
+      res.status(500).json({ message: "No hay documentos para descargar, intente de nuevo" });
     });
 
+    // Finalizar el archivo ZIP
+    await archive.finalize();
+
     // Eliminar la carpeta temporal después de comprimir
-    await fse.remove(carpetaTemporal);
+    // await fse.remove(carpetaTemporal);
 
     console.log("Descarga masiva completada");
   } catch (error) {
@@ -75,6 +111,111 @@ controladorRegistro.descargas = async (req, res) => {
     res.status(500).json({ message: "Hay problemas en el servidor" });
   }
 };
+
+
+// controladorRegistro.descargas = async (req, res) => {
+//   try {
+//     const { requerimiento, zona, segmento } = req.body;
+
+//     const urlQuery = `
+//       SELECT url
+//       FROM registro
+//       JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
+//       JOIN requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
+//       WHERE url IS NOT NULL AND nombre_requerimiento=? AND zona=? AND segmento=?;
+//     `;
+
+//     const [rutas] = await pool.query(urlQuery, [requerimiento, zona, segmento]);
+
+//     console.log(rutas )
+//     if (rutas.length==0) {
+//       console.log("entro a la restrinccion este es el mensaje")
+//       return res.status(404).json({ message: "No se encontraron datos en la ruta" });
+//     }
+
+//     const urls = rutas.map((ruta) => ruta.url);
+//     console.log("Rutas mapeadas:", urls);
+
+//     console.log(rutas);
+
+
+//     const carpetaTemporal = `C:/Users/juank/OneDrive/Documentos/Cemex/web-cemex/web-cemex/archivos_temporales`;
+
+//     // Crear la carpeta temporal si no existe
+    
+// try {
+//   await fse.ensureDir(carpetaTemporal);
+//   console.log("Carpeta temporal creada exitosamente");
+// } catch (error) {
+//   console.error("Error al crear la carpeta temporal:", error);
+// }
+
+//     // Copiar los archivos a la carpeta temporal
+//     let archivosCopiados = 0;
+
+//     for (const urlCompleta of urls) {
+//       const urlObj = new URL(urlCompleta);
+//       const rutaDecodificada = decodeURIComponent(urlObj.pathname);
+//       console.log("...................................ruta decodificada");
+//       console.log(rutaDecodificada)
+//   console.log(".......................................Nombre del archivo")
+//       const nombreArchivo = path.basename(rutaDecodificada);
+//       console.log(nombreArchivo);
+//     console.log("...................................... Ruta Original")
+//       const rutaArchivoOriginal = path.join(__dirname, "..","..", "recursos", nombreArchivo);
+//       console.log(rutaArchivoOriginal)
+//       // Permiso_de_prueba_para_probar_los_espacios_de_un_pdf.pdf_20240130193514708Z.pdf
+//         console.log("...................................Destino")
+//         const destino = path.join(carpetaTemporal);
+//         console.log(destino)        
+//       // Leer y escribir el archivo de forma asíncrona 
+//       try {
+//         await fse.copy(rutaArchivoOriginal, destino);
+//         console.log("Archivo copiado exitosamente.");
+//         archivosCopiados++;
+//       } catch (error) {
+//         console.error(`Error al copiar el archivo ${rutaArchivoOriginal} a ${destino}: ${error.message}`);
+//         // Puedes decidir si quieres seguir con los demás archivos o abortar aquí
+//         return res.status(500).json({ message: "Error al procesar archivos" });
+//       }
+//     }
+    
+//     // Verificar si se copió al menos un archivo a la carpeta temporal
+//     if (archivosCopiados===0) {
+//       // No hay archivos, responder con un mensaje
+//       console.log("entro en este error")
+//       return res.status(404).json({ message: "No hay archivos disponibles para descargar" });
+//     }
+
+//     // Crear el archivo ZIP
+//     const archive = archiver("zip", {
+//       zlib: { level: 9 }, // Nivel de compresión máximo
+//     });
+
+//       // Agregar archivos de la carpeta temporal al archivo ZIP
+//    archive.directory(carpetaTemporal, "archivos_temporales");
+
+//     res.attachment("descarga-masiva.zip");
+//     archive.pipe(res);
+
+//     // Manejar errores en la creación del archivo ZIP
+//     archive.on("error", (err) => {
+//       console.error(`Error al crear el archivo ZIP: ${err.message}`);
+//       res.status(500).json({ message: "No hay documentos para descargar, intente de nuevo" });
+
+//     });
+//     // Finalizar el archivo ZIP
+//     await archive.finalize();
+
+//     // Eliminar la carpeta temporal después de comprimir
+//     // await fse.remove(carpetaTemporal);
+
+//     console.log("Descarga masiva completada");
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Hay problemas en el servidor" });
+//   }
+// };
 
 // controller para elegir el registro para actualizarlo
 
@@ -135,12 +276,20 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
     pdfUrls,
   } = req.body;
 
+  let fechaAcomodada=moment().format("YYYY/MM/DD");
+  let pdfUrlsSinEspacios; 
+let nombre_sinespacios ;
+
   if (fechaAcomodada2 == "Fecha inválida") {
-    (let = fechaAcomodada = moment().format("YYYY/MM/DD")),
-      (fechaAcomodada2 = null);
+          (fechaAcomodada2 = null);
   }
   const val = req.body.validez_unica;
   const validez_unica = val === "true" ? true : false;
+
+  if(validez_unica==true){
+    fechaAcomodada2=null
+  }
+
   try {
     const [afectaciones] = await pool.execute(sqlQuery, [
       fechaAcomodada,
@@ -160,52 +309,47 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
       } else {
         const pdfFile = req.files.pdfFile;
         const nombreOriginal = pdfFile.name;
-
         // Obtener la fecha y hora actual
         const fechaHoraActual = new Date();
         const formatoFechaHora = fechaHoraActual
           .toISOString()
           .replace(/[-:.T]/g, "");
-
         // Generar un nuevo nombre con la fecha y hora
         const nuevoNombre = `${nombreOriginal}_${formatoFechaHora}.pdf`;
 
-        pdfUrls = `http://localhost:3200/recursos/${nuevoNombre}`;
-        console.log(pdfUrls);
+        pdfUrls = `http://localhost:3200/api/regi/documento/${nuevoNombre}`;
+        pdfUrlsSinEspacios = pdfUrls.replace(/\s+/g, '_');
+        nombre_sinespacios =nuevoNombre.replace(/\s+/g, '_');
+          console.log(pdfUrlsSinEspacios);
+          console.log(nombre_sinespacios)
 
-        if (!fs.existsSync("./src/recursos")) {
-          fs.mkdirSync("./src/recursos");
+        if (!fs.existsSync("./recursos")) {
+          fs.mkdirSync("./recursos");
         }
 
         const rutaArchivoOriginal = path.join(
-          __dirname,
-          "../recursos",
-          nombreOriginal
+          __dirname,"..","../recursos", nombreOriginal
         );
         const rutaNuevoArchivo = path.join(
-          __dirname,
-          "../recursos",
-          nuevoNombre
-        );
+          __dirname,"..","../recursos",nombre_sinespacios);
 
+        console.log("Problema")
+
+        
         pdfFile.mv(rutaArchivoOriginal, (err) => {
           if (err) {
-            console.log("Error al cargar el archivo");
-            console.log(err);
-            return res
-              .status(500)
-              .json({ message: "Error al cargar el archivo" });
+            console.error("Error al cargar el archivo:", err);
+            return res.status(500).json({ message: "Error al cargar el archivo" });
           }
-
+        
           // Renombrar el archivo
           fs.rename(rutaArchivoOriginal, rutaNuevoArchivo, (err) => {
             if (err) {
-              console.log("Error al renombrar el archivo");
-              console.log(err);
-              return res
-                .status(500)
-                .json({ message: "Error al renombrar el archivo" });
+              console.error("Error al renombrar el archivo:", err);
+              return res.status(500).json({ message: "Error al renombrar el archivo" });
             }
+        
+        
           });
         });
       }
@@ -234,6 +378,7 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
 
       const [resultado] = await pool.query(quer, [nombre_planta]);
       const total = parseFloat(resultado[0].total);
+      
 
       const [resultado2] = await pool.query(quer2, [nombre_planta]);
       const parcial = parseFloat(resultado2[0].parcial);
@@ -243,8 +388,9 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
 
       await pool.query(actualiza, [resul, nombre_planta]);
       console.log("Se actualizo el porcentaje de cumplimineto");
+
       await pool.query(actualizaurl, [
-        pdfUrls,
+        pdfUrlsSinEspacios,
         nombre_planta,
         nombre_requerimiento,
       ]);
@@ -258,7 +404,7 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
         fechaAcomodada2,
         estatus,
         observaciones,
-        pdfUrls,
+        pdfUrlsSinEspacios,
         validez_unica
       );
     } else {
@@ -421,7 +567,7 @@ controladorRegistro.actualizarRegistro = async (req, res) => {
   const query = `
     UPDATE registro
     SET
-      id_planta = IFNULL((SELECT id_planta FROM Unidad_Operativa WHERE nombre_planta = ?), id_planta),
+      id_planta = IFNULL((SELECT id_planta FROM unidad_operativa WHERE nombre_planta = ?), id_planta),
       id_requerimiento = IFNULL((SELECT id_requerimiento FROM requerimiento WHERE nombre_requerimiento = ?), id_requerimiento),
       fecha_inicio = IFNULL(?, fecha_inicio),
       fecha_vencimiento = IFNULL(?, fecha_vencimiento),
@@ -457,6 +603,11 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
     pdfUrls,
   } = req.body;
   let fechaAcomodada;
+  
+  let pdfUrlsSinEspacios; 
+  let nombre_sinespacios ;
+
+
   try {
     if (fechaAcomodada2 == "Fecha inválida") {
       fechaAcomodada = moment().format("YYYY/MM/DD");
@@ -479,19 +630,23 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
       // Generar un nuevo nombre con la fecha y hora
       const nuevoNombre = `${nombreOriginal}_${formatoFechaHora}.pdf`;
 
-      pdfUrls = `http://localhost:3200/recursos/${nuevoNombre}`;
-      console.log(pdfUrls);
+      pdfUrls = `http://localhost:3200/api/regi/documento/${nuevoNombre}`;
+      pdfUrlsSinEspacios = pdfUrls.replace(/\s+/g, '_');
+      nombre_sinespacios=nuevoNombre.replace(/\s+/g, '_');
+        console.log(pdfUrlsSinEspacios);
+        console.log(nombre_sinespacios);
 
-      if (!fs.existsSync("./src/recursos")) {
-        fs.mkdirSync("./src/recursos");
+      if (!fs.existsSync("./recursos")) {
+        fs.mkdirSync("./recursos");
       }
 
       const rutaArchivoOriginal = path.join(
         __dirname,
+        "..",
         "../recursos",
         nombreOriginal
       );
-      const rutaNuevoArchivo = path.join(__dirname, "../recursos", nuevoNombre);
+      const rutaNuevoArchivo = path.join(__dirname, "..","../recursos", nombre_sinespacios);
 
       pdfFile.mv(rutaArchivoOriginal, (err) => {
         if (err) {
@@ -530,7 +685,7 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
         fechaAcomodada2,
         observaciones,
         estatus,
-        pdfUrls,
+        pdfUrlsSinEspacios,
         validez_unica,
         id_registro,
       ]);
@@ -563,6 +718,29 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
       .json({ error: "Error al actualizar el registro en la base de datos." });
   }
 };
+
+controladorRegistro.documento= async(req,res)=>{
+  const nombredoc= req.params.nombredoc;
+  console.log('este es el docuemento')
+  console.log(nombredoc)
+
+  const ruta = path.join(__dirname,"..",'../recursos',nombredoc)
+  console.log("esta es la ruta: "+ruta)
+
+  if (fs.existsSync(ruta)) {
+      res.sendFile(ruta, (err) => {
+          if (err) {
+              console.error(err);
+              res.status(500).send('Error al enviar el documento');
+          }
+      });
+  } else {
+      res.status(404).send('Documento no encontrado');
+      console.log("no se encontro nada")
+      console.log(ruta)
+  }
+};
+
 
 //controlador para actualizar los estados
 controladorRegistro.actualizarEstado = async (req, res) => {
