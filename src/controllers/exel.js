@@ -1,10 +1,12 @@
 var XLSX = require("xlsx");
 const moment = require("moment");
 const pool = require("../database");
+const path= require('path')
 const controlexel = {};
 
+
 controlexel.insertmasiva = async (req, res) => {
-  const excelPath = "./src/exel/INSERCION REAL.xlsx";
+  const excelPath = "./src/exel/BaseDEdatosCemex.xlsx";
   const workbook = XLSX.readFile(excelPath);
   const sheetName = workbook.SheetNames[0];
   const datos = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -150,5 +152,15 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
     res.status(500).json({ mesage: "error al insertar los registros" });
   }
 };
+
+
+controlexel.rutas=async(req,res)=>{
+  const rutaArchivoOriginal = path.join(__dirname,"..","..","..","..","/web-cemex");
+  console.log(rutaArchivoOriginal)
+ 
+  const rutaNuevoArchivo = path.join(__dirname,"..","..","..","..","/web-cemex");
+  console.log(rutaNuevoArchivo)
+  res.send("Prueba")
+}
 
 module.exports = controlexel;
