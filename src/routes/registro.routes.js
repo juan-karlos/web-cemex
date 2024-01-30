@@ -26,7 +26,10 @@ router.post("/descargas", controladorRegistro.descargas);
 router.get("/permiso/:cb", controladorRegistro.obtenerUnRegi);
 router.patch("/actualizarPer", controladorRegistro.actualizarRegistro);
 
-router.get("/carga", controladorinsertmasiva.insertmasiva);
+router.get("/documento/:nombredoc",controladorRegistro.documento);
+
+router.post("/carga", controladorinsertmasiva.insertmasiva);
+router.get("/rutas",controladorinsertmasiva.rutas)
 
 router.get("/diaSiguiente", controladorVencimiento.vencSiguienteDia);
 router.get("/mes", controladorVencimiento.unMes);

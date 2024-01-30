@@ -9,18 +9,20 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const controladorVencimiento = require("./controllers/verificadorVencidos");
 
-const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200"];
+// const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200"];
 const corsOptions = {
-  origin: function (origin, callback) {
-    try {
-      if (whitelist.indexOf(origin) !== -1 || !origin) {
-        callback(null, true);
-      }
-    } catch {
-      callback(new Error("Not Allowed by CORS"));
-    }
-  },
-};
+    origin: '*'
+    // function (origin, callback) {
+    //     if (whitelist.indexOf(origin) !== -1 || !origin) {
+    //       callback(null, true);
+    //     } else {
+    //       callback(new Error("Not Allowed by CORS"));
+    //     }
+    //   },
+    };
+// const corsOptions={
+//     origin:"*"
+// }
 
 app.use(cors(corsOptions));
 app.use("/recursos", express.static(path.join(__dirname, "recursos")));
@@ -34,6 +36,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
 //rutas de los registros
+
+
+// app.use('/recursos',express.static(path.join(__dirname,'src')))
+
 app.use("/api/login", require("./routes/login.routes"));
 app.use("/api/requerimiento", require("./routes/reg_requeriminto.routes"));
 app.use("/api/unidad", require("./routes/uni_opera.routes"));
