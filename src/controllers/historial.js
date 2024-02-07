@@ -27,7 +27,7 @@ async function insertar() {
           WHEN segmento = 'Constructores' THEN porcentaje_cumplimiento
           ELSE 0
         END) / COUNT(id_planta) AS resultados
-      FROM unidad_operativa
+      FROM unidad_operativa 
       WHERE zona IN ('Centro', 'Noreste', 'Sureste', 'Pacífico')
       GROUP BY zona, segmento;`;
 
@@ -160,7 +160,7 @@ controllerHistorial.zonaSegmento = async (req, res) => {
     console.log("Datos de la solicitud:", zona, segmento);
 
     const [cumplimiento] = await pool.query(
-      "SELECT * FROM Historial WHERE zona = ? and segmento = ?",
+      "SELECT * FROM historial WHERE zona = ? and segmento = ?",
       [zona, segmento]
     );
 
@@ -180,7 +180,7 @@ controllerHistorial.actualizar = async (req, res) => {
     console.log("Datos de la solicitud:", segmento);
 
     const [cumplimiento] = await pool.query(
-      "SELECT * FROM Historial WHERE segmento = ?",
+      "SELECT * FROM historial WHERE segmento = ?",
       [segmento]
     );
 

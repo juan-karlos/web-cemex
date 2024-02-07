@@ -8,6 +8,7 @@ const fileUpload = require("express-fileupload");
 const bodyParser = require("body-parser");
 const path = require("path");
 const controladorVencimiento = require("./controllers/verificadorVencidos");
+const { default: rateLimit } = require("express-rate-limit");
 
 // const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200"];
 const corsOptions = {
@@ -23,15 +24,47 @@ const corsOptions = {
 // const corsOptions={
 //     origin:"*"
 // }
+const HOST =('0,0,0,0')
+
+// Lista de bloqueo de IPs
+const blockedIPs = new Set();
+
+// Configuración del límite de peticiones
+const limiter = rateLimit({
+  windowMs: 1000, // 1 segundo
+  max: 200, // Número máximo de peticiones por segundo
+  handler: (req, res, next) => {
+    // Alcanzado el límite, bloquear la IP
+    blockedIPs.add(req.ip);
+    res.status(403).send('Acceso prohibido. Tu IP ha sido bloqueada.');
+  },
+});
+
+// Middleware de límite de peticiones
+app.use((req, res, next) => {
+  // Verificar si la IP está bloqueada
+  if (blockedIPs.has(req.ip)) {
+    return res.status(403).send('Acceso prohibido. Tu IP ha sido bloqueada.');
+  }
+  // Si la IP no está bloqueada, continuar con el siguiente middleware
+  next();
+});
 
 app.use(cors(corsOptions));
+
+// Aplicar el middleware de límite de peticiones a todas las rutas
+app.use(limiter);
+
+
+
 app.use("/recursos", express.static(path.join(__dirname, "recursos")));
 app.set("port", process.env.PORT || 3500);
+
 app.use(fileUpload());
 app.use(express.json()),
-  app.use(morgan("dev")),
-  app.use(bodyParser.json()),
-  app.use(express.urlencoded({ extended: false }));
+app.use(morgan("dev")),
+app.use(bodyParser.json()),
+app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 

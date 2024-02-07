@@ -15,9 +15,9 @@ router.post("/insertar", controladorRequerimiento.insertarRequerimiento); //inse
 router.delete("/eliminar", controladorRequerimiento.eliminarRequerimiento); //eliminar requerimientos
 router.post("/conteo", controladorRequerimiento.conteo);
 router.post("/zonas", controladorRequerimiento.Conteozonas);
-
 // router.get('/cumplimiento', controladorRequerimiento.cumplimiento)
 router.get("/cumplimiento", controladorRequerimiento.cumplimiento1);
+
 router.put("/porcentajeAct", controladorRequerimiento.porsentajeActual);
 
 module.exports = router;
