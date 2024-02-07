@@ -8,8 +8,14 @@ const archiver = require("archiver");
 const fse = require("fs-extra");
 const iconv = require("iconv-lite");
 const moment = require("moment");
+const exceljs=require('exceljs')
 
 const controladorRegistro = {};
+
+
+//descarga masiva de documentos
+
+
 
 controladorRegistro.descargas = async (req, res) => {
   try {
@@ -112,113 +118,7 @@ controladorRegistro.descargas = async (req, res) => {
   }
 };
 
-
-// controladorRegistro.descargas = async (req, res) => {
-//   try {
-//     const { requerimiento, zona, segmento } = req.body;
-
-//     const urlQuery = `
-//       SELECT url
-//       FROM registro
-//       JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
-//       JOIN requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
-//       WHERE url IS NOT NULL AND nombre_requerimiento=? AND zona=? AND segmento=?;
-//     `;
-
-//     const [rutas] = await pool.query(urlQuery, [requerimiento, zona, segmento]);
-
-//     console.log(rutas )
-//     if (rutas.length==0) {
-//       console.log("entro a la restrinccion este es el mensaje")
-//       return res.status(404).json({ message: "No se encontraron datos en la ruta" });
-//     }
-
-//     const urls = rutas.map((ruta) => ruta.url);
-//     console.log("Rutas mapeadas:", urls);
-
-//     console.log(rutas);
-
-
-//     const carpetaTemporal = `C:/Users/juank/OneDrive/Documentos/Cemex/web-cemex/web-cemex/archivos_temporales`;
-
-//     // Crear la carpeta temporal si no existe
-    
-// try {
-//   await fse.ensureDir(carpetaTemporal);
-//   console.log("Carpeta temporal creada exitosamente");
-// } catch (error) {
-//   console.error("Error al crear la carpeta temporal:", error);
-// }
-
-//     // Copiar los archivos a la carpeta temporal
-//     let archivosCopiados = 0;
-
-//     for (const urlCompleta of urls) {
-//       const urlObj = new URL(urlCompleta);
-//       const rutaDecodificada = decodeURIComponent(urlObj.pathname);
-//       console.log("...................................ruta decodificada");
-//       console.log(rutaDecodificada)
-//   console.log(".......................................Nombre del archivo")
-//       const nombreArchivo = path.basename(rutaDecodificada);
-//       console.log(nombreArchivo);
-//     console.log("...................................... Ruta Original")
-//       const rutaArchivoOriginal = path.join(__dirname, "..","..", "recursos", nombreArchivo);
-//       console.log(rutaArchivoOriginal)
-//       // Permiso_de_prueba_para_probar_los_espacios_de_un_pdf.pdf_20240130193514708Z.pdf
-//         console.log("...................................Destino")
-//         const destino = path.join(carpetaTemporal);
-//         console.log(destino)        
-//       // Leer y escribir el archivo de forma asíncrona 
-//       try {
-//         await fse.copy(rutaArchivoOriginal, destino);
-//         console.log("Archivo copiado exitosamente.");
-//         archivosCopiados++;
-//       } catch (error) {
-//         console.error(`Error al copiar el archivo ${rutaArchivoOriginal} a ${destino}: ${error.message}`);
-//         // Puedes decidir si quieres seguir con los demás archivos o abortar aquí
-//         return res.status(500).json({ message: "Error al procesar archivos" });
-//       }
-//     }
-    
-//     // Verificar si se copió al menos un archivo a la carpeta temporal
-//     if (archivosCopiados===0) {
-//       // No hay archivos, responder con un mensaje
-//       console.log("entro en este error")
-//       return res.status(404).json({ message: "No hay archivos disponibles para descargar" });
-//     }
-
-//     // Crear el archivo ZIP
-//     const archive = archiver("zip", {
-//       zlib: { level: 9 }, // Nivel de compresión máximo
-//     });
-
-//       // Agregar archivos de la carpeta temporal al archivo ZIP
-//    archive.directory(carpetaTemporal, "archivos_temporales");
-
-//     res.attachment("descarga-masiva.zip");
-//     archive.pipe(res);
-
-//     // Manejar errores en la creación del archivo ZIP
-//     archive.on("error", (err) => {
-//       console.error(`Error al crear el archivo ZIP: ${err.message}`);
-//       res.status(500).json({ message: "No hay documentos para descargar, intente de nuevo" });
-
-//     });
-//     // Finalizar el archivo ZIP
-//     await archive.finalize();
-
-//     // Eliminar la carpeta temporal después de comprimir
-//     // await fse.remove(carpetaTemporal);
-
-//     console.log("Descarga masiva completada");
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Hay problemas en el servidor" });
-//   }
-// };
-
-// controller para elegir el registro para actualizarlo
-
+//obtiene un registro
 controladorRegistro.obtenerUnRegi = async (req, res) => {
   const registro = { id_requerimiento: req.params.cb };
   id = JSON.stringify(registro);
@@ -242,7 +142,7 @@ controladorRegistro.obtenerUnRegi = async (req, res) => {
 controladorRegistro.obtenerRegistro = async (req, res) => {
   try {
     const [registros] =
-      await pool.query(`SELECT id_registro,nombre_requerimiento,nombre_planta,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+      await pool.query(`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,segmento,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
     FROM registro,unidad_operativa,requerimiento
     where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento
      `);
@@ -256,7 +156,90 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
   }
 };
 
+
+//controlador para poder acomodar los registros en un exel
+
+controladorRegistro.importExel=async(req,res)=>{
+  try {
+// Obtén la fecha y hora actual
+const fechaActual = moment();
+
+// Formatea la fecha actual en el formato 'YYYY-MM-DD HH:mm:ss'
+const fecha = moment().format('YYYY-MM-DD_HH-mm-ss');
+
+    const consultaregis=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,fecha_inicio,fecha_vencimiento,observaciones,estatus,url
+    FROM registro,unidad_operativa,requerimiento
+    where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento
+     `;
+    const [registros] = await pool.query(consultaregis);
+
+    if(registros.length>0){
+       // Crear un nuevo libro de Excel
+       const workbook = new exceljs.Workbook();
+       const worksheet = workbook.addWorksheet("registros");
+       // Agregar encabezados
+       worksheet.columns = [
+         { header: "nombre_requerimiento", key: "nombre_requerimiento", width: 30 },
+         { header: "nombre_planta", key: "nombre_planta", width: 40 },
+         { header: "porcentaje_cumplimiento", key: "porcentaje_cumplimiento", width: 10 },
+         { header: "pes", key: "peso", width: 15 },
+         { header: "zona", key: "zona", width: 10 },
+         { header: "impacto", key: "impacto", width: 30 },
+         { header: "siglas", key: "siglas", width: 10 },
+         { header: "observaciones", key: "observaciones", width: 80},
+         { header: "estatus", key: "estatus", width: 25 },
+         { header: "fecha_inicio", key: "fecha_inicio", width: 10 },
+         { header: "fecha_vencimiento", key: "fecha_vencimiento", width: 10 },
+       ];
+       // Agregar datos al libro de Excel
+       worksheet.addRows(registros);
+
+ // Configurar la respuesta HTTP
+res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+res.setHeader('Content-Disposition', `attachment; filename=Registros_de_${fecha}.xlsx`);
+
+
+       // Guardar el libro de Excel en un buffer
+       const buffer = await workbook.xlsx.writeBuffer();
+
+      //  // Generar un nombre único para el archivo Excel
+      //  const excelFileName = `Requerimientos Vencidos, fecha: ${fecha}.xlsx`;
+
+      res.end(Buffer.from(buffer));
+      console.log("se enviaron los registros");
+    }
+  } catch (Excepcion) {
+    console.log(Excepcion);
+    res
+      .status(500)
+      .json({ message: "hay un error en el systema intente mas tarde" });
+  }
+
+};
+
+// estos son los registros para la cosulta por medio de zona y segmento
+
+controladorRegistro.obtenerRegistro_segmento = async (req, res) => {
+  const {registro,zona}=req.body
+  try {
+    const consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+    FROM registro,unidad_operativa,requerimiento
+    where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento and segmento=? and zona =?;`;
+    const [registros] = await pool.query(consulta[registro,zona]);
+    
+    res.json(registros[1]);
+    console.log("se enviaron los registros");
+  } catch (Excepcion) {
+    console.log(Excepcion);
+    res
+      .status(500)
+      .json({ message: "hay un error en el systema intente mas tarde" });
+  }
+};
+
+
 // Controlador para cargar el archivo PDF y agregar un nuevo registro
+
 controladorRegistro.insertarPdf = async (req, res) => {
   const sqlQuery = `INSERT INTO registro (id_planta, id_requerimiento, fecha_inicio, fecha_vencimiento, observaciones, estatus, url, validez_unica)
 SELECT uo.id_planta, req.id_requerimiento, ?, ?, ?, ?, ?, ?
@@ -856,7 +839,10 @@ GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
   for (let i = 0; i < resultados.length; i++) {
     if (resultados[i].Clausuras >= 1) {
       clausuradasnas.push(resultados[i]);
+
     } else if (resultados[i].Clausuras === 0 && resultados[i].Multas >= 1) {
+     multasnas.push(resultados[i])
+     
     } else if (
       resultados[i].Clausuras === 0 &&
       resultados[i].Multas === 0 &&
