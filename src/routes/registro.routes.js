@@ -29,6 +29,9 @@ router.patch("/actualizarPer", controladorRegistro.actualizarRegistro);
 router.get("/documento/:nombredoc",controladorRegistro.documento);
 
 router.post("/carga", controladorinsertmasiva.insertmasiva);
+router.get("/exel",controladorRegistro.importExel)
+
+
 router.get("/rutas",controladorinsertmasiva.rutas)
 
 router.get("/diaSiguiente", controladorVencimiento.vencSiguienteDia);
