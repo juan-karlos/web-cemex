@@ -8,32 +8,71 @@ const fileUpload = require("express-fileupload");
 const bodyParser = require("body-parser");
 const path = require("path");
 const controladorVencimiento = require("./controllers/verificadorVencidos");
+const { default: rateLimit } = require("express-rate-limit");
 
-const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200"];
+// const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200"];
 const corsOptions = {
-  origin: function (origin, callback) {
-    try {
-      if (whitelist.indexOf(origin) !== -1 || !origin) {
-        callback(null, true);
-      }
-    } catch {
-      callback(new Error("Not Allowed by CORS"));
-    }
+    origin: '*'
+    // function (origin, callback) {
+    //     if (whitelist.indexOf(origin) !== -1 || !origin) {
+    //       callback(null, true);
+    //     } else {
+    //       callback(new Error("Not Allowed by CORS"));
+    //     }
+    //   },
+    };
+// const corsOptions={
+//     origin:"*"
+// }
+const HOST =('0,0,0,0')
+
+// Lista de bloqueo de IPs
+const blockedIPs = new Set();
+
+// Configuración del límite de peticiones
+const limiter = rateLimit({
+  windowMs: 1000, // 1 segundo
+  max: 200, // Número máximo de peticiones por segundo
+  handler: (req, res, next) => {
+    // Alcanzado el límite, bloquear la IP
+    blockedIPs.add(req.ip);
+    res.status(403).send('Acceso prohibido. Tu IP ha sido bloqueada.');
   },
-};
+});
+
+// Middleware de límite de peticiones
+app.use((req, res, next) => {
+  // Verificar si la IP está bloqueada
+  if (blockedIPs.has(req.ip)) {
+    return res.status(403).send('Acceso prohibido. Tu IP ha sido bloqueada.');
+  }
+  // Si la IP no está bloqueada, continuar con el siguiente middleware
+  next();
+});
 
 app.use(cors(corsOptions));
+
+// Aplicar el middleware de límite de peticiones a todas las rutas
+app.use(limiter);
+
+
+
 app.use("/recursos", express.static(path.join(__dirname, "recursos")));
 app.set("port", process.env.PORT || 3500);
+
 app.use(fileUpload());
 app.use(express.json()),
-  app.use(morgan("dev")),
-  app.use(bodyParser.json()),
-  app.use(express.urlencoded({ extended: false }));
+app.use(morgan("dev")),
+app.use(bodyParser.json()),
+app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
 //rutas de los registros
+
+
+// app.use('/recursos',express.static(path.join(__dirname,'src')))
+
 app.use("/api/login", require("./routes/login.routes"));
 app.use("/api/requerimiento", require("./routes/reg_requeriminto.routes"));
 app.use("/api/unidad", require("./routes/uni_opera.routes"));

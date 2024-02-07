@@ -8,6 +8,10 @@ const controladorVencimiento = {};
 const gmail = "devsolidit@gmail.com"
 
 // hace la actualizacion de permisos y realiza el envio de emails a los que estan registrados en la base de datos.
+
+
+
+//errores en esta parte de codigo 
 controladorVencimiento.updateToVencimiento = async (req, res) => {
   try {
     const response = await axios.get("http://worldtimeapi.org/api/ip"); // Obtener fecha actual desde la red
@@ -124,7 +128,7 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
       res.status(400).send("no hay datos disponibles para mostrar");
       console.error("no hay requerimientos vencidos");
     }
-    res.status(200).send("Se ejecuto correctamente");
+    // res.status(200).send("Se ejecuto correctamente");//i
     console.log("Tarea programada ejecutada correctamente.");
   } catch (excepcion) {
     console.error("Error en la tarea programada:", excepcion);
@@ -244,20 +248,13 @@ controladorVencimiento.vencSiguienteDia = async (req, res) => {
         });
 
         console.log("envio de emails correctamente");
-        res
-          .status(200)
-          .json({ message: "Se enviaron los imails correctamente" });
+        res.status(200).json({ message: "Se enviaron los imails correctamente" });
       } else {
-        res.status(200).json({
-          message: "Ningun requerimiento vence mañana",
-        });
+        res.status(200).json({message: "Ningun requerimiento vence mañana"});
       }
-
       console.log('Estos son los requerimientos que venceran mañana".');
     } else {
-      res
-        .status(400)
-        .json({ message: "no hay requerimientos que vencen mañana" });
+      res.status(400).json({ message: "no hay requerimientos que vencen mañana" });
       console.error("Ningun requerimiento vence mañana");
     }
     console.log("Tarea programada ejecutada correctamente.");
