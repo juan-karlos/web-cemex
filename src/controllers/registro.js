@@ -17,15 +17,13 @@ const controladorRegistro = {};
 
 
 
-controladorRegistro.descargas = async (req, res) => {
+controladorRegistro. descargas = async (req, res) => {
   try {
     const { requerimiento, zona, segmento } = req.body;
 
     const urlQuery = `
       SELECT url
-      FROM registro
-      JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
-      JOIN requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
+      FROM documentos
       WHERE url IS NOT NULL AND nombre_requerimiento=? AND zona=? AND segmento=?;
     `;
 
@@ -117,6 +115,9 @@ controladorRegistro.descargas = async (req, res) => {
     res.status(500).json({ message: "Hay problemas en el servidor" });
   }
 };
+
+
+
 
 //obtiene un registro
 controladorRegistro.obtenerUnRegi = async (req, res) => {
@@ -220,20 +221,46 @@ res.setHeader('Content-Disposition', `attachment; filename=Registros_de_${fecha}
 // estos son los registros para la cosulta por medio de zona y segmento
 
 controladorRegistro.obtenerRegistro_segmento = async (req, res) => {
-  const {registro,zona}=req.body
+
+  const {segmento,zona}=req.body
+  let consulta;
+
+  console.log(segmento,zona)
   try {
-    const consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
-    FROM registro,unidad_operativa,requerimiento
-    where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento and segmento=? and zona =?;`;
-    const [registros] = await pool.query(consulta[registro,zona]);
-    
-    res.json(registros[1]);
+    if(segmento===undefined || segmento===""){
+      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+      FROM registro,unidad_operativa,requerimiento
+      where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento  and zona =?;`;
+      const [registros] = await pool.query(consulta,[zona]);
+      if(registros.length===0){
+        res.status(400).json({message:`No se encontraron registros con el registro ${zona} `})
+      }else{
+        console.log(zona)
+      res.status(200).json(registros)
+      console.log("se enviaron los registros")
+
+      }
+      
+    }else{
+      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+      FROM registro,unidad_operativa,requerimiento
+      where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento  and zona =? and segmento=?;`;
+      const [registros] = await pool.query(consulta,[zona,segmento]);
+
+      
+
+      if(registros.length<=0){
+        res.status(400).json({message:`No se encontraron registros con el registro ${zona} y ${segmento}`})
+      }else{
+      console.log(segmento,zona)
+      res.status(200).json(registros)
+      console.log("se enviaron los registros")
+      }
+    }
     console.log("se enviaron los registros");
   } catch (Excepcion) {
     console.log(Excepcion);
-    res
-      .status(500)
-      .json({ message: "hay un error en el systema intente mas tarde" });
+    res.status(500).json({ message: "hay un error en el systema intente mas tarde" });
   }
 };
 
@@ -247,7 +274,8 @@ FROM unidad_operativa AS uo
 JOIN requerimiento AS req ON uo.nombre_planta = ? AND req.nombre_requerimiento = ?
 WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerimiento FROM registro);`;
 
-  // Verifica si se envió un archivo PDF
+const documentos= `INSERT INTO documentos (id_registro, nombre_planta, nombre_requerimiento, url, fecha_inicio, fecha_vencimiento, impacto, zona,
+segmento, nombre_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`  // Verifica si se envió un archivo PDF
   console.log("se resivio la peticion");
 
   let {
@@ -261,7 +289,7 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
 
   let fechaAcomodada=moment().format("YYYY/MM/DD");
   let pdfUrlsSinEspacios; 
-let nombre_sinespacios ;
+  let nombre_sinespacios ;
 
   if (fechaAcomodada2 == "Fecha inválida") {
           (fechaAcomodada2 = null);
@@ -335,6 +363,28 @@ let nombre_sinespacios ;
         
           });
         });
+
+        const [rows] = await pool.query(`
+        SELECT id_registro, impacto, zona, segmento
+        FROM registro 
+        JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta 
+        JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento 
+        WHERE nombre_planta = ? 
+        AND nombre_requerimiento = ?`, [nombre_planta, nombre_requerimiento]);
+    
+    
+        const id_registro = rows[0].id_registro;
+        const impacto = rows[0].impacto;
+        const zona = rows[0].zona;
+        const segmento = rows[0].segmento;
+    
+        console.log(id_registro, impacto, zona, segmento,nombre_planta, nombre_requerimiento,pdfUrlsSinEspacios, fechaAcomodada, fechaAcomodada2,nombreOriginal);
+
+
+      console.log(`Este es el ID del registro ${id_registro }`);
+
+      await pool.query(documentos,[id_registro, nombre_planta, nombre_requerimiento,pdfUrlsSinEspacios, fechaAcomodada, fechaAcomodada2, impacto, zona,
+        segmento, nombreOriginal])
       }
 
       const quer = `
@@ -377,11 +427,10 @@ let nombre_sinespacios ;
         nombre_planta,
         nombre_requerimiento,
       ]);
-      console.log("Se Actualizo la url de los datos");
 
       res.status(200).json({ message: "Producto insertado" });
-      console.log(
-        nombre_planta,
+      console.log("insercion en la tabla de registro ",
+      { nombre_planta,
         nombre_requerimiento,
         fechaAcomodada,
         fechaAcomodada2,
@@ -389,7 +438,8 @@ let nombre_sinespacios ;
         observaciones,
         pdfUrlsSinEspacios,
         validez_unica
-      );
+    });
+
     } else {
       res
         .status(404)
@@ -576,6 +626,11 @@ WHERE estatus = "Vigente" and nombre_planta = ? AND
 unidad_operativa.id_planta = registro.id_planta AND 
 registro.id_requerimiento = requerimiento.id_requerimiento`;
 
+const documentos= `INSERT INTO documentos (id_registro, nombre_planta, 
+  nombre_requerimiento, url, fecha_inicio, fecha_vencimiento, impacto, zona,
+  segmento, nombre_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` 
+
+
   let {
     id_registro,
     nombre_requerimiento,
@@ -585,7 +640,7 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
     observaciones,
     pdfUrls,
   } = req.body;
-  let fechaAcomodada;
+  let fechaAcomodada = moment().format("YYYY/MM/DD");
   
   let pdfUrlsSinEspacios; 
   let nombre_sinespacios ;
@@ -593,7 +648,6 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
 
   try {
     if (fechaAcomodada2 == "Fecha inválida") {
-      fechaAcomodada = moment().format("YYYY/MM/DD");
       fechaAcomodada2 = null;
     }
 
@@ -651,6 +705,27 @@ registro.id_requerimiento = requerimiento.id_requerimiento`;
           }
         });
       });
+      const [rows] = await pool.query(`
+      SELECT id_registro, impacto, zona, segmento
+      FROM registro 
+      JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta 
+      JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento 
+      WHERE nombre_planta = ? 
+      AND nombre_requerimiento = ?`, [nombre_planta, nombre_requerimiento]);
+
+      const id_registro = rows[0].id_registro;
+      const impacto = rows[0].impacto;
+      const zona = rows[0].zona;
+      const segmento = rows[0].segmento;
+
+      
+      console.log(`Este es el ID del registro ${id_registro }`);
+
+      await pool.query(documentos,[id_registro, nombre_planta, nombre_requerimiento,pdfUrlsSinEspacios, fechaAcomodada, fechaAcomodada2, impacto, zona,
+        segmento, nombreOriginal])
+
+        console.log("Se inserto en la tabla de documentos")
+      
     }
     const val = req.body.validez_unica;
     const validez_unica = val === "true" ? true : false;

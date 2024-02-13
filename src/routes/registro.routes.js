@@ -8,6 +8,7 @@ const controladorinsertmasiva = require("../controllers/exel");
 // router.post('/load_pdf',controladorRegistro.insertpdf)
 
 router.get("/", controladorRegistro.obtenerRegistro);
+router.post("/regisSeg",controladorRegistro.obtenerRegistro_segmento);
 router.post("/pdf", controladorRegistro.insertarPdf);
 router.get("/fechaIniDia", controladorRegistro.buscarFechaDia); //busca fechas por dia de los registros de inicio
 router.get("/fechaIniAAMM", controladorRegistro.buscarFechaAAMM); //busca fechas por mes y año de inicio de registro
