@@ -223,25 +223,39 @@ res.setHeader('Content-Disposition', `attachment; filename=Registros_de_${fecha}
 controladorRegistro.obtenerRegistro_segmento = async (req, res) => {
 
   const {segmento,zona}=req.body
+  let consulta;
 
-  // console.log(segmento,zona)
+  console.log(segmento,zona)
   try {
-    if(segmento==undefined || segmento==""){
-      const consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+    if(segmento===undefined || segmento===""){
+      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
       FROM registro,unidad_operativa,requerimiento
       where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento  and zona =?;`;
-      const [registros] = await pool.query(consulta[zona]);
-      console.log(zona)
+      const [registros] = await pool.query(consulta,[zona]);
+      if(registros.length===0){
+        res.status(400).json({message:`No se encontraron registros con el registro ${zona} `})
+      }else{
+        console.log(zona)
       res.status(200).json(registros)
       console.log("se enviaron los registros")
+
+      }
+      
     }else{
-      const consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
       FROM registro,unidad_operativa,requerimiento
       where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento  and zona =? and segmento=?;`;
-      const [registros] = await pool.query(consulta[zona,segmento]);
+      const [registros] = await pool.query(consulta,[zona,segmento]);
+
+      
+
+      if(registros.length<=0){
+        res.status(400).json({message:`No se encontraron registros con el registro ${zona} y ${segmento}`})
+      }else{
       console.log(segmento,zona)
       res.status(200).json(registros)
       console.log("se enviaron los registros")
+      }
     }
     console.log("se enviaron los registros");
   } catch (Excepcion) {
