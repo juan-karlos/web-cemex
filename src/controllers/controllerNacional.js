@@ -15,11 +15,46 @@ controladornacional.conteoPlantas= async(req,res)=>{
   FROM unidad_operativa;`;
 
   try {
-    const [pasifico] = await pool.execute(query);
-    res.json(pasifico);
+    const [Nacional] = await pool.execute(query);
+    res.json(Nacional);
   } catch (exepcion) {
     console.log(exepcion);
     res.status(500).json({ message: "error interno" });
   }
 };
+
+// estadisticas de nivel nacional para las graficas de linias
+controladornacional.estadisticaNacional=async(req,res)=>{
+  const Nacional=`SELECT 
+  segmento,
+  SUM(Nacional) AS Nacional
+FROM (
+  SELECT 
+      segmento,
+      SUM(CASE WHEN activo=1 THEN porcentaje_cumplimiento ELSE 0 END) / 
+          NULLIF((SELECT COUNT(id_planta) FROM unidad_operativa WHERE segmento = uo.segmento), 0) AS "Nacional"
+  FROM unidad_operativa uo
+  WHERE 
+      zona IN ('Centro', 'Pacífico', 'Noreste', 'Sureste') AND 
+      segmento IN ('Cadena de suministro', 'Industriales', 'Inmuebles no operativos', 'Operaciones', 'Transporte', 'Promexma', 'Constructores')
+  GROUP BY segmento
+) AS Subconsulta
+GROUP BY segmento
+ORDER BY segmento;`;
+
+try{
+  const [nacional]= await pool.query(Nacional)
+  res.status(200).json(nacional)
+  console.log("Se envio con exito los calculos")
+
+  }catch(error){
+    console.log(error)
+    res.status(500).json({message:"Hay un error interno en el servidor"})
+  };
+
+};
+
+
+
+
 

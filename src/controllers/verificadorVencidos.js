@@ -9,8 +9,6 @@ const gmail = "devsolidit@gmail.com"
 
 // hace la actualizacion de permisos y realiza el envio de emails a los que estan registrados en la base de datos.
 
-
-
 //errores en esta parte de codigo 
 controladorVencimiento.updateToVencimiento = async (req, res) => {
   try {
