@@ -228,7 +228,7 @@ controladorRegistro.obtenerRegistro_segmento = async (req, res) => {
   console.log(segmento,zona)
   try {
     if(segmento===undefined || segmento===""){
-      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,segmento,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
       FROM registro,unidad_operativa,requerimiento
       where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento  and zona =?;`;
       const [registros] = await pool.query(consulta,[zona]);
@@ -242,7 +242,7 @@ controladorRegistro.obtenerRegistro_segmento = async (req, res) => {
       }
       
     }else{
-      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,segmento,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
       FROM registro,unidad_operativa,requerimiento
       where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento  and zona =? and segmento=?;`;
       const [registros] = await pool.query(consulta,[zona,segmento]);

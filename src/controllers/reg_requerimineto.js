@@ -126,25 +126,120 @@ controladorRequerimiento.nacional = async (req, res) => {
   res.json(sentencia);
 };
 
+// controladorRequerimiento.conteo = async (req, res) => {
+//   const reqi = req.body.segmento;
+//   try {
+//     const query = `
+//     SELECT 
+//     nombre_requerimiento,
+//     zona,
+//     impacto,
+//     COUNT(id_registro) AS plantas_encontradas
+// FROM 
+//     registro
+// RIGHT JOIN 
+
+//     unidad_operativa ON unidad_operativa.id_planta = registro.id_planta
+// RIGHT JOIN 
+//     requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
+// WHERE 
+//     estatus != 'Vigente' and segmento =? and estatus!='No Aplica'
+// GROUP BY 
+//     nombre_requerimiento, zona,impacto; `;
+
+//     const [results] = await pool.query(query, [reqi]);
+//     const sentencia = [];
+
+//     // Obtener todos los nombres de requerimientos únicos
+//     const nombresRequerimientos = [
+//       ...new Set(results.map((row) => row.nombre_requerimiento)),
+//     ];
+    
+
+//     // Iterar sobre cada nombre de requerimiento
+//     for (const nombre of nombresRequerimientos) {
+//       // Filtrar resultados por nombre de requerimiento
+//       const resultadosRequerimiento = results.filter(
+//         (row) => row.nombre_requerimiento === nombre
+//       );
+
+//       const jos = {
+//         nombre: nombre,
+//         plantaspas: 0,
+//         plantascen: 0,
+//         plantnor: 0,
+//         plantsur: 0,
+//         plantasgen: 0,
+//       };
+
+//       // Iterar sobre los resultados del requerimiento actual
+//       for (const resultado of resultadosRequerimiento) {
+//         // Sumar los resultados según la zona
+//         switch (resultado.zona) {
+//           case "Pacifico":
+//             jos.plantaspas += resultado.plantas_encontradas;
+//             break;
+//           case "Centro":
+//             jos.plantascen += resultado.plantas_encontradas;
+//             break;
+//           case "Noreste":
+//             jos.plantnor += resultado.plantas_encontradas;
+//             break;
+//           case "Sureste":
+//             jos.plantsur += resultado.plantas_encontradas;
+//             break;
+//         }
+
+//         // Sumar los resultados para plantas generales
+//         jos.plantasgen += resultado.plantas_encontradas;
+//       }
+
+//       sentencia.push(jos);
+//     }
+
+//     // Agregar nombres de requerimientos sin datos asociados
+//     const nombresSinDatos = nombresRequerimientos.filter(
+//       (nombre) => !sentencia.some((item) => item.nombre === nombre)
+//     );
+//     for (const nombreSinDatos of nombresSinDatos) {
+//       sentencia.push({
+//         nombre: nombreSinDatos,
+//         plantaspas: 0,
+//         plantascen: 0,
+//         plantnor: 0,
+//         plantsur: 0,
+//         plantasgen: 0,
+//       });
+//     }
+
+//     console.log("Suma de segmentos Enviado conexito");
+//     res.json(sentencia);
+//   } catch (error) {
+//     console.error("Error en la consulta:", error);
+//     res.status(500).send("Error en el servidor");
+//   }
+// };
+
+
 controladorRequerimiento.conteo = async (req, res) => {
   const reqi = req.body.segmento;
   try {
     const query = `
-            SELECT 
-                nombre_requerimiento,
-                zona,
-                COUNT(id_registro) AS plantas_encontradas
-            FROM 
-                registro
-            RIGHT JOIN 
-            
-                unidad_operativa ON unidad_operativa.id_planta = registro.id_planta
-            RIGHT JOIN 
-                requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
-            WHERE 
-                estatus != 'Vigente' and segmento =? and estatus!='No Aplica'
-            GROUP BY 
-                nombre_requerimiento, zona; `;
+    SELECT 
+      nombre_requerimiento,
+      zona,
+      impacto,
+      COUNT(id_registro) AS plantas_encontradas
+    FROM 
+      registro
+    RIGHT JOIN 
+      unidad_operativa ON unidad_operativa.id_planta = registro.id_planta
+    RIGHT JOIN 
+      requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
+    WHERE 
+      estatus != 'Vigente' and segmento =? and estatus!='No Aplica'
+    GROUP BY 
+      nombre_requerimiento, zona, impacto; `;
 
     const [results] = await pool.query(query, [reqi]);
     const sentencia = [];
@@ -153,7 +248,7 @@ controladorRequerimiento.conteo = async (req, res) => {
     const nombresRequerimientos = [
       ...new Set(results.map((row) => row.nombre_requerimiento)),
     ];
-
+    
     // Iterar sobre cada nombre de requerimiento
     for (const nombre of nombresRequerimientos) {
       // Filtrar resultados por nombre de requerimiento
@@ -163,6 +258,7 @@ controladorRequerimiento.conteo = async (req, res) => {
 
       const jos = {
         nombre: nombre,
+        impacto: resultadosRequerimiento.length > 0 ? resultadosRequerimiento[0].impacto : null,
         plantaspas: 0,
         plantascen: 0,
         plantnor: 0,
@@ -202,6 +298,7 @@ controladorRequerimiento.conteo = async (req, res) => {
     for (const nombreSinDatos of nombresSinDatos) {
       sentencia.push({
         nombre: nombreSinDatos,
+        impacto: null,
         plantaspas: 0,
         plantascen: 0,
         plantnor: 0,
@@ -210,13 +307,14 @@ controladorRequerimiento.conteo = async (req, res) => {
       });
     }
 
-    console.log("Suma de segmentos Enviado conexito");
+    console.log("Suma de segmentos Enviado con éxito");
     res.json(sentencia);
   } catch (error) {
     console.error("Error en la consulta:", error);
     res.status(500).send("Error en el servidor");
   }
 };
+
 
 controladorRequerimiento.Conteozonas = async (req, res) => {
   const segmento = req.body.segmento;
