@@ -6,13 +6,13 @@ const controlexel = {};
 
 
 controlexel.insertmasiva = async (req, res) => {
-  const excelPath = "./src/exel/BaseDEdatosCemex.xlsx";
+  const excelPath = "./src/exel/DATOS_FEB1.xlsx";
   const workbook = XLSX.readFile(excelPath);
   const sheetName = workbook.SheetNames[0];
   const datos = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
+  
   let nombre_planta;
-
   let segmento;
   let zona;
   let estado;
