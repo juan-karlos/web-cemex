@@ -5,13 +5,13 @@ const controladornacional ={}
 //controlador para poder contar todas las plantas a niverl nacional 
 controladornacional.conteoPlantas= async(req,res)=>{
     const query = `SELECT
-    SUM(CASE WHEN segmento = 'Cadena de suministro' THEN 1 ELSE 0 END) AS 'cadena_suministro',
-    SUM(CASE WHEN segmento = 'Industriales' THEN 1 ELSE 0 END) AS 'industriales',
-    SUM(CASE WHEN segmento = 'Inmuebles no operativos' THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
-    SUM(CASE WHEN segmento = 'Operaciones' THEN 1 ELSE 0 END) AS 'operaciones',
-    SUM(CASE WHEN segmento = 'Transporte' THEN 1 ELSE 0 END) AS 'transporte',
-    SUM(CASE WHEN segmento = 'Promexma' THEN 1 ELSE 0 END) AS 'Promexma',
-    SUM(CASE WHEN segmento = 'Constructores' THEN 1 ELSE 0 END) AS 'constructores'
+    SUM(CASE WHEN segmento = 'Cadena de suministro'  and activo!=0 THEN 1 ELSE 0 END) AS 'cadena_suministro',
+    SUM(CASE WHEN segmento = 'Industriales' and activo!=0  THEN 1 ELSE 0 END) AS 'industriales',
+    SUM(CASE WHEN segmento = 'Inmuebles no operativos' and activo!=0 THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
+    SUM(CASE WHEN segmento = 'Operaciones' and activo!=0  THEN 1 ELSE 0 END) AS 'operaciones',
+    SUM(CASE WHEN segmento = 'Transporte' and activo!=0  THEN 1 ELSE 0 END) AS 'transporte',
+    SUM(CASE WHEN segmento = 'Promexma' and activo!=0 THEN 1 ELSE 0 END) AS 'Promexma',
+    SUM(CASE WHEN segmento = 'Constructores' and activo!=0 THEN 1 ELSE 0 END) AS 'constructores'
   FROM unidad_operativa;`;
 
   try {
@@ -54,6 +54,10 @@ try{
 
 };
 
+controladornacional.insercionHistorial=async(req,res)=>{
+  
+
+}
 
 
 

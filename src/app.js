@@ -8,7 +8,21 @@ const fileUpload = require("express-fileupload");
 const bodyParser = require("body-parser");
 const path = require("path");
 const controladorVencimiento = require("./controllers/verificadorVencidos");
+const controladorHistorial=require("./controllers/historial")
+
 const { default: rateLimit } = require("express-rate-limit");
+
+const currentDate = new Date();
+const ultimoDiaDelMes = new Date(
+  currentDate.getFullYear(),
+  currentDate.getMonth() + 1,
+  0
+);
+const monthCron = ultimoDiaDelMes.getMonth() + 1;
+
+// Corrige la expresión de cron para ejecutar a las 23:50 en el último día de cada mes
+const fechaFormateada = `50 23 ${ultimoDiaDelMes.getDate()} ${monthCron} *`;
+
 
 // const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200"];
 const corsOptions = {
@@ -24,6 +38,7 @@ const corsOptions = {
 // const corsOptions={
 //     origin:"*"
 // }
+
 const HOST =('0,0,0,0')
 
 // Lista de bloqueo de IPs
@@ -79,6 +94,13 @@ app.use("/api/unidad", require("./routes/uni_opera.routes"));
 app.use("/api/regi", require("./routes/registro.routes"));
 app.use("/api/historial", require("./routes/historial.routes"));
 app.use("/api/logica", require("./routes/logica.routes"));
+
+
+
+//programa que se insertara el ultimo diia del mes a las 11:20
+cron.schedule(fechaFormateada,()=>{
+  controladorHistorial.insertarHitorial();
+})
 
 // Programar la tarea diaria a la 12 am
 cron.schedule("00 00 * * *", () => {

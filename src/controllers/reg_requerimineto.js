@@ -319,10 +319,10 @@ controladorRequerimiento.conteo = async (req, res) => {
 controladorRequerimiento.Conteozonas = async (req, res) => {
   const segmento = req.body.segmento;
   const zonas = `SELECT  
-    SUM(CASE WHEN zona='Centro' AND estatus != 'Vigente' and estatus!='No Aplica' THEN 1 ELSE 0 END) AS 'Centro',
-    SUM(CASE WHEN zona='Noreste' AND estatus != 'Vigente' and estatus!='No Aplica' THEN 1 ELSE 0 END) AS 'Noreste',
+    SUM(CASE WHEN zona='Centro' AND estatus != 'Vigente'   and estatus!='No Aplica' THEN 1 ELSE 0 END) AS 'Centro',
+    SUM(CASE WHEN zona='Noreste' AND estatus != 'Vigente'  and estatus!='No Aplica' THEN 1 ELSE 0 END) AS 'Noreste',
     SUM(CASE WHEN zona='Pacífico' and estatus != 'Vigente' and estatus!='No Aplica' THEN 1 ELSE 0 END) as 'Pasifico',
-    SUM(CASE WHEN zona='Sureste' AND estatus != 'Vigente' and estatus!='No Aplica' THEN 1 ELSE 0 END) AS 'Sureste',
+    SUM(CASE WHEN zona='Sureste' AND estatus != 'Vigente'  and estatus!='No Aplica' THEN 1 ELSE 0 END) AS 'Sureste',
     SUM(CASE WHEN (zona ='Centro' OR zona='Pacífico' OR zona='Sureste' OR zona ='Noreste') AND estatus != 'Vigente' and estatus!='No Aplica' THEN 1 ELSE 0 END) AS 'total'
   FROM registro
   JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
