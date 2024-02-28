@@ -168,7 +168,7 @@ const fechaActual = moment();
 // Formatea la fecha actual en el formato 'YYYY-MM-DD HH:mm:ss'
 const fecha = moment().format('YYYY-MM-DD_HH-mm-ss');
 
-    const consultaregis=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,fecha_inicio,fecha_vencimiento,observaciones,estatus,url
+    const consultaregis=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,validez_unica,segmento,peso,zona,impacto,siglas,fecha_inicio,fecha_vencimiento,observaciones,estatus,url
     FROM registro,unidad_operativa,requerimiento
     where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento
      `;
@@ -183,7 +183,9 @@ const fecha = moment().format('YYYY-MM-DD_HH-mm-ss');
          { header: "nombre_requerimiento", key: "nombre_requerimiento", width: 30 },
          { header: "nombre_planta", key: "nombre_planta", width: 40 },
          { header: "porcentaje_cumplimiento", key: "porcentaje_cumplimiento", width: 10 },
-         { header: "pes", key: "peso", width: 15 },
+         { header: "segmento", key: "segmento", width: 50 },
+         { header: "peso", key: "peso", width: 15 },
+         { header: "estatus", key: "estatus", width: 15 },
          { header: "zona", key: "zona", width: 10 },
          { header: "impacto", key: "impacto", width: 30 },
          { header: "siglas", key: "siglas", width: 10 },
@@ -228,7 +230,7 @@ controladorRegistro.obtenerRegistro_segmento = async (req, res) => {
   console.log(segmento,zona)
   try {
     if(segmento===undefined || segmento===""){
-      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,segmento,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
       FROM registro,unidad_operativa,requerimiento
       where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento  and zona =?;`;
       const [registros] = await pool.query(consulta,[zona]);
@@ -242,7 +244,7 @@ controladorRegistro.obtenerRegistro_segmento = async (req, res) => {
       }
       
     }else{
-      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
+      consulta=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,peso,zona,segmento,impacto,siglas,validez_unica,fecha_inicio,fecha_vencimiento,observaciones,estatus,url,validez_unica
       FROM registro,unidad_operativa,requerimiento
       where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento  and zona =? and segmento=?;`;
       const [registros] = await pool.query(consulta,[zona,segmento]);
@@ -846,7 +848,7 @@ FROM unidad_operativa uo
 JOIN registro r ON uo.id_planta = r.id_planta
 JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
 where zona ='Centro' and segmento=?
-GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento ;  ;`;
+GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento`;
 
   let noreste = `SELECT
   uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,

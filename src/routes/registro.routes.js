@@ -8,7 +8,7 @@ const controladorinsertmasiva = require("../controllers/exel");
 // router.post('/load_pdf',controladorRegistro.insertpdf)
 
 router.get("/", controladorRegistro.obtenerRegistro);
-router.post("/regisSeg",controladorRegistro.obtenerRegistro_segmento);
+router.post("/regisSeg", controladorRegistro.obtenerRegistro_segmento);
 router.post("/pdf", controladorRegistro.insertarPdf);
 router.get("/fechaIniDia", controladorRegistro.buscarFechaDia); //busca fechas por dia de los registros de inicio
 router.get("/fechaIniAAMM", controladorRegistro.buscarFechaAAMM); //busca fechas por mes y año de inicio de registro
@@ -19,22 +19,17 @@ router.get("/fechaVenAnio", controladorRegistro.buscarFechaAT); //busca todas la
 router.get("/fechaVenR", controladorRegistro.buscarFechRango); // busca un rango de fechas de vencimiento especificado
 router.patch("/actualizarEs", controladorRegistro.actualizarEstado); //actualiza el estado del registro
 router.post("/grafica", controladorRegistro.graficatotal);
-
-router.patch("/updateToVencido", controladorVencimiento.updateToVencimiento);
-
 router.get("/graficaTotal", controladorRegistro.Graficatotal);
 router.post("/descargas", controladorRegistro.descargas);
 router.get("/permiso/:cb", controladorRegistro.obtenerUnRegi);
 router.patch("/actualizarPer", controladorRegistro.actualizarRegistro);
-
-router.get("/documento/:nombredoc",controladorRegistro.documento);
+router.get("/documento/:nombredoc", controladorRegistro.documento);
+router.get("/exel", controladorRegistro.importExel);
 
 router.post("/carga", controladorinsertmasiva.insertmasiva);
-router.get("/exel",controladorRegistro.importExel)
+router.get("/rutas", controladorinsertmasiva.rutas);
 
-
-router.get("/rutas",controladorinsertmasiva.rutas)
-
+router.patch("/updateToVencido", controladorVencimiento.updateToVencimiento);
 router.get("/diaSiguiente", controladorVencimiento.vencSiguienteDia);
 router.get("/mes", controladorVencimiento.unMes);
 router.get("/resmes", controladorVencimiento.tresMeses);
