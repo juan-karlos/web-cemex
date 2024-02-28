@@ -3,7 +3,7 @@ const router = Router();
 const controllersLogica = require("../controllers/logica");
 
 router.get("/total", controllersLogica.pesoTotal);
-router.get("/parcial", controllersLogica.pesoParcial);
+// router.post("/parcial", controllersLogica.InsertHistorial);
 router.get("/porcentaje", controllersLogica.pesoEnPorcentajeEstatus); //si
 router.get("/totalPlanta", controllersLogica.totalPlantas); //si
 router.get("/sumaTotal", controllersLogica.sumTotalZonaSegmento); //si
@@ -15,5 +15,7 @@ router.get("/fijas", controllersLogica.fijas); //si
 router.get("/moviles", controllersLogica.moviles); //si
 router.post("/vencidas", controllersLogica.vencida); //si
 router.post("/vigentes", controllersLogica.vigente); //si
+
+router.post("/estadistica", controllersLogica.estadistica)
 
 module.exports = router;
