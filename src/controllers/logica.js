@@ -489,6 +489,9 @@ controllersLogica.estadistica = async (req, res) => {
       console.log('Peso total:', total);
       console.log("peso de la zona",pesozona)
       const igualZon= sumzon*100/zona
+
+
+      
        console.log(igualZon)
 
        const porcentajes={
