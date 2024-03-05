@@ -304,6 +304,7 @@ GROUP BY subquery.segmento;`;
   console.log(porcentaje);
 };
 
+
 // controllersLogica.estadistica = async (req, res) => {
 //   const { nombrezona, segmento } = req.body;
 //   try {
@@ -571,7 +572,7 @@ controllersLogica.vencida = async (req, res) => {
             WHERE
                 zona = ?
                 AND segmento = ?
-                AND estatus = 'Vencido' and estatus != 'No Aplica'
+                AND estatus != 'Vigente' and estatus != 'No Aplica'
                 AND impacto = ?`,
       [zona, segmento, impacto]
     );
@@ -624,6 +625,32 @@ controllersLogica.vigente = async (req, res) => {
     res.status(500).json({
       message: "No se pudo conectar al servidor",
     });
+  }
+};
+
+controllersLogica.NoTramitables = async (req, res) => {
+  try {
+    console.log('Cuerpo de la solicitud:', req.body); // Imprime el cuerpo de la solicitud recibida desde el frontend
+
+    const { zona, segmento } = req.body;
+
+    const sentencia = `
+      SELECT COUNT(DISTINCT uo.id_planta) AS cantidad_plantas
+      FROM unidad_operativa uo
+      INNER JOIN registro reg ON uo.id_planta = reg.id_planta
+      WHERE uo.activo = true
+      AND uo.zona = ?
+      AND uo.segmento = ?
+      AND reg.estatus = 'No tramitable';
+    `;
+
+    const [NoT] = await pool.query(sentencia, [zona, segmento]);
+
+    res.json(NoT);
+    console.log('ESTO RESPONDE MI ENDPOINT',NoT);
+  } catch (error) {
+    console.error('Error al realizar la consulta:', error);
+    res.status(500).json({ error: 'Error al realizar la consulta' });
   }
 };
 
