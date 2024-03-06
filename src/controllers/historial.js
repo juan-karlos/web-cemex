@@ -144,7 +144,7 @@ controllerHistorial.insertarHitorial = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ?;`;
+      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND fija=1;`;
 
     // Query to get the total weight for the segment with 'Vigente' status
     let pesos = `
@@ -152,7 +152,7 @@ controllerHistorial.insertarHitorial = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ?;`;
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND  fija =1;`;
 
     // Query to get the total weight for the segment, 'Vigente' status, and specific zone
     let zonapes = `
@@ -160,7 +160,8 @@ controllerHistorial.insertarHitorial = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ?;`;
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ? AND fija=1
+      ;`;
 
     // Query to get the total weight for the segment and specific zone
     let totalzon = `
@@ -174,7 +175,7 @@ controllerHistorial.insertarHitorial = async (req, res) => {
 
     const [segmentosResponse] = await pool.query(segmentosQuery);
 
-    const zonas = ['Noreste', 'Sureste', 'Pacífico', 'Centro'];
+    const zonas = ['Sureste', 'Centro', 'Pacífico', 'Noreste','Nacional'];
 
     //se consigue la fecha del sistema
 

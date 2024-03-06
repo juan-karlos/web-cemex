@@ -244,41 +244,168 @@ controllersLogica.sumTotalZonaSegmento = async (req, res) => {
 };
 
 controllersLogica.fijas = async (req, res) => {
-  const sentencia = `SELECT  
-    zona, 
-    COUNT(*) AS total_plantas, 
-    SUM(porcentaje_cumplimiento) AS suma_porcentaje_cumplimiento, 
-    (SUM(porcentaje_cumplimiento) / COUNT(*)) AS porcentaje_cumplimiento_promedio 
-FROM unidad_operativa 
-WHERE  
-    segmento = 'constructores' 
-    AND zona IN ('Centro', 'Pacífico', 'Noreste', 'Sureste') 
-    AND activo = true 
-    AND fija = true 
-GROUP BY zona;`;
+  try {
+    const results = []; // Arreglo para almacenar los resultados
 
-  const [porcentaje] = await pool.query(sentencia);
-  res.json(porcentaje);
+    // Query to get the total weight for the segment
+    let consulta = `
+      SELECT SUM(peso) AS suma 
+      FROM unidad_operativa 
+      JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
+      JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND activo=1 AND fija=1;`;
+
+    // Query to get the total weight for the segment with 'Vigente' status
+    let pesos = `
+      SELECT peso 
+      FROM unidad_operativa 
+      JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
+      JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND activo=1 AND fija=1;`;
+
+    // Query to get the total weight for the segment, 'Vigente' status, and specific zone
+    let zonapes = `
+      SELECT peso 
+      FROM unidad_operativa 
+      JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
+      JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ? AND activo=1 AND fija=1;`;
+
+    // Query to get the total weight for the segment and specific zone
+    let totalzon = `
+      SELECT peso 
+      FROM unidad_operativa 
+      JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
+      JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND zona = ? AND activo=1 AND fija=1;`;
+
+    const zonas = ['Sureste', 'Centro', 'Pacifico', 'Noreste', 'Nacional']; // Orden específico de zonas
+
+    //se consigue la fecha del sistema
+    const fechaActual = moment().format('YYYY-MM-DD');
+
+    const currentSegmento = 'Constructores';
+
+    const [peso] = await pool.query(pesos, [currentSegmento]);
+    const [pesototal] = await pool.query(consulta, [currentSegmento]);
+    const total = pesototal[0].suma;
+    const sumpes = peso.reduce((acc, curr) => acc + curr.peso / total, 0) * 100;
+
+    for (let j = 0; j < zonas.length; j++) {
+      const [pesototal] = await pool.query(consulta, [currentSegmento]);
+      const [pesozon] = await pool.query(zonapes, [currentSegmento, zonas[j]]);
+      const [pesostot] = await pool.query(totalzon, [currentSegmento, zonas[j]]);
+
+      if (pesototal && pesototal.length > 0 && pesototal[0].suma !== null) {
+        const sumzon = pesozon.reduce((acc, curr) => acc + curr.peso / total, 0) * 100;
+        const zona = pesostot.reduce((acc, curr) => acc + curr.peso / total, 0) * 100;
+        const pesozona = pesostot.reduce((acc, curr) => acc + curr.peso, 0);
+
+        // Construir objeto JSON con los resultados para la zona específica
+        const zoneResult = {
+          "zona": zonas[j],
+          "segmento": currentSegmento,
+          "porcentaje_nacional": sumpes,
+          "porcentaje_zona_parcial": zona,
+          "porcentaje_cumplimiento_promedio": sumzon * 100 / zona,
+          
+        };
+
+        results.push(zoneResult); // Agregar resultado para la zona específica al arreglo
+      }
+    }
+
+    // Enviar los resultados como respuesta en formato JSON
+    res.status(200).json(results);
+
+  } catch (error) {
+    console.error('Error en la consulta:', error);
+    res.status(500).json({ message: 'Error en la consulta de estadísticas' });
+  }
 };
 
 controllersLogica.moviles = async (req, res) => {
-  const sentencia = `SELECT  
-    zona, 
-    COUNT(*) AS total_plantas, 
-    SUM(porcentaje_cumplimiento) AS suma_porcentaje_cumplimiento, 
-    (SUM(porcentaje_cumplimiento) / COUNT(*)) AS porcentaje_cumplimiento_promedio 
-FROM unidad_operativa 
-WHERE  
-    segmento = 'constructores' 
-    AND zona IN ('Centro', 'Pacífico', 'Noreste', 'Sureste') 
-    AND activo = true 
-    AND fija = false 
-GROUP BY zona;`;
+  try {
+    const results = []; // Arreglo para almacenar los resultados
 
-  const [porcentaje] = await pool.query(sentencia);
-  res.json(porcentaje);
-  console.log(porcentaje);
+    // Query to get the total weight for the segment
+    let consulta = `
+      SELECT SUM(peso) AS suma 
+      FROM unidad_operativa 
+      JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
+      JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND activo=1 AND fija=0;`;
+
+    // Query to get the total weight for the segment with 'Vigente' status
+    let pesos = `
+      SELECT peso 
+      FROM unidad_operativa 
+      JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
+      JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND activo=1 AND fija=0;`;
+
+    // Query to get the total weight for the segment, 'Vigente' status, and specific zone
+    let zonapes = `
+      SELECT peso 
+      FROM unidad_operativa 
+      JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
+      JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ? AND activo=1 AND fija=0;`;
+
+    // Query to get the total weight for the segment and specific zone
+    let totalzon = `
+      SELECT peso 
+      FROM unidad_operativa 
+      JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
+      JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND zona = ? AND activo=1 AND fija=0;`;
+
+    const zonas = ['Sureste', 'Centro', 'Pacífico', 'Noreste', 'Nacional']; // Orden específico de zonas
+
+    //se consigue la fecha del sistema
+    const fechaActual = moment().format('YYYY-MM-DD');
+
+    const currentSegmento = 'Constructores';
+
+    const [peso] = await pool.query(pesos, [currentSegmento]);
+    const [pesototal] = await pool.query(consulta, [currentSegmento]);
+    const total = pesototal[0].suma;
+    const sumpes = peso.reduce((acc, curr) => acc + curr.peso / total, 0) * 100;
+
+    for (let j = 0; j < zonas.length; j++) {
+      const [pesototal] = await pool.query(consulta, [currentSegmento]);
+      const [pesozon] = await pool.query(zonapes, [currentSegmento, zonas[j]]);
+      const [pesostot] = await pool.query(totalzon, [currentSegmento, zonas[j]]);
+
+      if (pesototal && pesototal.length > 0 && pesototal[0].suma !== null) {
+        const sumzon = pesozon.reduce((acc, curr) => acc + curr.peso / total, 0) * 100;
+        const zona = pesostot.reduce((acc, curr) => acc + curr.peso / total, 0) * 100;
+        const pesozona = pesostot.reduce((acc, curr) => acc + curr.peso, 0);
+
+        // Construir objeto JSON con los resultados para la zona específica
+        const zoneResult = {
+          "zona": zonas[j],
+          "segmento": currentSegmento,
+          "porcentaje_nacional": sumpes,
+          "porcentaje_zona_parcial ": zona,
+          "porcentaje_cumplimiento_promedio": sumzon * 100 / zona,
+          
+        };
+
+        results.push(zoneResult); // Agregar resultado para la zona específica al arreglo
+      }
+    }
+
+    // Enviar los resultados como respuesta en formato JSON
+    res.status(200).json(results);
+
+  } catch (error) {
+    console.error('Error en la consulta:', error);
+    res.status(500).json({ message: 'Error en la consulta de estadísticas' });
+  }
 };
+
+
 
 controllersLogica.porcentaje = async (req, res) => {
   const sentencia = `SELECT 
@@ -433,7 +560,7 @@ controllersLogica.estadistica = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ?;`;
+      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND activo =1;`;
 
     // Consulta para obtener el peso total para el segmento y estatus 'Vigente'
     let pesos = `
@@ -441,7 +568,7 @@ controllersLogica.estadistica = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ?;`;
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND activo =1;`;
 
     // Consulta para obtener el peso total para el segmento, estatus 'Vigente' y zona específica
     let zonapes = `
@@ -449,13 +576,13 @@ controllersLogica.estadistica = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ?;`;
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ? AND activo =1;`;
 
     let totalzon =`SELECT peso 
     FROM unidad_operativa 
     JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
     JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-    WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND zona = ?;`;
+    WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND zona = ? AND activo =1;`;
 
 
     const [pesototal] = await pool.query(consulta, [segmento]);
