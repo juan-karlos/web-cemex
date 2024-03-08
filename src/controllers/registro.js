@@ -107,7 +107,7 @@ controladorRegistro. descargas = async (req, res) => {
     await archive.finalize();
 
     // Eliminar la carpeta temporal después de comprimir
-    // await fse.remove(carpetaTemporal);
+    await fse.remove(carpetaTemporal);
 
     console.log("Descarga masiva completada");
   } catch (error) {
@@ -270,13 +270,15 @@ controladorRegistro.obtenerRegistro_segmento = async (req, res) => {
 // Controlador para cargar el archivo PDF y agregar un nuevo registro
 
 controladorRegistro.insertarPdf = async (req, res) => {
-  const sqlQuery = `INSERT INTO registro (id_planta, id_requerimiento, fecha_inicio, fecha_vencimiento, observaciones, estatus, url, validez_unica)
+  const sqlQuery = `INSERT INTO registro (id_planta, id_requerimiento, fecha_inicio, 
+    fecha_vencimiento, observaciones, estatus, url, validez_unica)
 SELECT uo.id_planta, req.id_requerimiento, ?, ?, ?, ?, ?, ?
 FROM unidad_operativa AS uo
 JOIN requerimiento AS req ON uo.nombre_planta = ? AND req.nombre_requerimiento = ?
 WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerimiento FROM registro);`;
 
-const documentos= `INSERT INTO documentos (id_registro, nombre_planta, nombre_requerimiento, url, fecha_inicio, fecha_vencimiento, impacto, zona,
+const documentos= `INSERT INTO documentos (id_registro, nombre_planta, nombre_requerimiento, url, fecha_inicio, 
+  fecha_vencimiento, impacto, zona,
 segmento, nombre_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`  // Verifica si se envió un archivo PDF
   console.log("se resivio la peticion");
 
@@ -380,12 +382,14 @@ segmento, nombre_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`  // Verifica si se 
         const zona = rows[0].zona;
         const segmento = rows[0].segmento;
     
-        console.log(id_registro, impacto, zona, segmento,nombre_planta, nombre_requerimiento,pdfUrlsSinEspacios, fechaAcomodada, fechaAcomodada2,nombreOriginal);
+        console.log(id_registro, impacto, zona, segmento,nombre_planta, nombre_requerimiento,
+          pdfUrlsSinEspacios, fechaAcomodada, fechaAcomodada2,nombreOriginal);
 
 
       console.log(`Este es el ID del registro ${id_registro }`);
 
-      await pool.query(documentos,[id_registro, nombre_planta, nombre_requerimiento,pdfUrlsSinEspacios, fechaAcomodada, fechaAcomodada2, impacto, zona,
+      await pool.query(documentos,[id_registro, nombre_planta, nombre_requerimiento,
+        pdfUrlsSinEspacios, fechaAcomodada, fechaAcomodada2, impacto, zona,
         segmento, nombreOriginal])
       }
 
@@ -890,26 +894,32 @@ GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
   let multasnas = [];
   let administrativasnas = [];
   let optimasnas = [];
+  let ignoradasnas =[];
+
 
   let clausuradascen = [];
   let multascen = [];
   let administrativascen = [];
   let optimascen = [];
+  let ignoradascen=[]
 
   let clausuradasnor = [];
   let multasnor = [];
   let administrativasnor = [];
   let optimasnor = [];
+  let ignoradasnor=[];
 
   let clausuradaspas = [];
   let multaspas = [];
   let administrativaspas = [];
   let optimaspas = [];
+  let ignoradasnpas=[];
 
   let clausuradassur = [];
   let multassur = [];
   let administrativassur = [];
   let optimassur = [];
+  let ignoradassur=[];
 
   let [resultados] = await pool.query(nacional, [segmento]);
 
@@ -919,14 +929,15 @@ GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
 
     } else if (resultados[i].Clausuras === 0 && resultados[i].Multas >= 1) {
      multasnas.push(resultados[i])
-     
     } else if (
       resultados[i].Clausuras === 0 &&
       resultados[i].Multas === 0 &&
       resultados[i].Administrativos >= 1
     ) {
-      administrativasnas.push(resultados[i]);
+      optimasnas.push(resultados[i]);
     } else if (resultados[i].porcentaje_cumplimiento >= 100) {
+      optimasnas.push(resultados[i]);
+    }else {
       optimasnas.push(resultados[i]);
     }
   }
@@ -948,9 +959,11 @@ GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
       resultadoscen[i].Administrativos >= 1
     ) {
       // console.log(resultadoscen[i].UnidadOperativa + " ......... Administrativos");
-      administrativascen.push(resultadoscen[i]);
+      optimascen.push(resultadoscen[i]);
     } else if (resultadoscen[i].porcentaje_cumplimiento >= 100) {
       // console.log(resultadoscen[i].UnidadOperativa + " ......... Libres");
+      optimascen.push(resultadoscen[i]);
+    }else{
       optimascen.push(resultadoscen[i]);
     }
   }
@@ -969,8 +982,10 @@ GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
       resultadosnor[i].Multas === 0 &&
       resultadosnor[i].Administrativos >= 1
     ) {
-      administrativasnor.push(resultadosnor[i]);
+      optimasnor.push(resultadosnor[i]);
     } else if (resultadosnor[i].porcentaje_cumplimiento >= 100) {
+      optimasnor.push(resultadosnor[i]);
+    }else{
       optimasnor.push(resultadosnor[i]);
     }
   }
@@ -991,10 +1006,13 @@ GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
       resultadospas[i].Multas === 0 &&
       resultadospas[i].Administrativos >= 1
     ) {
-      administrativaspas.push(resultadospas[i]);
+      optimaspas.push(resultadospas[i]);
     } else if (resultadospas[i].porcentaje_cumplimiento >= 100) {
       optimaspas.push(resultadospas[i]);
+    }else{
+      optimaspas.push(resultadospas[i]);
     }
+
   }
 
   let [resultadossur] = await pool.query(sureste, [segmento]);
@@ -1011,8 +1029,10 @@ GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
       resultadossur[i].Multas === 0 &&
       resultadossur[i].Administrativos >= 1
     ) {
-      administrativassur.push(resultadossur[i]);
+      optimassur.push(resultadossur[i]);
     } else if (resultadossur[i].porcentaje_cumplimiento >= 100) {
+      optimassur.push(resultadossur[i]);
+    }else{
       optimassur.push(resultadossur[i]);
     }
   }
@@ -1082,6 +1102,20 @@ GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
     multaspassur,
     optimaspassur,
   };
+  // console.log("IgnoradaS CENTRO..................................................")
+  // console.log(ignoradascen)
+
+  // console.log("Ignoradas NACIONAL.................................................")
+  // console.log(ignoradasnas)
+
+  // console.log("ignoradas NORTE.....................................................")
+  // console.log(ignoradasnor);
+
+  // console.log("ignoradas Pasifico")
+  // console.log(ignoradasnpas)
+
+  // console.log("ignoradas SURESTE.....................................................")
+  // console.log(ignoradassur)
 
   const jeison = [nas, cen, nor, pas, sur];
   console.log(jeison);

@@ -3,6 +3,10 @@ const router = Router();
 const controllerPlanta = require("../controllers/unidad_operativa");
 const controllerNacional= require("../controllers/controllerNacional")
 
+//rutas de nacional
+router.get("/Nacional",controllerNacional.estadisticaNacional);
+router.get("/conteoNacional",controllerNacional.conteoPlantas)
+
 router.get("/uno/:cb", controllerPlanta.obtenerPlanta); //listo
 router.get("/", controllerPlanta.obtenerPlantas); // listo
 router.get("/plantastrue", controllerPlanta.activasFijas); // listo
@@ -17,9 +21,7 @@ router.get("/sur", controllerPlanta.sur);
 router.get("/movilestrue", controllerPlanta.activasMoviles);
 router.get("/movilesfalse", controllerPlanta.inactivasMoviles);
 
-//rutas de nacional
-router.get("/Nacional",controllerNacional.estadisticaNacional);
-router.get("/conteoNacional",controllerNacional.conteoPlantas)
+
 
 
 module.exports = router;
