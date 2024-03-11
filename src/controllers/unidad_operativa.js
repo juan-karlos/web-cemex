@@ -177,7 +177,8 @@ controllerPlanta.insertPlanta = async (req, res) => {
   }
   try {
     const [reg] = await pool.query(
-      `INSERT INTO unidad_operativa (nombre_planta, segmento, zona, Estado, porcentaje_cumplimiento,fija,activo) Values (?,?,?,?,?,?,?)`,
+      `INSERT INTO unidad_operativa (nombre_planta, segmento, zona, Estado, 
+        porcentaje_cumplimiento,fija,activo) Values (?,?,?,?,?,?,?)`,
       [
         nombre_planta,
         segmento,
@@ -232,7 +233,10 @@ controllerPlanta.actualizar = async (req, res) => {
     if (infoPlanta != "") {
       // console.log(ids)
       await pool.query(
-        `UPDATE unidad_operativa SET nombre_planta=ifNULL(?,nombre_planta), segmento=ifNULL(?,segmento), zona=ifNULL(?,zona), Estado=ifNULL(?,Estado), porcentaje_cumplimiento=ifNULL(?,porcentaje_cumplimiento), fija=ifNULL(?,fija), activo=ifNULL(?,activo) 
+        `UPDATE unidad_operativa SET nombre_planta=ifNULL(?,nombre_planta), 
+        segmento=ifNULL(?,segmento), zona=ifNULL(?,zona), Estado=ifNULL(?,Estado),
+        porcentaje_cumplimiento=ifNULL(?,porcentaje_cumplimiento), fija=ifNULL(?,fija), 
+        activo=ifNULL(?,activo) 
         WHERE id_planta=?`,
         [
           nombre_planta,
