@@ -733,7 +733,8 @@ WHERE unidad_operativa.id_planta NOT IN (
    FROM unidad_operativa
    JOIN registro ON unidad_operativa.id_planta = registro.id_planta
    JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-   WHERE requerimiento.impacto IN ('Clausura Total', 'Multa')
+   WHERE unidad_operativa.activo = true
+   and requerimiento.impacto IN ('Clausura Total', 'Multa')
      AND registro.estatus != 'Vigente' and registro.estatus != 'No Aplica'
    
 )
@@ -881,5 +882,45 @@ controllersLogica.NoTramitablesTablaNacional = async (req, res) => {
     });
   }
 };
+
+controllersLogica.vigenteNacional = async (req, res) => {
+  try {
+    const { segmento } = req.body;
+    const [rows] = await pool.query(
+      `SELECT unidad_operativa.nombre_planta, 
+      requerimiento.siglas, 
+      unidad_operativa.porcentaje_cumplimiento 
+FROM unidad_operativa
+JOIN registro ON unidad_operativa.id_planta = registro.id_planta
+JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+WHERE unidad_operativa.id_planta NOT IN (
+   SELECT DISTINCT unidad_operativa.id_planta
+   FROM unidad_operativa
+   JOIN registro ON unidad_operativa.id_planta = registro.id_planta
+   JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+   WHERE unidad_operativa.activo = true
+    and requerimiento.impacto IN ('Clausura Total', 'Multa')
+     AND registro.estatus != 'Vigente' and registro.estatus != 'No Aplica'
+   
+)
+
+AND unidad_operativa.segmento = ?;`,
+      [ segmento]
+    );
+
+    if (rows.length > 0) {
+      res.status(200).json(rows);
+    } else {
+      res.status(404).json({
+        message: "No se encontraron datos",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "No se pudo conectar al servidor",
+    });
+  }
+};
+
 
 module.exports = controllersLogica;

@@ -18,6 +18,8 @@ router.post("/vigentes", controllersLogica.vigente); //si
 router.post("/vencidasNacional", controllersLogica.vencidaNacional); //si
 router.post("/estadistica", controllersLogica.estadistica);
 router.post("/NoTramitables", controllersLogica.NoTramitables);
+router.post("/NoTramitablesTabla", controllersLogica.NoTramitablesTabla);
 router.post("/NoTramitablesTablaNacional", controllersLogica.NoTramitablesTablaNacional);
+router.post("/vigentesNacional", controllersLogica.vigenteNacional); //si
 
 module.exports = router;
