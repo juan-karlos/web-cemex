@@ -795,7 +795,7 @@ controllersLogica.NoTramitablesTabla = async (req, res) => {
   try {
     const { zona, segmento } = req.body;
     const [rows] = await pool.query(
-      `select nombre_planta, siglas, nombre_requerimiento, estatus
+      `select nombre_planta, siglas, nombre_requerimiento, estatus,porcentaje_cumplimiento
       FROM unidad_operativa uo
       INNER JOIN registro reg ON uo.id_planta = reg.id_planta
       INNER JOIN requerimiento req ON req.id_requerimiento = reg.id_requerimiento
