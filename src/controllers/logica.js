@@ -722,22 +722,23 @@ controllersLogica.vigente = async (req, res) => {
   try {
     const { zona, segmento } = req.body;
     const [rows] = await pool.query(
-      `
-            SELECT
-                unidad_operativa.nombre_planta,
-                requerimiento.siglas,
-                unidad_operativa.porcentaje_cumplimiento
-            FROM
-                unidad_operativa
-            JOIN
-                registro ON unidad_operativa.id_planta = registro.id_planta
-            JOIN
-                requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-            WHERE
-                zona = ?
-                AND segmento = ?
-                AND porcentaje_cumplimiento = 100
-                and estatus !='No Aplica'`,
+      `SELECT unidad_operativa.nombre_planta, 
+      requerimiento.siglas, 
+      unidad_operativa.porcentaje_cumplimiento 
+FROM unidad_operativa
+JOIN registro ON unidad_operativa.id_planta = registro.id_planta
+JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+WHERE unidad_operativa.id_planta NOT IN (
+   SELECT DISTINCT unidad_operativa.id_planta
+   FROM unidad_operativa
+   JOIN registro ON unidad_operativa.id_planta = registro.id_planta
+   JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
+   WHERE requerimiento.impacto IN ('Clausura Total', 'Multa')
+     AND registro.estatus != 'Vigente' and registro.estatus != 'No Aplica'
+   
+)
+AND unidad_operativa.zona = ?
+AND unidad_operativa.segmento = ?;`,
       [zona, segmento]
     );
 
@@ -754,6 +755,16 @@ controllersLogica.vigente = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+
+
+
+
+
 
 controllersLogica.NoTramitables = async (req, res) => {
   try {
@@ -780,5 +791,32 @@ controllersLogica.NoTramitables = async (req, res) => {
     res.status(500).json({ error: 'Error al realizar la consulta' });
   }
 };
+controllersLogica.NoTramitablesTabla = async (req, res) => {
+  try {
+    const { zona, segmento } = req.body;
+    const [rows] = await pool.query(
+      `select nombre_planta, siglas, nombre_requerimiento, estatus
+      FROM unidad_operativa uo
+      INNER JOIN registro reg ON uo.id_planta = reg.id_planta
+      INNER JOIN requerimiento req ON req.id_requerimiento = reg.id_requerimiento
+      WHERE uo.activo = true
+      AND uo.zona = ?
+      AND uo.segmento = ?
+      AND reg.estatus = 'No tramitable';`,
+      [zona, segmento]
+    );
 
+    if (rows.length > 0) {
+      res.status(200).json(rows);
+    } else {
+      res.status(404).json({
+        message: "No se encontraron datos",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "No se pudo conectar al servidor",
+    });
+  }
+};
 module.exports = controllersLogica;
