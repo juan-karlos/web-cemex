@@ -15,9 +15,9 @@ router.get("/fijas", controllersLogica.fijas); //si
 router.get("/moviles", controllersLogica.moviles); //si
 router.post("/vencidas", controllersLogica.vencida); //si
 router.post("/vigentes", controllersLogica.vigente); //si
-
+router.post("/vencidasNacional", controllersLogica.vencidaNacional); //si
 router.post("/estadistica", controllersLogica.estadistica);
 router.post("/NoTramitables", controllersLogica.NoTramitables);
-router.post("/NoTramitablesTabla", controllersLogica.NoTramitablesTabla);
+router.post("/NoTramitablesTablaNacional", controllersLogica.NoTramitablesTablaNacional);
 
 module.exports = router;
