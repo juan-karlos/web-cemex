@@ -12,10 +12,7 @@ const exceljs=require('exceljs')
 
 const controladorRegistro = {};
 
-
 //descarga masiva de documentos
-
-
 
 controladorRegistro. descargas = async (req, res) => {
   try {
@@ -116,9 +113,6 @@ controladorRegistro. descargas = async (req, res) => {
   }
 };
 
-
-
-
 //obtiene un registro
 controladorRegistro.obtenerUnRegi = async (req, res) => {
   const registro = { id_requerimiento: req.params.cb };
@@ -156,7 +150,6 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
       .json({ message: "hay un error en el systema intente mas tarde" });
   }
 };
-
 
 //controlador para poder acomodar los registros en un exel
 
@@ -265,7 +258,6 @@ controladorRegistro.obtenerRegistro_segmento = async (req, res) => {
     res.status(500).json({ message: "hay un error en el systema intente mas tarde" });
   }
 };
-
 
 // Controlador para cargar el archivo PDF y agregar un nuevo registro
 
@@ -805,7 +797,6 @@ controladorRegistro.documento= async(req,res)=>{
   }
 };
 
-
 //controlador para actualizar los estados
 controladorRegistro.actualizarEstado = async (req, res) => {
   try {
@@ -1122,6 +1113,402 @@ GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento ; `;
 
   res.json(jeison);
 };
+controladorRegistro.administrativas = async (req, res) => {
+  const segmento = req.body.segmento;
+
+  let nacional1 = `select  distinct nombre_planta,segmento,zona,estatus
+  from unidad_operativa join registro on unidad_operativa.id_planta = registro.id_planta join requerimiento on requerimiento.id_requerimiento =registro.id_requerimiento
+  where estatus ='No Tramitable' and segmento= ?; `;
+
+  let conzon = `select  distinct nombre_planta,segmento,zona,estatus
+  from unidad_operativa join registro on unidad_operativa.id_planta = registro.id_planta join requerimiento on requerimiento.id_requerimiento =registro.id_requerimiento
+  where estatus ='No Tramitable' and segmento= ? and zona = ?`;
+
+ 
+
+  console.log("despues de esta linia sigue el segemnto resivido");
+  console.log(segmento, "Este es el segmento");
+ 
+  let zonas=['Noreste','Centro','Pacifico','Sureste']
+  
+
+
+  let nacional =[];
+
+
+  let [resultnas] = await pool.query(nacional1,[segmento])
+
+    for(let i =0 ; i<resultnas.length;i++){
+      if (resultnas[i].estatus==='No Tramitable'){
+        nacional.push(resultnas[i])
+      }
+    } 
+  let [norte]= await pool.query(conzon,[segmento,zonas[0]])
+  let [centro]= await pool.query(conzon,[segmento,zonas[1]])
+  let [pacifico]= await pool.query(conzon,[segmento,zonas[2]])
+  let [sur]= await pool.query(conzon,[segmento,zonas[3]])
+
+  // console.log("estas son las plantas que son de norte")
+  // console.log(resultadosnor)
+
+  
+  norte = norte.length;
+  centro = centro.length;
+  pacifico = pacifico.length;
+  sur = sur.length;
+  nacional = nacional.length;
+    // tramitablenor= tramitablenor.length;
+    // tramitablecen = tramitablecen.length;
+    // tramitablepas = tramitablepas.length;
+    // tramitablesur= tramitablesur.length
+  const nas = {
+    zona: "grafica_total",
+    nacional,
+    norte,
+    centro,
+    pacifico,
+    sur,
+   
+  };
+
+
+  const jeison=[nas]
+  console.log(jeison)
+  res.json(jeison)
+};
+
+
+
+// controladorRegistro.graficatotal = async (req, res) => {
+//   const segmento = req.body.segmento;
+//   let nacional = `SELECT
+//   uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,estatus,
+//   COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+//   COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+//   COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
+// FROM unidad_operativa uo
+// JOIN registro r ON uo.id_planta = r.id_planta
+// JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
+// where segmento=?
+// GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento,estatus ; `;
+
+//   let centro = `SELECT
+//   uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,estatus,
+//   COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+//   COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+//   COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
+// FROM unidad_operativa uo
+// JOIN registro r ON uo.id_planta = r.id_planta
+// JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
+// where zona ='Centro' and segmento=?
+// GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento,estatus`;
+
+//   let noreste = `SELECT
+//   uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,estatus,
+//   COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+//   COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+//   COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
+// FROM unidad_operativa uo
+// JOIN registro r ON uo.id_planta = r.id_planta
+// JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
+// where zona ='Noreste' and segmento=?
+// GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento, estatus; `;
+
+//   let Pasifico = `SELECT
+// uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,estatus,
+// COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+// COUNT(CASE WHEN req.impacto = 'Clausura Total' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+// COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
+// FROM unidad_operativa uo
+// JOIN registro r ON uo.id_planta = r.id_planta
+// JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
+// where zona ='Pacifico' and segmento=?
+// GROUP BY uo.nombre_planta, uo.porcentaje_cumplimiento ,estatus; `;
+
+//   let sureste = `SELECT
+// uo.nombre_planta AS UnidadOperativa, porcentaje_cumplimiento,estatus,
+// COUNT(CASE WHEN req.impacto = 'Multa' and uo.activo=1  and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Multas,
+// COUNT(CASE WHEN req.impacto = 'Clausura Total ' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Clausuras,
+// COUNT(CASE WHEN req.impacto = 'Administrativo' and uo.activo=1 and r.estatus!='Vigente' and r.estatus!='No Aplica' THEN 1 END) AS Administrativos
+// FROM unidad_operativa uo
+// JOIN registro r ON uo.id_planta = r.id_planta
+// JOIN requerimiento req ON r.id_requerimiento = req.id_requerimiento
+// where zona ='Sureste' and segmento=?
+// GROUP BY uo.nombre_planta ,uo.porcentaje_cumplimiento,estatus ; `;
+
+//   console.log("despues de esta linia sigue el segemnto resivido");
+//   console.log(segmento, "Este es el segmento");
+
+//   let clausuradasnas = [];
+//   let multasnas = [];
+//   let administrativasnas = [];
+//   let optimasnas = [];
+//   let tramitablenas =[];
+
+
+//   let clausuradascen = [];
+//   let multascen = [];
+//   let administrativascen = [];
+//   let optimascen = [];
+//   let tramitablescen=[]
+
+//   let clausuradasnor = [];
+//   let multasnor = [];
+//   let administrativasnor = [];
+//   let optimasnor = [];
+//   let tramitablesnor=[];
+
+//   let clausuradaspas = [];
+//   let multaspas = [];
+//   let administrativaspas = [];
+//   let optimaspas = [];
+//   let tramitablespas=[];
+
+//   let clausuradassur = [];
+//   let multassur = [];
+//   let administrativassur = [];
+//   let optimassur = [];
+//   let tramitablessur=[];
+
+//   let [resultados] = await pool.query(nacional, [segmento]);
+
+//   for (let i = 0; i < resultados.length; i++) {
+//     if (resultados[i].Clausuras >= 1) {
+//       clausuradasnas.push(resultados[i]);
+
+//     } else if (resultados[i].Clausuras === 0 && resultados[i].Multas >= 1) {
+//      multasnas.push(resultados[i])
+//     } else if (
+//       resultados[i].Clausuras === 0 &&
+//       resultados[i].Multas === 0 &&
+//       resultados[i].Administrativos >= 1
+//     ) {
+//       optimasnas.push(resultados[i]);
+//     } else if (resultados[i].porcentaje_cumplimiento >= 100) {
+//       optimasnas.push(resultados[i]);
+//     }else {
+//       optimasnas.push(resultados[i]);
+//     }
+//   }
+
+//   for(let i = 0; i < resultados.length; i++){
+//     if(resultados[i].estatus==='No Tramitable'){
+//       tramitablenas.push(resultados[i])
+//     }
+//   }
+
+//   let [resultadoscen] = await pool.query(centro, [segmento]);
+//   for (let i = 0; i < resultadoscen.length; i++) {
+//     if (resultadoscen[i].Clausuras >= 1) {
+//       // console.log(resultadoscen[i].UnidadOperativa + " ....... Clausuradas");
+//       clausuradascen.push(resultadoscen[i]);
+//     } else if (
+//       resultadoscen[i].Clausuras === 0 &&
+//       resultadoscen[i].Multas >= 1
+//     ) {
+//       // console.log(resultadoscen[i].UnidadOperativa + " ....... Multado");
+//       multascen.push(resultadoscen[i]);
+//     } else if (
+//       resultadoscen[i].Clausuras === 0 &&
+//       resultadoscen[i].Multas === 0 &&
+//       resultadoscen[i].Administrativos >= 1
+//     ) {
+//       // console.log(resultadoscen[i].UnidadOperativa + " ......... Administrativos");
+//       optimascen.push(resultadoscen[i]);
+//     } else if (resultadoscen[i].porcentaje_cumplimiento >= 100) {
+//       // console.log(resultadoscen[i].UnidadOperativa + " ......... Libres");
+//       optimascen.push(resultadoscen[i]);
+//     }else{
+//       optimascen.push(resultadoscen[i]);
+//     }
+//   }
+//   for(let i = 0; i < resultadoscen.length; i++){
+//     if(resultadoscen[i].estatus==='No Tramitable'){
+//       tramitablescen.push(resultadoscen[i])
+//     }
+//   }
+
+//   let [resultadosnor] = await pool.query(noreste, [segmento]);
+//   for (let i = 0; i < resultadosnor.length; i++) {
+//     if (resultadosnor[i].Clausuras >= 1) {
+//       clausuradasnor.push(resultadosnor[i]);
+//     } else if (
+//       resultadosnor[i].Clausuras === 0 &&
+//       resultadosnor[i].Multas >= 1
+//     ) {
+//       multasnor.push(resultadosnor[i]);
+//     } else if (
+//       resultadosnor[i].Clausuras === 0 &&
+//       resultadosnor[i].Multas === 0 &&
+//       resultadosnor[i].Administrativos >= 1
+//     ) {
+//       optimasnor.push(resultadosnor[i]);
+//     } else if (resultadosnor[i].porcentaje_cumplimiento >= 100) {
+//       optimasnor.push(resultadosnor[i]);
+//     }else{
+//       optimasnor.push(resultadosnor[i]);
+//     }
+//   }
+//   for(let i = 0; i < resultadosnor.length; i++){
+//     if(resultadosnor[i].estatus==='No Tramitable'){
+//       tramitablesnor.push(resultadosnor[i])
+//     }
+//   }
+
+//   console.log("");
+
+//   let [resultadospas] = await pool.query(Pasifico, [segmento]);
+//   for (let i = 0; i < resultadospas.length; i++) {
+//     if (resultadospas[i].Clausuras >= 1) {
+//       clausuradaspas.push(resultadospas[i]);
+//     } else if (
+//       resultadospas[i].Clausuras === 0 &&
+//       resultadospas[i].Multas >= 1
+//     ) {
+//       multaspas.push(resultadospas[i]);
+//     } else if (
+//       resultadospas[i].Clausuras === 0 &&
+//       resultadospas[i].Multas === 0 &&
+//       resultadospas[i].Administrativos >= 1
+//     ) {
+//       optimaspas.push(resultadospas[i]);
+//     } else if (resultadospas[i].porcentaje_cumplimiento >= 100) {
+//       optimaspas.push(resultadospas[i]);
+//     }else{
+//       optimaspas.push(resultadospas[i]);
+//     }
+//   }
+//   for(let i = 0; i < resultadospas.length; i++){
+//     if(resultadospas[i].estatus==='No Tramitable'){
+//       tramitablespas.push(resultadospas[i])
+//     }
+//   }
+
+//   let [resultadossur] = await pool.query(sureste, [segmento]);
+//   for (let i = 0; i < resultadossur.length; i++) {
+//     if (resultadossur[i].Clausuras >= 1) {
+//       clausuradassur.push(resultadossur[i]);
+//     } else if (
+//       resultadossur[i].Clausuras === 0 &&
+//       resultadossur[i].Multas >= 1
+//     ) {
+//       multassur.push(resultadossur[i]);
+//     } else if (
+//       resultadossur[i].Clausuras === 0 &&
+//       resultadossur[i].Multas === 0 &&
+//       resultadossur[i].Administrativos >= 1
+//     ) {
+//       optimassur.push(resultadossur[i]);
+//     } else if (resultadossur[i].porcentaje_cumplimiento >= 100) {
+//       optimassur.push(resultadossur[i]);
+//     }else{
+//       optimassur.push(resultadossur[i]);
+//     }
+//   }
+
+//   for(let i = 0; i < resultadossur.length; i++){
+//     if(resultadossur[i].estatus==='No Tramitable'){
+//       tramitablessur.push(resultadossur[i])
+//     }
+//   }
+//   console.log(" Estos son los resultados de la consulta sql");
+
+//   clausuradasnas = clausuradasnas.length;
+//   multasnas = multasnas.length;
+//   administrativasnas = administrativasnas.length;
+//   optimasnas = optimasnas.length;
+
+//   clausuradascen = clausuradascen.length;
+//   multascen = multascen.length;
+//   administrativascen = administrativascen.length;
+//   optimascen = optimascen.length;
+
+//   clausuradasnor = clausuradasnor.length;
+//   multasnor = multasnor.length;
+//   administrativasnor = administrativasnor.length;
+//   optimasnor = optimasnor.length;
+
+//   administrativaspas = administrativaspas.length;
+//   clausuradaspas = clausuradaspas.length;
+//   multaspas = multaspas.length;
+//   optimaspas = optimaspas.length;
+
+//   administrativassur = administrativassur.length;
+//   clausuradassur = clausuradassur.length;
+//   multaspassur = multassur.length;
+//   optimaspassur = optimassur.length;
+
+//   tramitablenas = tramitablenas.length;
+//   tramitablescen = tramitablescen.length;
+//   tramitablessur= tramitablessur.length;
+//   tramitablesnor= tramitablesnor.length;
+//   tramitablespas= tramitablespas.length;
+
+//   const nas = {
+//     zona: "grafica_total",
+//     clausuradasnas,
+//     multasnas,
+//     administrativasnas,
+//     optimasnas,
+//     tramitablenas
+//   };
+
+//   const cen = {
+//     zona: "grafica_cen",
+//     clausuradascen,
+//     multascen,
+//     administrativascen,
+//     optimascen,
+//     tramitablescen
+//   };
+
+//   const nor = {
+//     zona: "Grafica_nor",
+//     clausuradasnor,
+//     multasnor,
+//     administrativasnor,
+//     optimasnor,
+//     tramitablesnor
+//   };
+
+//   const pas = {
+//     zona: "Grafica_pas",
+//     clausuradaspas,
+//     multaspas,
+//     administrativaspas,
+//     optimaspas,
+//     tramitablespas,
+//   };
+
+//   const sur = {
+//     zona: "Grafica_sur",
+//     administrativassur,
+//     clausuradassur,
+//     multaspassur,
+//     optimaspassur,
+//     tramitablessur,
+//   };
+
+//   // console.log("IgnoradaS CENTRO..................................................")
+//   // console.log(ignoradascen)
+
+//   console.log("Ignoradas NACIONAL.................................................")
+//   console.log(tramitablenas)
+
+//   // console.log("ignoradas NORTE.....................................................")
+//   // console.log(ignoradasnor);
+
+//   // console.log("ignoradas Pasifico")
+//   // console.log(ignoradasnpas)
+
+//   // console.log("ignoradas SURESTE.....................................................")
+//   // console.log(ignoradassur)
+
+//   const jeison = [nas, cen, nor, pas, sur];
+//   console.log(jeison);
+
+//   res.json(jeison);
+// };
 
 const obtenerEstadisticas = async (consulta) => {
   const [resultados] = await pool.query(consulta);

@@ -20,6 +20,8 @@ router.get("/fechaVenR", controladorRegistro.buscarFechRango); // busca un rango
 router.patch("/actualizarEs", controladorRegistro.actualizarEstado); //actualiza el estado del registro
 router.post("/grafica", controladorRegistro.graficatotal);
 router.get("/graficaTotal", controladorRegistro.Graficatotal);
+router.post("/granacio",controladorRegistro.administrativas)
+
 router.post("/descargas", controladorRegistro.descargas);
 router.get("/permiso/:cb", controladorRegistro.obtenerUnRegi);
 router.patch("/actualizarPer", controladorRegistro.actualizarRegistro);
