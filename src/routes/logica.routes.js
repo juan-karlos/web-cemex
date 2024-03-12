@@ -18,5 +18,6 @@ router.post("/vigentes", controllersLogica.vigente); //si
 
 router.post("/estadistica", controllersLogica.estadistica);
 router.post("/NoTramitables", controllersLogica.NoTramitables);
+router.post("/NoTramitablesTabla", controllersLogica.NoTramitablesTabla);
 
 module.exports = router;
