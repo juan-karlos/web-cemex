@@ -16,7 +16,7 @@ const controladorRegistro = {};
 
 controladorRegistro. descargas = async (req, res) => {
   try {
-    const { requerimiento, zona, segmento } = req.body;
+    const { requerimiento, zona, segmento,rango1,rango2,banfech} = req.body;
 
     const urlQuery = `
       SELECT url
@@ -24,7 +24,24 @@ controladorRegistro. descargas = async (req, res) => {
       WHERE url IS NOT NULL AND nombre_requerimiento=? AND zona=? AND segmento=?;
     `;
 
-    const [rutas] = await pool.query(urlQuery, [requerimiento, zona, segmento]);
+    const urlfechas =`SELECT url 
+        FROM documentos 
+        WHERE url IS NOT NULL 
+        AND nombre_requerimiento = ? 
+        AND zona = ?
+        AND segmento = ? 
+        AND fecha_inicio BETWEEN ? AND ? `
+        
+        let [rutas]= []
+
+        if (banfech == true){
+           [rutas] = await pool.query(urlQuery, [requerimiento, zona, segmento]);
+           console.log(" no se implemento la fecha")
+        }else{
+          [rutas] = await pool.query(urlfechas, [requerimiento, zona, segmento,rango1,rango2]);
+          console.log("se implemento fecha")
+        }
+     
 
     console.log(rutas);
 
