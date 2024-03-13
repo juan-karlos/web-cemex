@@ -33,9 +33,6 @@ controllersLogica.pesoTotal = async (req, res) => {
   }
 };
 
-
-
-
 // controllersLogica.InsertHistorial = async (req, res) => {
 //   try {
 //     // Query to get the total weight for the segment
@@ -151,7 +148,6 @@ controllersLogica.pesoTotal = async (req, res) => {
 // function isValidNumber(value) {
 //   return typeof value === 'number' && !isNaN(value);
 // }
-
 
 controllersLogica.pesoEnPorcentajeEstatus = async (req, res) => {
   try {
@@ -617,8 +613,6 @@ controllersLogica.estadistica = async (req, res) => {
       console.log('Peso total:', total);
       console.log("peso de la zona",pesozona)
       const igualZon= sumzon*100/zona
-
-
       
        console.log(igualZon)
 
@@ -640,8 +634,6 @@ controllersLogica.estadistica = async (req, res) => {
     res.status(500).json({ message: 'Error en la consulta de estadísticas' });
   }
 };
-
-
 
 controllersLogica.zonas = async (req, res) => {
   const zonas = `SELECT 
