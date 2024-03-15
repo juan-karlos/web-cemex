@@ -34,12 +34,13 @@ controladorRegistro. descargas = async (req, res) => {
         
         let [rutas]= []
 
-        if (banfech == true){
+        if (banfech != true){
            [rutas] = await pool.query(urlQuery, [requerimiento, zona, segmento]);
            console.log(" no se implemento la fecha")
         }else{
           [rutas] = await pool.query(urlfechas, [requerimiento, zona, segmento,rango1,rango2]);
           console.log("se implemento fecha")
+          console.log("fecha1",rango1,"fecha2",rango2)
         }
      
 
