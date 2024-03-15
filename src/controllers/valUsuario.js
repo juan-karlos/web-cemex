@@ -13,7 +13,7 @@ const gmail = "devsolidit@gmail.com"
 
 controladorUsuario.todosUsuarios= async(req,res)=>{
   try{
-    const [usuarios]= await pool.query("SELECT nombre_usuario,apellidos,correo_electronico,zona_asignada,rol FROM usuarios")
+    const [usuarios]= await pool.query("SELECT id_usuario, nombre_usuario,apellidos,correo_electronico,zona_asignada,rol FROM usuarios")
     if(usuarios.length>=1){
       res.status(200).json(usuarios)
     }else{
@@ -385,29 +385,19 @@ controladorUsuario.administrador = async (req, res) => {
 
 controladorUsuario.eliminar = async (req, res) => {
   ////---revisar
+  let id_usuario ={ id_usuario:req.params.id_usuario}
+  id_usuario = JSON.stringify(id_usuario)
+  let rec = /(\d+)/g;
+  const idrecu = id_usuario.match(rec);
   try {
-    const correo = req.body.correo;
-    const contrasena = req.body.password;
-
     const [bdpassword] = await pool.query(
-      "select contrasena from usuarios where correo_electronico= ?",
-      [correo]
+      "select contrasena from usuarios where id_usuario= ?",
+      [idrecu]
     );
 
     if (bdpassword.length > 0) {
-      contrabd = JSON.stringify(bdpassword);
-      let encriptedbd = contrabd.substring(16, 76);
-
-      let compare = bcryptjs.compareSync(contrasena, encriptedbd);
-
-      if (compare) {
-        await pool.query("Delete From usuarios Where correo_electronico= ? ", [
-          correo,
-        ]);
+        await pool.query("Delete From usuarios Where id_usuario= ? ", [idrecu]);
         res.status(200).json("Usuario eliminado.");
-      } else {
-        res.status(400).json("contraseña o correo electronico no es correcto.");
-      }
     } else {
       res
         .status(400)
@@ -422,11 +412,31 @@ controladorUsuario.eliminar = async (req, res) => {
   }
 };
 
+controladorUsuario.usuario = async(req,res)=>{
+  let id_usuario= {id_usuario:req.params.id_usuario}
+  id_usuario = JSON.stringify(id_usuario)
+  let rec = /(\d+)/g;
+  const idrecu = id_usuario.match(rec);
+  const consulta= 'SELECT id_usuario, nombre_usuario,apellidos,correo_electronico,zona_asignada,rol FROM usuarios WHERE id_usuario = ? '
+  try{
+    const [usuario] = await pool.query(consulta,[idrecu])
+    if(usuario.length>=1){
+      res.status(200).json(usuario)
+    }
+    else{
+      res.status(400).json({message:"No se encontraron usuarios"})
+    }
+  }catch(error){
+    console.log(error)
+    res.status(500).json({message:"Error interno"})
+  }
+}
+
 controladorUsuario.actualizarContrasena = async (req, res) => {
   try {
     const correo = req.body.correo;
-    const contra = req.body.password;
-    const contranueva = req.body.passnuevo;
+    const password = req.body.password;
+    const passnuevo = req.body.passnuevo;
 
     const [bdpassword] = await pool.query(
       "select contrasena from usuarios where correo_electronico= ? ",
@@ -436,9 +446,9 @@ controladorUsuario.actualizarContrasena = async (req, res) => {
       // const passwor = bdpassword[0].params.contrasena;
       contrabd = JSON.stringify(bdpassword);
       let encriptedbd = contrabd.substring(16, 76);
-      let compare = bcryptjs.compareSync(contra, encriptedbd);
+      let compare = bcryptjs.compareSync(password, encriptedbd);
       if (compare) {
-        let passwordHash = await bcryptjs.hash(contranueva, 8);
+        let passwordHash = await bcryptjs.hash(passnuevo, 8);
         await pool.query(
           `UPDATE usuarios SET contrasena=ifNULL(?,contrasena) WHERE correo_electronico=?`,
           [passwordHash, correo]
@@ -459,6 +469,38 @@ controladorUsuario.actualizarContrasena = async (req, res) => {
     });
   }
 };
+
+controladorUsuario.actualizarinfo=async(req,res)=>{
+  let id_usuario ={ id_usuario:req.params.id_usuario}
+  id_usuario = JSON.stringify(id_usuario)
+  let rec = /(\d+)/g;
+  const idrecu = id_usuario.match(rec);
+
+  const { user, correo, apellidos,zona,rol } = req.body
+  try{
+    console.log("Se actualizo este usuario")
+  const [usuario]= await pool.query("SELECT * FROM usuarios WHERE id_usuario = ?" , [idrecu])
+  console.log(usuario)
+ if(usuario.length>=1){
+  let actualizar = `
+  UPDATE usuarios SET nombre_usuario=ifNULL(?,nombre_usuario),
+  apellidos = ifNULL(?,apellidos),correo_electronico = ifNULL(?,correo_electronico),
+  zona_asignada = ifNULL(?,zona_asignada),rol= ifNULL(?,rol) 
+  where id_usuario = ?  `
+ await pool.query(actualizar,[user,apellidos,correo,zona,rol,idrecu])
+ res.status(200).json({message:"Se actualizo con exito"})
+ 
+ }else{
+  res.status(400).json({message:"No se encontro al usuario"})
+ }
+} catch (error){
+  console.log(error)
+  res.status(500).json({message:"Error interno revise el servidor"})
+}
+
+ 
+
+}
 
 
 
