@@ -8,8 +8,10 @@ router.get("/cancelar/:token", valUsuario.cancelacion);
 router.post("/comparacion", valUsuario.comparacion);
 router.get("/", valUsuario.uniUsuario);
 router.get("/usuarios",valUsuario.todosUsuarios)
-router.delete("/eliminar", valUsuario.eliminar);
+router.delete("/eliminar/:id_usuario", valUsuario.eliminar);
 router.patch("/actualizarContra", valUsuario.actualizarContrasena);
 
-router.post("/administrador",valUsuario.administrador)
+router.post("/administrador",valUsuario.administrador);
+router.get("/conUsuarios/:id_usuario", valUsuario.usuario);
+router.put("/actualusu/:id_usuario",valUsuario.actualizarinfo)
 module.exports = router;
