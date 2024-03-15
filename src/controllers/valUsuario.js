@@ -10,6 +10,22 @@ const controladorUsuario = {};
 
 const gmail = "devsolidit@gmail.com"
 
+
+controladorUsuario.todosUsuarios= async(req,res)=>{
+  try{
+    const [usuarios]= await pool.query("SELECT nombre_usuario,apellidos,correo_electronico,zona_asignada,rol FROM usuarios")
+    if(usuarios.length>=1){
+      res.status(200).json(usuarios)
+    }else{
+      res.status(404).json({message:"No se encontraron Usuarios"})
+    }
+  }catch(error){
+    console.log(error)
+    res.status(500).json({message:"Error del sistema"})
+  }
+
+}
+
 controladorUsuario.uniUsuario = async (req, res) => {
   try {
     const [usuario] = await pool.query("select *  From usuarios ");
@@ -22,13 +38,13 @@ controladorUsuario.uniUsuario = async (req, res) => {
 controladorUsuario.regisUsu = async (req, res) => {
   try {
     const contra = req.body.password;
-    const { user, correo, apellidos } = req.body; // <--esto son los datos que envolvere en el tokenData
+    const { user, correo, apellidos,zona,rol } = req.body; // <--esto son los datos que envolvere en el tokenData
 
     let passwordHash = await bcryptjs.hash(contra, 8); // <-- este se esta agregando al inicio que es el token de la contraseña
 
     const token = await generateRandomToken(); //< --genera un token para la verificacion del correo
     const tokenData = jwt.sign(
-      { correo, user, apellidos, passwordHash },
+      { correo, user, apellidos, passwordHash,zona,rol },
       "secreto",
       { expiresIn: "15m" }
     ); //<--envuelvo todos los datos que mandare
@@ -112,8 +128,8 @@ controladorUsuario.verificaRegistro = async (req, res) => {
     const tokenData = req.params.tokenData;
     try {
       const decodedToken = jwt.verify(tokenData, "secreto");
-      const { correo, user, apellidos, passwordHash } = decodedToken;
-
+      const {  correo, user, apellidos, passwordHash,zona,rol } = decodedToken;
+    
       const [email] = await pool.query(
         "SELECT correo_electronico FROM usuarios WHERE correo_electronico = ?",
         [correo]
@@ -121,16 +137,122 @@ controladorUsuario.verificaRegistro = async (req, res) => {
       if (email.length <= 0) {
         // Realiza la inserción del usuario en la base de datos
         const [insert] = await pool.query(
-          "INSERT INTO usuarios (correo_electronico, nombre_usuario, apellidos, contrasena) VALUES (?, ?, ?, ?)",
-          [correo, user, apellidos, passwordHash]
+          "INSERT INTO usuarios (correo_electronico, nombre_usuario, apellidos, contrasena,zona_asignada,rol) VALUES (?, ?, ?, ?, ?, ?)",
+          [correo, user, apellidos, passwordHash,zona,rol]
         );
-        res.status(200).json({ message: "Registro completado con éxito" });
+        res.status(200).send(
+        `<!DOCTYPE html>
+        <html lang="es">
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Registro Completado</title>
+        <style>
+          body {
+            background-color: #05265b;
+            font-family: Arial, sans-serif;
+          }
+          .container {
+            text-align: center;
+            margin-top: 100px;
+          }
+          .success-message {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 24px;
+            width: 300px;
+            margin: 0 auto;
+          }
+        </style>
+        </head>
+        <body>
+        <div class="container">
+          <div class="success-message">
+            ¡Registro completado con éxito bienvenido!
+          </div>
+        </div>
+        </body>
+        </html>`);
       } else {
-        res.json({ error: "El correo que ingresaste ya existe" });
+        res.send(`<!DOCTYPE html>
+        <html lang="es">
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Registro Completado</title>
+        <style>
+          body {
+            background-color: #05265b;
+            font-family: Arial, sans-serif;
+          }
+          .container {
+            text-align: center;
+            margin-top: 100px;
+          }
+          .success-message {
+            background-color: #cfd441;
+            color: rgb(0, 0, 0);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 24px;
+            width: 300px;
+            margin: 0 auto;
+          }
+        </style>
+        </head>
+        <body>
+        <div class="container">
+          <div class="success-message">
+            ¡El correo ya existe intente de nuevo!
+          </div>
+        </div>
+        </body>
+        </html>` );
       }
     } catch (excepcion) {
       if (excepcion.name === "TokenExpiredError") {
-        res.status(401).json({ error: "Token expirado" });
+        res.status(404).send(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Registro Completado</title>
+        <style>
+          body {
+            background-color: #05265b;
+            font-family: Arial, sans-serif;
+          }
+          .container {
+            text-align: center;
+            margin-top: 100px;
+          }
+          .success-message {
+            background-color: #a61a1a;
+            color: #eae6e6;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 24px;
+            width: 300px;
+            margin: 0 auto;
+          }
+        </style>
+        </head>
+        <body>
+        <div class="container">
+          <div class="success-message">
+            <h1>Error</h1>
+            ¡Error el tiempo de verificación expiro!
+          </div>
+        </div>
+        </body>
+        </html>
+        `);
       }
     }
   } catch (error) {
@@ -142,10 +264,44 @@ controladorUsuario.cancelacion = async (req, res) => {
   try {
     const tokenv = req.params.token;
 
-    res.status(401).json({
-      message: "No ha sido validado el registro",
-      tokenv,
-    });
+    res.status(401).send(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Completado</title>
+    <style>
+      body {
+        background-color: #05265b;
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        text-align: center;
+        margin-top: 100px;
+      }
+      .success-message {
+        background-color: #a61a1a;
+        color: #eae6e6;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        font-size: 24px;
+        width: 300px;
+        margin: 0 auto;
+      }
+    </style>
+    </head>
+    <body>
+    <div class="container">
+      <div class="success-message">
+        <h1>Registro no completado</h1>
+        ¡Verificación Rechazada!
+      </div>
+    </div>
+    </body>
+    </html>
+    `)
   } catch (error) {
     res.status(500).json("No fue posible conectar con el servidor.");
   }
@@ -174,6 +330,45 @@ controladorUsuario.comparacion = async (req, res) => {
         });
 
         // Envía el token como respuesta
+        console.log(access_token)
+        res.json({ access_token });
+      } else {
+        res.status(404).json({ message: "Contraseña incorrecta" });
+      }
+    } else {
+      res.status(404).json({ message: "No se encuentra el usuario" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "No se pudo establecer conexión con el servidor." });
+  }
+};
+
+controladorUsuario.administrador = async (req, res) => {
+  try {
+    const correo = req.body.correo;
+    const contra = req.body.password;
+
+    const [usuario] = await pool.query(
+      "select contrasena, id_usuario from usuarios where correo_electronico = ? and rol ='Administrador'",
+      [correo]
+    );
+
+    if (usuario.length > 0) {
+      const encriptedbd = usuario[0]["contrasena"];
+      const userId = usuario[0]["id_usuario"];
+
+      let compare = bcryptjs.compareSync(contra, encriptedbd);
+
+      if (compare) {
+        // Credenciales válidas, genera un token
+        const access_token = jwt.sign({ userId, correo }, "1a2b3c4d5", {
+          expiresIn: "12h",
+        });
+
+        // Envía el token como respuesta
+        console.log(access_token)
         res.json({ access_token });
       } else {
         res.status(404).json({ message: "Contraseña incorrecta" });
@@ -264,5 +459,7 @@ controladorUsuario.actualizarContrasena = async (req, res) => {
     });
   }
 };
+
+
 
 module.exports = controladorUsuario;
