@@ -432,6 +432,114 @@ controladorUsuario.usuario = async(req,res)=>{
   }
 }
 
+controladorUsuario.recucontra = async (req, res) => {
+  const correo = req.body.correo;
+  let query = 'SELECT * FROM usuarios WHERE correo_electronico = ?';
+  let actualiza ='UPDATE usuarios SET contrasena = ifNULL(?,contrasena) WHERE correo_electronico = ? '
+
+  try{
+    const [consulta] = await pool.query(query, [correo]);
+  
+    if (consulta.length > 0) {
+      let caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let longitud = 6;
+      let resultado = '';
+      for (let i = 0; i < longitud; i++) {
+        resultado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+      }
+      await transporter.sendMail({
+        from: `"Admin" <${gmail}>`, // Envia el correo
+        to: correo, // Lista de los correos que lo recibirán
+        subject: "Nueva contraseña.", // Este será el asunto
+        html: `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Información en Correo Electrónico</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+              background-color: #1a3c86;
+            }
+            .container {
+              width: 80%;
+              margin: 20px auto;
+            }
+            .header {
+              background-color: #f5f5f5;
+              padding: 20px;
+              border-bottom: 1px solid #000000;
+            }
+            .header h1 {
+              margin: 0;
+            }
+            .content {
+              padding: 20px;
+            }
+            .info-box {
+              border: 1px solid #000000;
+              padding: 10px;
+              margin-bottom: 20px;
+              background-color: #f9f9f9;
+            }
+            .info-box h2 {
+              margin-top: 0;
+            }
+            .info-box p {
+              margin: 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Nueva contraseña</h1>
+              <h4>Estimado(a)</h4>
+              <p>Recientemente has solicitado restablecer tu contraseña, y te enviamos una nueva que funciona para que puedas entrar a tu perfil de CEMEX</p>
+               
+            </div>
+            <div class="content">
+              <div class="info-box">
+                <h2>Se Actualizo su contraserña</h2>
+                <p>Su nueva contraseña es ${resultado}</p>
+              </div>
+              <div class="info-box">
+                <h2>Recomendaciones</h2>
+                <p>Por favor vuelva al inicio e ingrese la nueva contraseña para volver ingresar</p>
+               
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+              `,
+      });
+
+      let passwordHash = await bcryptjs.hash(resultado, 8);
+
+      await pool.query(actualiza,[passwordHash,correo])
+      console.log(passwordHash); 
+      console.log(resultado)
+      // Imprime el resultado en la consola
+      res.status(200).json({ message: 'Se generó un código aleatorio y se envio al correo.' });
+    } else {
+     res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+  }catch(error){
+    console.log(error)
+    res.status(500).json({message:"Hay un error interno revise el servidor"})
+  }
+
+}
+
+
+
+//cambiar contrsaseña para los usuarios
+
 controladorUsuario.actualizarContrasena = async (req, res) => {
   try {
     const correo = req.body.correo;
@@ -453,9 +561,9 @@ controladorUsuario.actualizarContrasena = async (req, res) => {
           `UPDATE usuarios SET contrasena=ifNULL(?,contrasena) WHERE correo_electronico=?`,
           [passwordHash, correo]
         );
-        res.json("se actualizon con exito");
+        res.status(200).json("se actualizon con exito");
       } else {
-        res.json("no se encuentra el usuario");
+        res.status(200).json("no se encuentra el usuario");
       }
     } else {
       res.status(400).json({
