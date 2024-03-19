@@ -46,7 +46,7 @@ controladorUsuario.regisUsu = async (req, res) => {
     const tokenData = jwt.sign(
       { correo, user, apellidos, passwordHash,zona,rol },
       "secreto",
-      { expiresIn: "15m" }
+      { expiresIn: "24h"}
     ); //<--envuelvo todos los datos que mandare
 
     // Enviar correo electrónico con el token

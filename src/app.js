@@ -24,16 +24,16 @@ const monthCron = ultimoDiaDelMes.getMonth() + 1;
 const fechaFormateada = `50 23 ${ultimoDiaDelMes.getDate()} ${monthCron} *`;
 
 
-// const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200"];
+const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200"];
 const corsOptions = {
-    origin: '*'
-    // function (origin, callback) {
-    //     if (whitelist.indexOf(origin) !== -1 || !origin) {
-    //       callback(null, true);
-    //     } else {
-    //       callback(new Error("Not Allowed by CORS"));
-    //     }
-    //   },
+    // origin: '*'
+    function (origin, callback) {
+        if (whitelist.indexOf(origin) !== -1 || !origin) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not Allowed by CORS"));
+        }
+      },
     };
 // const corsOptions={
 //     origin:"*"
@@ -105,21 +105,22 @@ cron.schedule(fechaFormateada,()=>{
 // Programar la tarea diaria a la 12 am
 cron.schedule("00 00 * * *", () => {
   controladorVencimiento.updateToVencimiento();
-  controladorVencimiento.vencSiguienteDia();
+  controladorVencimiento.unMes();
+  controladorVencimiento.tresMeses();
 });
 
 //Programa la tarea cada semana a las 12:00am los dias domingo
-cron.schedule("01 0 * * 0", () => {
-  controladorVencimiento.VencenEstaSemana();
-});
+// cron.schedule("01 0 * * 0", () => {
+//   controladorVencimiento.VencenEstaSemana();
+// });
 
-cron.schedule("02 0 1 * *", () => {
-  controladorVencimiento.unMes();
-});
+// cron.schedule("02 0 1 * *", () => {
+//   controladorVencimiento.unMes();
+// });
 
-cron.schedule("04 0 1 */3 *", () => {
-  controladorVencimiento.tresMeses();
-});
+// cron.schedule("04 0 1 */3 *", () => {
+  
+// });
 
 app.use((req, res, next) => {
   res.status(404).json({
