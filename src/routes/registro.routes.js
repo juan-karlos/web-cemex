@@ -32,8 +32,11 @@ router.post("/carga", controladorinsertmasiva.insertmasiva);
 router.get("/rutas", controladorinsertmasiva.rutas);
 
 router.patch("/updateToVencido", controladorVencimiento.updateToVencimiento);
-router.get("/diaSiguiente", controladorVencimiento.vencSiguienteDia);
+// router.get("/diaSiguiente", controladorVencimiento.vencSiguienteDia);
 router.get("/mes", controladorVencimiento.unMes);
+
 router.get("/resmes", controladorVencimiento.tresMeses);
 
 module.exports = router;
+
+
