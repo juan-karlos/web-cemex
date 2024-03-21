@@ -688,7 +688,7 @@ controllersLogica.vencida = async (req, res) => {
                 registro ON unidad_operativa.id_planta = registro.id_planta
             JOIN
                 requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-            WHERE
+            WHERE activo = 1 and
                 zona = ?
                 AND segmento = ?
                 AND estatus != 'Vigente' and estatus != 'No Aplica'
@@ -729,7 +729,7 @@ WHERE unidad_operativa.id_planta NOT IN (
    and requerimiento.impacto IN ('Clausura Total', 'Multa')
      AND registro.estatus != 'Vigente' and registro.estatus != 'No Aplica'
    
-)
+) and unidad_operativa.activo = true
 AND unidad_operativa.zona = ?
 AND unidad_operativa.segmento = ?;`,
       [zona, segmento]
@@ -896,6 +896,7 @@ WHERE unidad_operativa.id_planta NOT IN (
    
 )
 
+AND unidad_operativa.activo = true
 AND unidad_operativa.segmento = ?;`,
       [ segmento]
     );
