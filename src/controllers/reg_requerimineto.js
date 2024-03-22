@@ -237,7 +237,7 @@ controladorRequerimiento.conteo = async (req, res) => {
     RIGHT JOIN 
       requerimiento ON requerimiento.id_requerimiento = registro.id_requerimiento
     WHERE 
-      estatus != 'Vigente' and segmento =? and estatus!='No Aplica'
+      estatus != 'Vigente' and segmento =? and estatus!='No Aplica' and activo = 1
     GROUP BY 
       nombre_requerimiento, zona, impacto; `;
 
@@ -326,7 +326,7 @@ controladorRequerimiento.Conteozonas = async (req, res) => {
     SUM(CASE WHEN (zona ='Centro' OR zona='Pacífico' OR zona='Sureste' OR zona ='Noreste') AND estatus != 'Vigente' and estatus!='No Aplica' THEN 1 ELSE 0 END) AS 'total'
   FROM registro
   JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
-  WHERE segmento=?;
+  WHERE segmento=? and activo = 1;
     `;
   try {
     const [zonasconteo] = await pool.query(zonas, [segmento]);
