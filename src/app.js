@@ -24,7 +24,7 @@ const monthCron = ultimoDiaDelMes.getMonth() + 1;
 const fechaFormateada = `50 23 ${ultimoDiaDelMes.getDate()} ${monthCron} *`;
 
 
-const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200"];
+const whitelist = ["http://localhost:4200", "http://192.168.100.62:4200","http://86.38.204.102:4200"];
 const corsOptions = {
     // origin: '*'
     function (origin, callback) {
