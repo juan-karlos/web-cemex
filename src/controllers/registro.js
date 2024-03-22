@@ -1119,11 +1119,11 @@ controladorRegistro.administrativas = async (req, res) => {
 
   let nacional1 = `select  distinct nombre_planta,segmento,zona,estatus
   from unidad_operativa join registro on unidad_operativa.id_planta = registro.id_planta join requerimiento on requerimiento.id_requerimiento =registro.id_requerimiento
-  where estatus ='No Tramitable' and segmento= ?; `;
+  where estatus ='No Tramitable' and segmento= ? AND activo =1; `;
 
   let conzon = `select  distinct nombre_planta,segmento,zona,estatus
   from unidad_operativa join registro on unidad_operativa.id_planta = registro.id_planta join requerimiento on requerimiento.id_requerimiento =registro.id_requerimiento
-  where estatus ='No Tramitable' and segmento= ? and zona = ?`;
+  where estatus ='No Tramitable' and segmento= ? and zona = ? AND activo =1`;
 
  
 
