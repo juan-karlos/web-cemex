@@ -35,13 +35,13 @@ controllerPlanta.obtenerPlantas = async (req, res) => {
 
 controllerPlanta.sur = async (req, res) => {
   const centroquery = `SELECT
-    SUM(CASE WHEN segmento = 'Cadena de suministro' THEN 1 ELSE 0 END) AS 'cadena_suministro',
-    SUM(CASE WHEN segmento = 'Industriales' THEN 1 ELSE 0 END) AS 'industriales',
-    SUM(CASE WHEN segmento = 'Inmuebles no operativos' THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
-    SUM(CASE WHEN segmento = 'Operaciones' THEN 1 ELSE 0 END) AS 'operaciones',
-    SUM(CASE WHEN segmento = 'Transporte' THEN 1 ELSE 0 END) AS 'transporte',
-    SUM(CASE WHEN segmento = 'Promexma' THEN 1 ELSE 0 END) AS 'Promexma',
-    SUM(CASE WHEN segmento = 'Constructores' THEN 1 ELSE 0 END) AS 'constructores'
+    SUM(CASE WHEN segmento = 'Cadena de suministro' and activo =1 THEN 1 ELSE 0 END) AS 'cadena_suministro',
+    SUM(CASE WHEN segmento = 'Industriales' and activo =1 THEN 1 ELSE 0 END) AS 'industriales',
+    SUM(CASE WHEN segmento = 'Inmuebles no operativos' and activo =1 THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
+    SUM(CASE WHEN segmento = 'Operaciones' and activo =1 THEN 1 ELSE 0 END) AS 'operaciones',
+    SUM(CASE WHEN segmento = 'Transporte' and activo =1 THEN 1 ELSE 0 END) AS 'transporte',
+    SUM(CASE WHEN segmento = 'Promexma' and activo =1 THEN 1 ELSE 0 END) AS 'Promexma',
+    SUM(CASE WHEN segmento = 'Constructores' and activo =1 THEN 1 ELSE 0 END) AS 'constructores'
   FROM unidad_operativa where zona ='Sureste';`;
 
   try {
@@ -55,13 +55,13 @@ controllerPlanta.sur = async (req, res) => {
 
 controllerPlanta.centro = async (req, res) => {
   const centroquery = `SELECT
-    SUM(CASE WHEN segmento = 'Cadena de suministro' THEN 1 ELSE 0 END) AS 'cadena_suministro',
-    SUM(CASE WHEN segmento = 'Industriales' THEN 1 ELSE 0 END) AS 'industriales',
-    SUM(CASE WHEN segmento = 'Inmuebles no operativos' THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
-    SUM(CASE WHEN segmento = 'Operaciones' THEN 1 ELSE 0 END) AS 'operaciones',
-    SUM(CASE WHEN segmento = 'Transporte' THEN 1 ELSE 0 END) AS 'transporte',
-    SUM(CASE WHEN segmento = 'Promexma' THEN 1 ELSE 0 END) AS 'Promexma',
-    SUM(CASE WHEN segmento = 'Constructores' THEN 1 ELSE 0 END) AS 'constructores'
+    SUM(CASE WHEN segmento = 'Cadena de suministro' and activo =1 THEN 1 ELSE 0 END) AS 'cadena_suministro',
+    SUM(CASE WHEN segmento = 'Industriales' and activo =1 THEN 1 ELSE 0 END) AS 'industriales',
+    SUM(CASE WHEN segmento = 'Inmuebles no operativos' and activo =1 THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
+    SUM(CASE WHEN segmento = 'Operaciones' and activo =1 THEN 1 ELSE 0 END) AS 'operaciones',
+    SUM(CASE WHEN segmento = 'Transporte' and activo =1 THEN 1 ELSE 0 END) AS 'transporte',
+    SUM(CASE WHEN segmento = 'Promexma' and activo =1 THEN 1 ELSE 0 END) AS 'Promexma',
+    SUM(CASE WHEN segmento = 'Constructores' and activo =1 THEN 1 ELSE 0 END) AS 'constructores'
   FROM unidad_operativa where zona ='Centro';`;
 
   try {
@@ -75,13 +75,13 @@ controllerPlanta.centro = async (req, res) => {
 
 controllerPlanta.pasifico = async (req, res) => {
   const query = `SELECT
-    SUM(CASE WHEN segmento = 'Cadena de suministro' THEN 1 ELSE 0 END) AS 'cadena_suministro',
-    SUM(CASE WHEN segmento = 'Industriales' THEN 1 ELSE 0 END) AS 'industriales',
-    SUM(CASE WHEN segmento = 'Inmuebles no operativos' THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
-    SUM(CASE WHEN segmento = 'Operaciones' THEN 1 ELSE 0 END) AS 'operaciones',
-    SUM(CASE WHEN segmento = 'Transporte' THEN 1 ELSE 0 END) AS 'transporte',
-    SUM(CASE WHEN segmento = 'Promexma' THEN 1 ELSE 0 END) AS 'Promexma',
-    SUM(CASE WHEN segmento = 'Constructores' THEN 1 ELSE 0 END) AS 'constructores'
+    SUM(CASE WHEN segmento = 'Cadena de suministro' and activo =1 THEN 1 ELSE 0 END) AS 'cadena_suministro',
+    SUM(CASE WHEN segmento = 'Industriales' and activo =1 THEN 1 ELSE 0 END) AS 'industriales',
+    SUM(CASE WHEN segmento = 'Inmuebles no operativos' and activo =1 THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
+    SUM(CASE WHEN segmento = 'Operaciones' and activo =1 THEN 1 ELSE 0 END) AS 'operaciones',
+    SUM(CASE WHEN segmento = 'Transporte' and activo =1 THEN 1 ELSE 0 END) AS 'transporte',
+    SUM(CASE WHEN segmento = 'Promexma' and activo =1 THEN 1 ELSE 0 END) AS 'Promexma',
+    SUM(CASE WHEN segmento = 'Constructores' and activo =1 THEN 1 ELSE 0 END) AS 'constructores'
   FROM unidad_operativa where zona ='Pacífico';`;
 
   try {
@@ -94,13 +94,13 @@ controllerPlanta.pasifico = async (req, res) => {
 };
 controllerPlanta.norte = async (req, res) => {
   const query = `SELECT
-    SUM(CASE WHEN segmento = 'Cadena de suministro' THEN 1 ELSE 0 END) AS 'cadena_suministro',
-    SUM(CASE WHEN segmento = 'Industriales' THEN 1 ELSE 0 END) AS 'industriales',
-    SUM(CASE WHEN segmento = 'Inmuebles no operativos' THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
-    SUM(CASE WHEN segmento = 'Operaciones' THEN 1 ELSE 0 END) AS 'operaciones',
-    SUM(CASE WHEN segmento = 'Transporte' THEN 1 ELSE 0 END) AS 'transporte',
-    SUM(CASE WHEN segmento = 'Promexma' THEN 1 ELSE 0 END) AS 'Promexma',
-    SUM(CASE WHEN segmento = 'Constructores' THEN 1 ELSE 0 END) AS 'constructores'
+    SUM(CASE WHEN segmento = 'Cadena de suministro' and activo =1 THEN 1 ELSE 0 END) AS 'cadena_suministro',
+    SUM(CASE WHEN segmento = 'Industriales' and activo =1 THEN 1 ELSE 0 END) AS 'industriales',
+    SUM(CASE WHEN segmento = 'Inmuebles no operativos' and activo =1 THEN 1 ELSE 0 END) AS 'inmuebles_no_operativos',
+    SUM(CASE WHEN segmento = 'Operaciones' and activo =1 THEN 1 ELSE 0 END) AS 'operaciones',
+    SUM(CASE WHEN segmento = 'Transporte' and activo =1 THEN 1 ELSE 0 END) AS 'transporte',
+    SUM(CASE WHEN segmento = 'Promexma' and activo =1 THEN 1 ELSE 0 END) AS 'Promexma',
+    SUM(CASE WHEN segmento = 'Constructores' and activo =1 THEN 1 ELSE 0 END) AS 'constructores'
     FROM unidad_operativa where zona ='Noreste' ;`;
   try {
     const [pasifico] = await pool.execute(query);
