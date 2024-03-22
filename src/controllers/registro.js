@@ -196,7 +196,6 @@ const fecha = moment().format('YYYY-MM-DD_HH-mm-ss');
          { header: "porcentaje_cumplimiento", key: "porcentaje_cumplimiento", width: 10 },
          { header: "segmento", key: "segmento", width: 50 },
          { header: "peso", key: "peso", width: 15 },
-         { header: "estatus", key: "estatus", width: 15 },
          { header: "zona", key: "zona", width: 10 },
          { header: "impacto", key: "impacto", width: 30 },
          { header: "siglas", key: "siglas", width: 10 },
@@ -207,18 +206,14 @@ const fecha = moment().format('YYYY-MM-DD_HH-mm-ss');
        ];
        // Agregar datos al libro de Excel
        worksheet.addRows(registros);
+       const excelFileName = `Requerimientos Vencidos, fecha: ${fecha}.xlsx`;
 
  // Configurar la respuesta HTTP
 res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-res.setHeader('Content-Disposition', `attachment; filename=Registros_de_${fecha}.xlsx`);
-
-
+res.setHeader('Content-Disposition', `attachment; filename = ${excelFileName}`);
        // Guardar el libro de Excel en un buffer
        const buffer = await workbook.xlsx.writeBuffer();
-
-      //  // Generar un nombre único para el archivo Excel
-      //  const excelFileName = `Requerimientos Vencidos, fecha: ${fecha}.xlsx`;
-
+       // Generar un nombre único para el archivo Excel
       res.end(Buffer.from(buffer));
       console.log("se enviaron los registros");
     }

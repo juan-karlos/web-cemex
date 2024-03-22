@@ -504,7 +504,7 @@ controladorUsuario.recucontra = async (req, res) => {
             </div>
             <div class="content">
               <div class="info-box">
-                <h2>Se Actualizo su contraserña</h2>
+                <h2>Se Actualizo su contraseña</h2>
                 <p>Su nueva contraseña es ${resultado}</p>
               </div>
               <div class="info-box">
