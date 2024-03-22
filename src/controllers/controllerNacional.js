@@ -33,7 +33,7 @@ controladornacional.estadisticaNacional=async(req,res)=>{
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ?;`;
+      WHERE estatus != 'No aplica' AND activo =1 AND estatus != '' AND segmento = ?;`;
 
     // Query to get the total weight for the segment with 'Vigente' status
     let pesos = `
@@ -41,7 +41,7 @@ controladornacional.estadisticaNacional=async(req,res)=>{
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ?;`;
+      WHERE estatus != 'No aplica' AND activo =1 AND estatus != '' AND estatus = 'Vigente' AND segmento = ?;`;
 
     // Query to get the total weight for the segment, 'Vigente' status, and specific zone
     let zonapes = `
@@ -49,7 +49,7 @@ controladornacional.estadisticaNacional=async(req,res)=>{
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ?;`;
+      WHERE estatus != 'No aplica' AND activo =1 AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ?;`;
 
     // Query to get the total weight for the segment and specific zone
     let totalzon = `
@@ -57,7 +57,7 @@ controladornacional.estadisticaNacional=async(req,res)=>{
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND zona = ?;`;
+      WHERE estatus != 'No aplica' AND activo =1 AND estatus != '' AND segmento = ? AND zona = ?;`;
 
     let segmentosQuery = 'SELECT DISTINCT segmento FROM unidad_operativa;';
 

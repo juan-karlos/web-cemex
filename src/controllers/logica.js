@@ -761,7 +761,7 @@ controllersLogica.NoTramitables = async (req, res) => {
       SELECT COUNT(DISTINCT uo.id_planta) AS cantidad_plantas
       FROM unidad_operativa uo
       INNER JOIN registro reg ON uo.id_planta = reg.id_planta
-      WHERE uo.activo = true
+      WHERE uo.activo = 1
       AND uo.zona = ?
       AND uo.segmento = ?
       AND reg.estatus = 'No tramitable';
@@ -770,7 +770,9 @@ controllersLogica.NoTramitables = async (req, res) => {
     const [NoT] = await pool.query(sentencia, [zona, segmento]);
 
     res.json(NoT);
+    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     console.log('ESTO RESPONDE MI ENDPOINT',NoT);
+    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
   } catch (error) {
     console.error('Error al realizar la consulta:', error);
     res.status(500).json({ error: 'Error al realizar la consulta' });
@@ -855,7 +857,7 @@ controllersLogica.NoTramitablesTablaNacional = async (req, res) => {
       FROM unidad_operativa uo
       INNER JOIN registro reg ON uo.id_planta = reg.id_planta
       INNER JOIN requerimiento req ON req.id_requerimiento = reg.id_requerimiento
-      WHERE uo.activo = true
+      WHERE uo.activo = 1
       AND uo.segmento = ?
       AND reg.estatus = 'No tramitable';`,
       [segmento]
