@@ -206,7 +206,7 @@ const fecha = moment().format('YYYY-MM-DD_HH-mm-ss');
        ];
        // Agregar datos al libro de Excel
        worksheet.addRows(registros);
-       const excelFileName = `Requerimientos Vencidos, fecha: ${fecha}.xlsx`;
+       const excelFileName = `Registros_de_fecha: ${fecha}.xlsx`;
 
  // Configurar la respuesta HTTP
 res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
