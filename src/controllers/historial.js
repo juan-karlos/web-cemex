@@ -2,6 +2,8 @@ const pool = require("../database");
 const fs = require("fs");
 const cron = require("node-cron");
 const schedule = require("node-schedule");
+const moment = require("moment");
+
 
 async function insertar() {
   try {
@@ -144,7 +146,7 @@ controllerHistorial.insertarHitorial = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND fija=1;`;
+      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND activo =1;`;
 
     // Query to get the total weight for the segment with 'Vigente' status
     let pesos = `
@@ -152,7 +154,7 @@ controllerHistorial.insertarHitorial = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND  fija =1;`;
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND activo =1;`;
 
     // Query to get the total weight for the segment, 'Vigente' status, and specific zone
     let zonapes = `
@@ -160,7 +162,7 @@ controllerHistorial.insertarHitorial = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ? AND fija=1
+      WHERE estatus != 'No aplica' AND estatus != '' AND estatus = 'Vigente' AND segmento = ? AND zona = ? AND activo =1
       ;`;
 
     // Query to get the total weight for the segment and specific zone
@@ -169,7 +171,7 @@ controllerHistorial.insertarHitorial = async (req, res) => {
       FROM unidad_operativa 
       JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
       JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento
-      WHERE estatus != 'No aplica' AND estatus != '' AND segmento = ? AND zona = ?;`;
+      WHERE estatus != 'No aplica' AND activo =1 AND estatus != '' AND segmento = ? AND zona = ?;`;
 
     let segmentosQuery = 'SELECT DISTINCT segmento FROM unidad_operativa;';
 
@@ -392,8 +394,11 @@ controllerHistorial.obtenerMesPasado = async (req, res) => {
       lastMonth.getMonth() + 1,
       lastMonth.getFullYear(),
     ]);
-
+    console.log("...")
+    console.log("HISTORIAL")
     res.json(cumplimiento);
+    console.log(cumplimiento)
+    console.log("...")
   } catch (excepcion) {
     console.error("Error en el backend:", excepcion);
     res.status(500).json("error");

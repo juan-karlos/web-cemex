@@ -11,4 +11,5 @@ router.post("/reghis", historial.insertarHitorial);
 router.post("/ZonaSegmento", historial.zonaSegmento); //si
 router.get("/insHistori", historial.insertHistorial);
 router.post("/ObtenerMesPasadoPorSegmento", historial.obtenerMesPasado); //si
+router.post("/insertarHistorial",historial.insertarHitorial);
 module.exports = router;
