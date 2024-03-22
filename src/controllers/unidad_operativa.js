@@ -42,7 +42,7 @@ controllerPlanta.sur = async (req, res) => {
     SUM(CASE WHEN segmento = 'Transporte' and activo =1 THEN 1 ELSE 0 END) AS 'transporte',
     SUM(CASE WHEN segmento = 'Promexma' and activo =1 THEN 1 ELSE 0 END) AS 'Promexma',
     SUM(CASE WHEN segmento = 'Constructores' and activo =1 THEN 1 ELSE 0 END) AS 'constructores'
-  FROM unidad_operativa where zona ='Sureste';`;
+  FROM unidad_operativa where zona ='Sureste' and activo =1 ;`;
 
   try {
     const [sur] = await pool.execute(centroquery);
@@ -62,7 +62,7 @@ controllerPlanta.centro = async (req, res) => {
     SUM(CASE WHEN segmento = 'Transporte' and activo =1 THEN 1 ELSE 0 END) AS 'transporte',
     SUM(CASE WHEN segmento = 'Promexma' and activo =1 THEN 1 ELSE 0 END) AS 'Promexma',
     SUM(CASE WHEN segmento = 'Constructores' and activo =1 THEN 1 ELSE 0 END) AS 'constructores'
-  FROM unidad_operativa where zona ='Centro';`;
+  FROM unidad_operativa where zona ='Centro'  and activo =1 ;`;
 
   try {
     const [centro] = await pool.execute(centroquery);
@@ -82,7 +82,7 @@ controllerPlanta.pasifico = async (req, res) => {
     SUM(CASE WHEN segmento = 'Transporte' and activo =1 THEN 1 ELSE 0 END) AS 'transporte',
     SUM(CASE WHEN segmento = 'Promexma' and activo =1 THEN 1 ELSE 0 END) AS 'Promexma',
     SUM(CASE WHEN segmento = 'Constructores' and activo =1 THEN 1 ELSE 0 END) AS 'constructores'
-  FROM unidad_operativa where zona ='Pacífico';`;
+  FROM unidad_operativa where zona ='Pacífico' and activo =1 ;`;
 
   try {
     const [pasifico] = await pool.execute(query);
@@ -101,7 +101,7 @@ controllerPlanta.norte = async (req, res) => {
     SUM(CASE WHEN segmento = 'Transporte' and activo =1 THEN 1 ELSE 0 END) AS 'transporte',
     SUM(CASE WHEN segmento = 'Promexma' and activo =1 THEN 1 ELSE 0 END) AS 'Promexma',
     SUM(CASE WHEN segmento = 'Constructores' and activo =1 THEN 1 ELSE 0 END) AS 'constructores'
-    FROM unidad_operativa where zona ='Noreste' ;`;
+    FROM unidad_operativa where zona ='Noreste'  and activo =1 ;`;
   try {
     const [pasifico] = await pool.execute(query);
     res.json(pasifico);
