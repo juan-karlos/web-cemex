@@ -10,8 +10,10 @@ router.get("/", valUsuario.uniUsuario);
 router.get("/usuarios",valUsuario.todosUsuarios)
 router.delete("/eliminar/:id_usuario", valUsuario.eliminar);
 router.patch("/actualizarContra", valUsuario.actualizarContrasena);
+
 router.post("/administrador",valUsuario.administrador);
 router.get("/conUsuarios/:id_usuario", valUsuario.usuario);
 router.put("/actualusu/:id_usuario",valUsuario.actualizarinfo);
 router.put("/actualcontra",valUsuario.recucontra)
+
 module.exports = router;
