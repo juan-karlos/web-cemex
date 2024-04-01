@@ -92,7 +92,7 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
 
           if (correos.length >= 1) {
             const correo = correos.map(usuario => usuario.correo_electronico);
-
+            
             // Enviar correo electrónico con el archivo adjunto
             for (let j = 0; j < rows.length; j++) {
               const info = await transporter.sendMail({
@@ -157,6 +157,8 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
             }
             console.log("Se enviaron los correos correctamente de la zona", zonas[i])
             console.log('Estado de registros actualizado a "Vencido" de la zona ', zonas[i]);
+
+
           } else {
             console.log("No se encontraron correos para poder enviar notificaciones para la zona", zonas[i])
           }
@@ -248,8 +250,9 @@ controladorVencimiento.unMes = async (req, res) => {
             [zonas[i]]
           );
           const correo = correos.map((usuario) => usuario.correo_electronico);
-
-          // Enviar correo electrónico con el archivo adjunto
+            console.log(correo)
+            if (correo!= ""){
+                        // Enviar correo electrónico con el archivo adjunto
           for (let j = 0; j < rows.length; j++) {
             const info = await transporter.sendMail({
               from: `"Admin" <${gmail}>`,
@@ -313,6 +316,10 @@ controladorVencimiento.unMes = async (req, res) => {
           }
           console.log("Envío de emails correctamente para la zona", zonas[i]);
           // res.status(200).send("Se ejecutó correctamente");
+            }else{
+              console.log("No hay correos electronicos para mandar")
+            }
+
         } else {
           // res.status(400).json({
           //   message: "Ningún requerimiento vence este mes",
@@ -405,7 +412,7 @@ controladorVencimiento.tresMeses = async (req, res) => {
             [zonas[i]]
           );
           const correo = correos.map((usuario) => usuario.correo_electronico);
-
+            if (correo!=""){
           // Enviar correo electrónico con el archivo adjunto
           for (let j = 0; j < rows.length; j++) {
             const info = await transporter.sendMail({
@@ -470,6 +477,10 @@ controladorVencimiento.tresMeses = async (req, res) => {
           }
           console.log("Envío de emails correctamente para la zona", zonas[i]);
           // res.status(200).send("Se ejecutó correctamente");
+            }else{
+              console.log("No se encontro correo para la zona"+zonas[i])
+            }
+
         } else {
           // res.status(400).json({
           //   message: "Ningún requerimiento vence este mes",
