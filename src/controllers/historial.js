@@ -383,27 +383,39 @@ controllerHistorial.obtenerMesPasado = async (req, res) => {
   const { segmento } = req.body;
 
   try {
+    // Validar entrada
+    if (!segmento) {
+      return res.status(400).json({ error: "El segmento es obligatorio." });
+    }
+
     const currentDate = new Date();
     const lastMonth = new Date(currentDate);
     lastMonth.setMonth(currentDate.getMonth() - 1);
+    lastMonth.setDate(1); // Establece el día como 1 para obtener el primer día del mes anterior
+
+    // Debugging: Mostrar mes y año del mes pasado
+    console.log("Mes pasado:", lastMonth.getMonth() + 1, ", Año:", lastMonth.getFullYear());
 
     const query =
-      "SELECT zona, cumplimiento FROM historial WHERE segmento = ? AND MONTH(fecha) = ? AND YEAR(fecha) = ?";
+      `SELECT zona, cumplimiento,fecha FROM historial WHERE segmento = ? AND MONTH(fecha) = ? AND YEAR(fecha) = ?`;
     const [cumplimiento] = await pool.query(query, [
       segmento,
-      lastMonth.getMonth() + 1,
+      lastMonth.getMonth() + 1, // Agregar 1 porque en JavaScript los meses van de 0 a 11
       lastMonth.getFullYear(),
     ]);
-    console.log("...")
-    console.log("HISTORIAL")
+
+    // Debugging: Mostrar resultados
+    console.log("HISTORIAL:", cumplimiento);
+
+    // Devolver resultados al cliente
     res.json(cumplimiento);
-    console.log(cumplimiento)
-    console.log("...")
-  } catch (excepcion) {
-    console.error("Error en el backend:", excepcion);
-    res.status(500).json("error");
+  } catch (error) {
+    console.error("Error en el backend:", error);
+    res.status(500).json({ error: "Ocurrió un error en el servidor." });
   }
 };
+
+
 controllerHistorial.insertHistorial = async (req, res) => {
   const currentDate = new Date();
   let datos = `SELECT 
