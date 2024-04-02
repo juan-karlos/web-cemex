@@ -174,7 +174,7 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
     console.log("Tarea programada ejecutada correctamente.");
   } catch (excepcion) {
     console.error("Error en la tarea programada:", excepcion);
-    res.status(500).send("Hay un problema con el servidor");
+    res.status(500).json({message:"Hay un problema con el servidor"});
   }
 };
 
