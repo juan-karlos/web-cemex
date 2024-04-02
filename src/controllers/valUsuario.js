@@ -97,10 +97,10 @@ controladorUsuario.regisUsu = async (req, res) => {
                 <h1>Verificación de datos.</h1>
                 <img src="https://static.vecteezy.com/system/resources/previews/006/925/139/non_2x/play-button-white-color-lock-user-account-login-digital-design-logo-icon-free-photo.jpg" alt="Inicio de sesión">
                 <h3>Para concluir con el registro, valida en el siguiente campo.</h3>
-                <a href="http://localhost:3200/api/login/verifica/${token}/${tokenData}">
+                <a href="http://86.38.204.102:3200/api/login/verifica/${token}/${tokenData}">
                     <button id="aceptar">Aceptar</button>
                 </a>
-                <a href="http://localhost:3200/api/login/cancelar/${token}">
+                <a href="http://86.38.204.102:3200/api/login/cancelar/${token}">
                     <button id="cancelar">Cancelar</button> 
                 </a>
             </body>
