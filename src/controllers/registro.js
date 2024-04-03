@@ -14,7 +14,7 @@ const controladorRegistro = {};
 
 //descarga masiva de documentos
 
-controladorRegistro. descargas = async (req, res) => {
+controladorRegistro.descargas = async (req, res) => {
   try {
     const { requerimiento, zona, segmento,rango1,rango2,banfech} = req.body;
 
@@ -131,8 +131,29 @@ controladorRegistro. descargas = async (req, res) => {
   }
 };
 
+controladorRegistro.docsplan = async (req,res)=>{
+  const registro = { id_requerimiento: req.params.cb };
+  id = JSON.stringify(registro);
+  const recid = /(\d+)/g;
+  const idrecu = id.match(recid);
+
+  const quey = `SELECT * FROM documentos where id_registro = ?`
+
+  try{
+    const [documento]= await pool.query(quey,[idrecu]);
+    if(documento.length>0){
+      res.status(200).json(documento)
+    }else{
+      res.status(400).json({message:"No se encontraron documentos"})
+    }
+  } catch (error){
+    console.log("hay un error", error)
+    res.status(500).json({message:"Hay un error interno"})
+  }
+}
+
 //obtiene un registro
-controladorRegistro.obtenerUnRegi = async (req, res) => {
+controladorRegistro.obtenerUnRegi  = async (req, res) => {
   const registro = { id_requerimiento: req.params.cb };
   id = JSON.stringify(registro);
   const recid = /(\d+)/g;

@@ -86,7 +86,7 @@ controladorVencimiento.updateToVencimiento = async (req, res) => {
         if (rows.length > 0) {     
           //traer todos los correos de los usuarios
           const [correos] = await pool.query(
-            `SELECT correo_electronico FROM usuarios WHERE zona_asignada = ?`,
+            `SELECT correo_electronico FROM usuarios WHERE zona_asignada = "todos" or zona_asignada = ?`,
             [zonas[i]]
           );
 
@@ -246,7 +246,7 @@ controladorVencimiento.unMes = async (req, res) => {
         if (rows.length > 0) {
           // Traer todos los correos de los usuarios
           const [correos] = await pool.query(
-            `SELECT correo_electronico FROM usuarios WHERE zona_asignada = ?`,
+            `SELECT correo_electronico FROM usuarios WHERE zona_asignada = "todos" or zona_asignada = ?`,
             [zonas[i]]
           );
           const correo = correos.map((usuario) => usuario.correo_electronico);
@@ -408,7 +408,7 @@ controladorVencimiento.tresMeses = async (req, res) => {
         if (rows.length > 0) {
           // Traer todos los correos de los usuarios
           const [correos] = await pool.query(
-            `SELECT correo_electronico FROM usuarios WHERE zona_asignada = ?`,
+            `SELECT correo_electronico FROM usuarios WHERE zona_asignada = "todos" or zona_asignada = ?`,
             [zonas[i]]
           );
           const correo = correos.map((usuario) => usuario.correo_electronico);

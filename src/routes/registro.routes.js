@@ -23,6 +23,8 @@ router.get("/graficaTotal", controladorRegistro.Graficatotal);
 router.post("/granacio",controladorRegistro.administrativas)
 
 router.post("/descargas", controladorRegistro.descargas);
+router.get("/doc/:cb",controladorRegistro.docsplan);
+
 router.get("/permiso/:cb", controladorRegistro.obtenerUnRegi);
 router.patch("/actualizarPer", controladorRegistro.actualizarRegistro);
 router.get("/documento/:nombredoc", controladorRegistro.documento);
