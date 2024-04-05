@@ -6,7 +6,7 @@ const controlexel = {};
 
 
 controlexel.insertmasiva = async (req, res) => {
-  const excelPath = "./src/exel/DATOS_FEB1.xlsx";
+  const excelPath = "./src/exel/DATO_CEMEX_MARZO.xlsx";
   const workbook = XLSX.readFile(excelPath);
   const sheetName = workbook.SheetNames[0];
   const datos = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -127,6 +127,10 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
       observaciones = datos[i].observaciones;
       let estatus = datos[i].estatus;
       validez_unica = fecha === undefined ? 1 : 0;
+
+      if (fech2 == ""){
+        estatus="Vigente";
+      }
 
       await pool.query(sqlQuery, [
         fech1 || null,
