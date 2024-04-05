@@ -189,7 +189,6 @@ controladorRegistro.obtenerRegistro = async (req, res) => {
       .json({ message: "hay un error en el systema intente mas tarde" });
   }
 };
-
 //controlador para poder acomodar los registros en un exel
 
 controladorRegistro.importExel=async(req,res)=>{
@@ -200,9 +199,9 @@ const fechaActual = moment();
 // Formatea la fecha actual en el formato 'YYYY-MM-DD HH:mm:ss'
 const fecha = moment().format('YYYY-MM-DD_HH-mm-ss');
 
-    const consultaregis=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,validez_unica,segmento,peso,zona,impacto,siglas,fecha_inicio,fecha_vencimiento,observaciones,estatus,url
+    const consultaregis=`SELECT id_registro,nombre_requerimiento,nombre_planta,porcentaje_cumplimiento,validez_unica,segmento,peso,zona,impacto,siglas,fecha_inicio,fecha_vencimiento,observaciones,estatus,activo,fija
     FROM registro,unidad_operativa,requerimiento
-    where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento
+    where unidad_operativa.id_planta=registro.id_planta and requerimiento.id_requerimiento = registro.id_requerimiento;
      `;
     const [registros] = await pool.query(consultaregis);
 
@@ -222,6 +221,8 @@ const fecha = moment().format('YYYY-MM-DD_HH-mm-ss');
          { header: "siglas", key: "siglas", width: 10 },
          { header: "observaciones", key: "observaciones", width: 80},
          { header: "estatus", key: "estatus", width: 25 },
+         { header: "activo",  key: "activo",width:  10 },
+         { header: "fija",  key:  "fija", width : 10 },
          { header: "fecha_inicio", key: "fecha_inicio", width: 10 },
          { header: "fecha_vencimiento", key: "fecha_vencimiento", width: 10 },
        ];
@@ -358,7 +359,7 @@ segmento, nombre_doc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`  // Verifica si se 
         // Generar un nuevo nombre con la fecha y hora
         const nuevoNombre = `${nombreOriginal}_${formatoFechaHora}.pdf`;
 
-        pdfUrls = `http://localhost:3200/api/regi/documento/${nuevoNombre}`;
+        pdfUrls = `http://86.38.204.102:3200/api/regi/documento/${nuevoNombre}`;
         pdfUrlsSinEspacios = pdfUrls.replace(/\s+/g, '_');
         nombre_sinespacios =nuevoNombre.replace(/\s+/g, '_');
           console.log(pdfUrlsSinEspacios);
@@ -699,7 +700,7 @@ const documentos= `INSERT INTO documentos (id_registro, nombre_planta,
       // Generar un nuevo nombre con la fecha y hora
       const nuevoNombre = `${nombreOriginal}_${formatoFechaHora}.pdf`;
 
-      pdfUrls = `http://localhost:3200/api/regi/documento/${nuevoNombre}`;
+      pdfUrls = `http://86.38.204.102:3200/api/regi/documento/${nuevoNombre}`;
       pdfUrlsSinEspacios = pdfUrls.replace(/\s+/g, '_');
       nombre_sinespacios=nuevoNombre.replace(/\s+/g, '_');
         console.log(pdfUrlsSinEspacios);
