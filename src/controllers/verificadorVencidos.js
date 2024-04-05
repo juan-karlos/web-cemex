@@ -337,7 +337,7 @@ controladorVencimiento.unMes = async (req, res) => {
     res.status(200).json({message:"La tarea se ejecto con exito"})
   } catch (excepcion) {
     console.error("Error en la tarea programada:", excepcion);
-    res.status(500).send("Hay un error en el servidor");
+    res.status(500).json("Hay un error en el servidor");
   }
 };
 // vencimiento a los 60 dias
