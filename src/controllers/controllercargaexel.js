@@ -46,52 +46,64 @@ controllerImportExel.recargaexel = async (req, res) => {
       if (!nombresUnicosPlanta.has(nombrePlanta)) {
         nombresUnicosPlanta.add(nombrePlanta);
 
-        let [consulta] =await pool.query(
-                      "SELECT nombre_planta,segmento,zona from unidad_operativa WHERE nombre_planta=? and segmento=? and zona=?",
-                      [dato.nombre_planta,dato.segmento,dato.zona]);
+        if (dato.nombre_planta !== undefined && dato.segmento !== undefined && dato.zona !== undefined && dato.estado !== undefined && dato.porcentaje_cumplimiento !== undefined && dato.fija !== undefined && dato.activo !== undefined) {
+
+          let [consulta] =await pool.query(
+            "SELECT nombre_planta,segmento,zona from unidad_operativa WHERE nombre_planta=? and segmento=? and zona=?",
+            [dato.nombre_planta,dato.segmento,dato.zona]);          
+              if(consulta.length<1){
+              console.log("");
+              console.log("Se Insertaron estos datos");
+              console.log(dato.nombre_planta, dato.segmento, dato.zona, dato.estado, dato.porcentaje_cumplimiento, dato.fija, dato.activo);
+              await pool.query(
+                "INSERT INTO unidad_operativa (nombre_planta, segmento, zona, estado, porcentaje_cumplimiento, fija, activo) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [dato.nombre_planta, dato.segmento, dato.zona, dato.estado, dato.porcentaje_cumplimiento, dato.fija, dato.activo]
+              );
 
 
-          
-        if(consulta.length<1){
-          console.log("");
-          console.log("Se Insertaron estos datos");
-          console.log(dato.nombre_planta, dato.segmento, dato.zona, dato.estado, dato.porcentaje_cumplimiento, dato.fija, dato.activo);
-          await pool.query(
-            "INSERT INTO unidad_operativa (nombre_planta, segmento, zona, estado, porcentaje_cumplimiento, fija, activo) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [dato.nombre_planta, dato.segmento, dato.zona, dato.estado, dato.porcentaje_cumplimiento, dato.fija, dato.activo]
-          );
-
-
-        }else{
-          console.log("Se Actualizo en la base de datos estos datos")
-          console.log(dato.porcentaje_cumplimiento, dato.fija, dato.activo);
-
-          await pool.query(
-            "UPDATE unidad_operativa SET porcentaje_cumplimiento = IFNULL(?, porcentaje_cumplimiento), fija = IFNULL(?, fija), activo = IFNULL(?, activo) WHERE nombre_planta = ?",
-            [dato.porcentaje_cumplimiento, dato.fija, dato.activo, dato.nombre_planta]
-          );
-        }
+              }else{
+              console.log("Se Actualizo en la base de datos estos datos")
+              console.log(dato.porcentaje_cumplimiento, dato.fija, dato.activo);
+              
+              await pool.query(
+                "UPDATE unidad_operativa SET porcentaje_cumplimiento = IFNULL(?, porcentaje_cumplimiento), fija = IFNULL(?, fija), activo = IFNULL(?, activo) WHERE nombre_planta = ?",
+                [dato.porcentaje_cumplimiento, dato.fija, dato.activo, dato.nombre_planta]
+              );
+              }
+          }else{
+            res.status(400).json({ message: "Los datos del documento que se insertó no tienen el formato requerido" });
+            console.log("no se reconocieron");
+            return;
+          }
       
       }
 
+
       if (!nombresUnicosRequerimiento.has(nombreRequerimiento)) {
-        nombresUnicosRequerimiento.add(nombreRequerimiento);
-        
-      const [requi]=await pool.query("SELECT nombre_requerimiento from requerimiento WHERE nombre_requerimiento=?",[dato.nombre_requerimiento])
+           nombresUnicosRequerimiento.add(nombreRequerimiento);
 
-      if(requi.length<1){
-        console.log("Se insertaron los siguientes datos");
-        console.log(dato.nombre_requerimiento, dato.peso, dato.impacto, dato.siglas || "siglas");
+           if(dato.nombre_requerimiento != undefined && dato.peso !=undefined, dato.impacto!=undefined, dato.siglas !=undefined || "siglas"){
+
+             const [requi]=await pool.query("SELECT nombre_requerimiento from requerimiento WHERE nombre_requerimiento=?",[dato.nombre_requerimiento])
+
+             if(requi.length<1){
+               console.log("Se insertaron los siguientes datos");
+               console.log(dato.nombre_requerimiento, dato.peso, dato.impacto, dato.siglas || "siglas");
 
 
-        await pool.query(
-          "INSERT INTO requerimiento (nombre_requerimiento, peso, impacto, siglas) VALUES (?, ?, ?, ?)",
-          [dato.nombre_requerimiento, dato.peso, dato.impacto, dato.siglas || "siglas"]
-        );
-
-       } 
-     
-      }
+               await pool.query(
+                 "INSERT INTO requerimiento (nombre_requerimiento, peso, impacto, siglas) VALUES (?, ?, ?, ?)",
+                 [dato.nombre_requerimiento, dato.peso, dato.impacto, dato.siglas || "siglas"]
+               );
+             
+              } 
+           }   
+           else{
+              res.status(400).json({ message: "Verificar los datos de tu exel, algunos no tienen los datos correctos" });
+              console.log("No se reconocieron datos ")
+              return;
+           }  
+       }
 
       const fechaInicio = dato.fecha_inicio || null;
       const fechaVencimiento = dato.fecha_vencimiento || null;
