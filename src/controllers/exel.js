@@ -128,9 +128,9 @@ WHERE (uo.id_planta, req.id_requerimiento) NOT IN (SELECT id_planta, id_requerim
       let estatus = datos[i].estatus;
       validez_unica = fecha === undefined ? 1 : 0;
 
-      if (fech2 == ""){
-        estatus="Vigente";
-      }
+      // if (fech2 == ""){
+      //   estatus="Vigente";
+      // }
 
       await pool.query(sqlQuery, [
         fech1 || null,
