@@ -502,133 +502,133 @@ controladorVencimiento.tresMeses = async (req, res) => {
   }
 };
 
-// controladorVencimiento.vencSiguienteDia = async (req, res) => {
-//   try {
-//     const response = await axios.get("http://worldtimeapi.org/api/ip"); // Obtener fecha actual desde la red
-//     const utcRed = response.data.utc_datetime;
+controladorVencimiento.vencSiguienteDia = async (req, res) => {
+  try {
+    const response = await axios.get("http://worldtimeapi.org/api/ip"); // Obtener fecha actual desde la red
+    const utcRed = response.data.utc_datetime;
 
-//     // Trabajar directamente con la hora UTC de la red
-//     const networkDate = new Date(utcRed);
+    // Trabajar directamente con la hora UTC de la red
+    const networkDate = new Date(utcRed);
 
-//     // Obtener la diferencia de tiempo (offset) en minutos
-//     const timezoneOffset = networkDate.getTimezoneOffset();
+    // Obtener la diferencia de tiempo (offset) en minutos
+    const timezoneOffset = networkDate.getTimezoneOffset();
 
-//     // Ajustar la fecha local sumando el offset
-//     const adjustedLocalDate = new Date(
-//       networkDate.getTime() - timezoneOffset * 60 * 1000
-//     );
+    // Ajustar la fecha local sumando el offset
+    const adjustedLocalDate = new Date(
+      networkDate.getTime() - timezoneOffset * 60 * 1000
+    );
 
-//     //solo trae la fecha
-//     const fechaR = adjustedLocalDate.toISOString().split("T")[0];
+    //solo trae la fecha
+    const fechaR = adjustedLocalDate.toISOString().split("T")[0];
 
-//     function formatoFecha(fecha) {
-//       //formatea la fecha.
-//       const partesFecha = fecha.split("-");
-//       const anio = partesFecha[0];
-//       const mes = partesFecha[1];
-//       const dia = partesFecha[2];
-//       return `${anio}/${mes}/${dia}`;
-//     }
+    function formatoFecha(fecha) {
+      //formatea la fecha.
+      const partesFecha = fecha.split("-");
+      const anio = partesFecha[0];
+      const mes = partesFecha[1];
+      const dia = partesFecha[2];
+      return `${anio}/${mes}/${dia}`;
+    }
 
-//     const fechaFormateada = formatoFecha(fechaR);
+    const fechaFormateada = formatoFecha(fechaR);
 
-//     //recupero la fecha de mañana
-//     const [fechaAdelantada] = await pool.query(
-//       `SELECT DATE_ADD(?, INTERVAL 1 DAY) as FechaManana`,
-//       [fechaFormateada]
-//     );
+    //recupero la fecha de mañana
+    const [fechaAdelantada] = await pool.query(
+      `SELECT DATE_ADD(?, INTERVAL 1 DAY) as FechaManana`,
+      [fechaFormateada]
+    );
 
-//     const fechaFormateada2 = formatoFecha(fechaAdelantada[0].FechaManana);
+    const fechaFormateada2 = formatoFecha(fechaAdelantada[0].FechaManana);
 
-//     //consulta que trae todos los requeriminetos que venceran mañana
-//     const [IdRegistro] = await pool.query(
-//       `SELECT id_registro FROM registro WHERE fecha_vencimiento = ? AND estatus = "Vigente"`,
-//       [fechaFormateada2]
-//     );
+    //consulta que trae todos los requeriminetos que venceran mañana
+    const [IdRegistro] = await pool.query(
+      `SELECT id_registro FROM registro WHERE fecha_vencimiento = ? AND estatus = "Vigente"`,
+      [fechaFormateada2]
+    );
 
-//     if (IdRegistro.length > 0) {
-//       //Mando a traer todos los requerimientos vencidos
-//       const [rows] = await pool.query(
-//         `SELECT
-//                 requerimiento.nombre_requerimiento as requerimiento,
-//                 requerimiento.siglas as siglas,
-//                 requerimiento.impacto as impacto,
-//                 unidad_operativa.nombre_planta as planta,
-//                 registro.estatus as estatus,
-//                 registro.fecha_vencimiento as data
-//             FROM
-//                 registro
-//                 JOIN requerimiento  ON registro.id_requerimiento = requerimiento.id_requerimiento
-//                 JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
-//             WHERE
-//                 registro.id_registro IN (?)
-//                 ORDER BY registro.fecha_vencimiento ASC`,
-//         [IdRegistro.map((registro) => registro.id_registro)]
-//       );
+    if (IdRegistro.length > 0) {
+      //Mando a traer todos los requerimientos vencidos
+      const [rows] = await pool.query(
+        `SELECT
+                requerimiento.nombre_requerimiento as requerimiento,
+                requerimiento.siglas as siglas,
+                requerimiento.impacto as impacto,
+                unidad_operativa.nombre_planta as planta,
+                registro.estatus as estatus,
+                registro.fecha_vencimiento as data
+            FROM
+                registro
+                JOIN requerimiento  ON registro.id_requerimiento = requerimiento.id_requerimiento
+                JOIN unidad_operativa ON registro.id_planta = unidad_operativa.id_planta
+            WHERE
+                registro.id_registro IN (?)
+                ORDER BY registro.fecha_vencimiento ASC`,
+        [IdRegistro.map((registro) => registro.id_registro)]
+      );
 
-//       if (rows.length > 0) {
-//         // Crear un nuevo libro de Excel
-//         const workbook = new exceljs.Workbook();
-//         const worksheet = workbook.addWorksheet(
-//           "Requerimientos apunto de vencer"
-//         );
+      if (rows.length > 0) {
+        // Crear un nuevo libro de Excel
+        const workbook = new exceljs.Workbook();
+        const worksheet = workbook.addWorksheet(
+          "Requerimientos apunto de vencer"
+        );
 
-//         // Agregar encabezados
-//         worksheet.columns = [
-//           { header: "Planta", key: "planta", width: 40 },
-//           { header: "Requerimiento", key: "requerimiento", width: 40 },
-//           { header: "Siglas", key: "siglas", width: 10 },
-//           { header: "Impacto", key: "impacto", width: 15 },
-//           { header: "Estatus", key: "estatus", width: 10 },
-//           { header: "Fecha Vencimiento", key: "data", width: 10 },
-//         ];
+        // Agregar encabezados
+        worksheet.columns = [
+          { header: "Planta", key: "planta", width: 40 },
+          { header: "Requerimiento", key: "requerimiento", width: 40 },
+          { header: "Siglas", key: "siglas", width: 10 },
+          { header: "Impacto", key: "impacto", width: 15 },
+          { header: "Estatus", key: "estatus", width: 10 },
+          { header: "Fecha Vencimiento", key: "data", width: 10 },
+        ];
 
-//         // Agregar datos al libro de Excel
-//         worksheet.addRows(rows);
+        // Agregar datos al libro de Excel
+        worksheet.addRows(rows);
 
-//         // Guardar el libro de Excel en un buffer
-//         const buffer = await workbook.xlsx.writeBuffer();
+        // Guardar el libro de Excel en un buffer
+        const buffer = await workbook.xlsx.writeBuffer();
 
-//         // Generar un nombre único para el archivo Excel
-//         const excelFileName = `Requerimientos que vencen Mañana, fecha: ${fechaAdelantada[0].FechaManana}.xlsx`;
+        // Generar un nombre único para el archivo Excel
+        const excelFileName = `Requerimientos que vencen Mañana, fecha: ${fechaAdelantada[0].FechaManana}.xlsx`;
 
-//         //traer todos los correos de los usuarios
-//         const [correos] = await pool.query(
-//           "Select correo_electronico from usuarios"
-//         );
-//         const correo = correos.map((usuario) => usuario.correo_electronico);
+        //traer todos los correos de los usuarios
+        const [correos] = await pool.query(
+          "Select correo_electronico from usuarios"
+        );
+        const correo = correos.map((usuario) => usuario.correo_electronico);
 
-//         // Enviar correo electrónico con el archivo adjunto
-//         const info = await transporter.sendMail({
-//           from: `"Admin" <${gmail}>`,
-//           to: correo, //a quien se le envia el correo
-//           subject: "Requerimientos que venceran mañana",
-//           text: "Adjunto encontrarás los requerimientos que venceran mañana",
-//           attachments: [
-//             {
-//               filename: excelFileName,
-//               content: buffer,
-//               encoding: "base64",
-//             },
-//           ],
-//         });
+        // Enviar correo electrónico con el archivo adjunto
+        const info = await transporter.sendMail({
+          from: `"Admin" <${gmail}>`,
+          to: correo, //a quien se le envia el correo
+          subject: "Requerimientos que venceran mañana",
+          text: "Adjunto encontrarás los requerimientos que venceran mañana",
+          attachments: [
+            {
+              filename: excelFileName,
+              content: buffer,
+              encoding: "base64",
+            },
+          ],
+        });
 
-//         console.log("envio de emails correctamente");
-//         res.status(200).json({ message: "Se enviaron los imails correctamente" });
-//       } else {
-//         res.status(200).json({message: "Ningun requerimiento vence mañana"});
-//       }
-//       console.log('Estos son los requerimientos que venceran mañana".');
-//     } else {
-//       res.status(400).json({ message: "no hay requerimientos que vencen mañana" });
-//       console.error("Ningun requerimiento vence mañana");
-//     }
-//     console.log("Tarea programada ejecutada correctamente.");
-//   } catch (excepcion) {
-//     res.status(500).send("hay un error en el servidor");
-//     console.error("Error en la tarea programada:", excepcion);
-//   }
-// };
+        console.log("envio de emails correctamente");
+        res.status(200).json({ message: "Se enviaron los imails correctamente" });
+      } else {
+        res.status(200).json({message: "Ningun requerimiento vence mañana"});
+      }
+      console.log('Estos son los requerimientos que venceran mañana".');
+    } else {
+      res.status(400).json({ message: "no hay requerimientos que vencen mañana" });
+      console.error("Ningun requerimiento vence mañana");
+    }
+    console.log("Tarea programada ejecutada correctamente.");
+  } catch (excepcion) {
+    res.status(500).send("hay un error en el servidor");
+    console.error("Error en la tarea programada:", excepcion);
+  }
+};
 
 // controladorVencimiento.VencenEstaSemana = async (req, res) => {
 //   try {
