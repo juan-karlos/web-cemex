@@ -4,6 +4,8 @@ const router = Router();
 const controladorRegistro = require("../controllers/registro");
 const controladorVencimiento = require("../controllers/verificadorVencidos");
 const controladorinsertmasiva = require("../controllers/exel");
+const controladorExel=require('../controllers/controllercargaexel')
+
 
 // router.post('/load_pdf',controladorRegistro.insertpdf)
 
@@ -32,6 +34,7 @@ router.get("/exel", controladorRegistro.importExel);
 
 router.post("/carga", controladorinsertmasiva.insertmasiva);
 router.get("/rutas", controladorinsertmasiva.rutas);
+router.post("/cargaexel",controladorExel.recargaexel);
 
 router.patch("/updateToVencido", controladorVencimiento.updateToVencimiento);
 // router.get("/diaSiguiente", controladorVencimiento.vencSiguienteDia);
