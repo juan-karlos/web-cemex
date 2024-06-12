@@ -225,6 +225,7 @@ const fecha = moment().format('YYYY-MM-DD_HH-mm-ss');
          { header: "fija",  key:  "fija", width : 10 },
          { header: "fecha_inicio", key: "fecha_inicio", width: 10 },
          { header: "fecha_vencimiento", key: "fecha_vencimiento", width: 10 },
+         { header: "validez_unica", key: "validez_unica", width: 15}
        ];
        // Agregar datos al libro de Excel
        worksheet.addRows(registros);
