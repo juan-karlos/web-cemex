@@ -1,10 +1,10 @@
-var XLSX= require('xlsx')
+const XLSX = require('xlsx');
 const fs = require('fs');
-const pool = require('../database')
-const path = require('path'); // Se añade la importación de path
+const pool = require('../database');
+const path = require('path');
+const moment = require("moment")
 
 const controllerImportExel = {};
-
 
 controllerImportExel.recargaexel = async (req, res) => {
   try {
@@ -28,128 +28,132 @@ controllerImportExel.recargaexel = async (req, res) => {
 
     console.log("Archivo guardado correctamente:", rutaNuevoArchivo);
 
-    const ruta = `./src/exel/${nombreSinEspacios}`;
+    const ruta = path.join(__dirname, "../exel", nombreSinEspacios);
     console.log(ruta);
 
-    const exel = XLSX.readFile(ruta);
-    const sheetname = exel.SheetNames[0];
-    const datos = XLSX.utils.sheet_to_json(exel.Sheets[sheetname]);
+    let exel = XLSX.readFile(ruta);
+    let sheetname = exel.SheetNames[0];
+    let datos = XLSX.utils.sheet_to_json(exel.Sheets[sheetname]);
 
-    const nombresUnicosPlanta = new Set();
-    const nombresUnicosRequerimiento = new Set();
+    let plan = [];
+    let per = [];
+    const pla_unicos = new Set();
+    const per_unicos = new Set();
+
+    // Lista para almacenar los registros que se van a exportar
+    let registrosParaExportar = [];
 
     for (const dato of datos) {
-      const nombrePlanta = dato.nombre_planta;
-      const nombreRequerimiento = dato.nombre_requerimiento;
-
-
-      if (!nombresUnicosPlanta.has(nombrePlanta)) {
-        nombresUnicosPlanta.add(nombrePlanta);
-
-        if (dato.nombre_planta !== undefined && dato.segmento !== undefined && dato.zona !== undefined && dato.estado !== undefined && dato.porcentaje_cumplimiento !== undefined && dato.fija !== undefined && dato.activo !== undefined) {
-
-          let [consulta] =await pool.query(
-            "SELECT nombre_planta,segmento,zona from unidad_operativa WHERE nombre_planta=? and segmento=? and zona=?",
-            [dato.nombre_planta,dato.segmento,dato.zona]);          
-              if(consulta.length<1){
-              console.log("");
-              console.log("Se Insertaron estos datos");
-              console.log(dato.nombre_planta, dato.segmento, dato.zona, dato.estado, dato.porcentaje_cumplimiento, dato.fija, dato.activo);
-              await pool.query(
-                "INSERT INTO unidad_operativa (nombre_planta, segmento, zona, estado, porcentaje_cumplimiento, fija, activo) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                [dato.nombre_planta, dato.segmento, dato.zona, dato.estado, dato.porcentaje_cumplimiento, dato.fija, dato.activo]
-              );
-
-
-              }else{
-              console.log("Se Actualizo en la base de datos estos datos")
-              console.log(dato.porcentaje_cumplimiento, dato.fija, dato.activo);
-              
-              await pool.query(
-                "UPDATE unidad_operativa SET porcentaje_cumplimiento = IFNULL(?, porcentaje_cumplimiento), fija = IFNULL(?, fija), activo = IFNULL(?, activo) WHERE nombre_planta = ?",
-                [dato.porcentaje_cumplimiento, dato.fija, dato.activo, dato.nombre_planta]
-              );
-              }
-          }else{
-            res.status(400).json({ message: "Los datos del documento que se insertó no tienen el formato requerido" });
-            console.log("no se reconocieron");
-            return;
-          }
-      
-      }
-
-
-      if (!nombresUnicosRequerimiento.has(nombreRequerimiento)) {
-           nombresUnicosRequerimiento.add(nombreRequerimiento);
-
-           if(dato.nombre_requerimiento != undefined && dato.peso !=undefined, dato.impacto!=undefined, dato.siglas !=undefined || "siglas"){
-
-             const [requi]=await pool.query("SELECT nombre_requerimiento from requerimiento WHERE nombre_requerimiento=?",[dato.nombre_requerimiento])
-
-             if(requi.length<1){
-               console.log("Se insertaron los siguientes datos");
-               console.log(dato.nombre_requerimiento, dato.peso, dato.impacto, dato.siglas || "siglas");
-
-
-               await pool.query(
-                 "INSERT INTO requerimiento (nombre_requerimiento, peso, impacto, siglas) VALUES (?, ?, ?, ?)",
-                 [dato.nombre_requerimiento, dato.peso, dato.impacto, dato.siglas || "siglas"]
-               );
-             
-              } 
-           }   
-           else{
-              res.status(400).json({ message: "Verificar los datos de tu exel, algunos no tienen los datos correctos" });
-              console.log("No se reconocieron datos ")
-              return;
-           }  
-       }
-
-      const fechaInicio = dato.fecha_inicio || null;
-      const fechaVencimiento = dato.fecha_vencimiento || null;
-      const observaciones = dato.observaciones || "";
-      const estatus = dato.estatus || "Vigente";
-      const validezUnica = fechaVencimiento ? 0 : 1;
-
-      // console.log("Se acualizaron los dartos de los registros")
-      // console.log(fechaInicio, fechaVencimiento, observaciones, estatus, validezUnica, dato.nombre_planta, dato.nombre_requerimiento)
-
-      await pool.query(
-        `UPDATE registro
-         JOIN unidad_operativa AS uo ON registro.id_planta = uo.id_planta
-         JOIN requerimiento AS req ON registro.id_requerimiento = req.id_requerimiento
-         SET registro.fecha_inicio = COALESCE(?, registro.fecha_inicio),
-             registro.fecha_vencimiento = COALESCE(?, registro.fecha_vencimiento),
-             registro.observaciones = COALESCE(?, registro.observaciones),
-             registro.estatus = COALESCE(?, registro.estatus),
-             registro.validez_unica = COALESCE(?, registro.validez_unica)
-         WHERE uo.nombre_planta = ? 
-         AND req.nombre_requerimiento = ? 
-         AND NOT EXISTS (
-           SELECT 1 FROM (
-             SELECT id_planta, id_requerimiento FROM registro
-           ) AS sub
-           WHERE sub.id_planta = registro.id_planta 
-           AND sub.id_requerimiento = registro.id_requerimiento
-         );`,
-        [fechaInicio, fechaVencimiento, observaciones, estatus, validezUnica, dato.nombre_planta, dato.nombre_requerimiento]
+      const [registro] = await pool.query(
+        `SELECT id_registro, nombre_requerimiento, nombre_planta, estatus, observaciones, validez_unica, fecha_vencimiento, zona, segmento
+         FROM unidad_operativa 
+         JOIN registro ON unidad_operativa.id_planta = registro.id_planta 
+         JOIN requerimiento ON registro.id_requerimiento = requerimiento.id_requerimiento 
+         WHERE nombre_planta = ? AND nombre_requerimiento = ?`,
+        [dato.nombre_planta, dato.nombre_requerimiento]
       );
+
+      if (registro.length === 0) {
+        const [planta] = await pool.query(
+          "SELECT nombre_planta FROM unidad_operativa WHERE nombre_planta = ?",
+          [dato.nombre_planta]
+        );
+
+        const [permiso] = await pool.query(
+          "SELECT nombre_requerimiento FROM requerimiento WHERE nombre_requerimiento = ?",
+          [dato.nombre_requerimiento]
+        );
+
+        if (!pla_unicos.has(dato.nombre_planta)) {
+          if (planta.length === 0 && permiso.length >= 0) {
+            console.log("No se encontró esta planta");
+            console.log("nombre_planta: ", dato.nombre_planta);
+            plan.push(dato.nombre_planta);
+          } else {
+            if (!per_unicos.has(dato.nombre_requerimiento)) {
+              if (planta.length > 0 && permiso.length === 0) {
+                console.log("No se encontró el permiso");
+                console.log("nombre del permiso: ", dato.nombre_requerimiento);
+                per.push(dato.nombre_requerimiento);
+              }
+              per_unicos.add(dato.nombre_requerimiento);
+            }
+          }
+          pla_unicos.add(dato.nombre_planta);
+        }
+      } else {
+        //registro encontrado es de la base de datos
+        const registroEncontrado = registro[0];
+
+        // const registroValidezUnicaBool = Boolean(registroEncontrado.validez_unica);
+        // const datoValidezUnicaBool = Boolean(dato.validez_unica);
+
+        const registroValidezUnicaBool = registroEncontrado.validez_unica === true || registroEncontrado.validez_unica === 'true' || registroEncontrado.validez_unica === 1 || registroEncontrado.validez_unica === '1';
+        const datoValidezUnicaBool = dato.validez_unica === true || dato.validez_unica === 'true' || dato.validez_unica === 1 || dato.validez_unica === '1';
+
+        // Convertir las fechas a formato AAAA-MM-DD
+        let fechadat = registroEncontrado.fecha_vencimiento ? moment(new Date(registroEncontrado.fecha_vencimiento)).format("YYYY-MM-DD") : "";
+
+        let fech2 = "";
+
+        if (typeof dato.fecha_vencimiento === "number") {
+          let fecha1 = moment(new Date((dato.fecha_vencimiento - 25569) * 86400 * 1000));
+          if (fecha1.isValid()) {
+            fech2 = fecha1.format("YYYY-MM-DD");
+          }
+        }
+
+                // console.log("Datos de la base de datos")
+                // console.log(typeof registroValidezUnicaBool);
+                // console.log(registroValidezUnicaBool, datoValidezUnicaBool )
+                // console.log("Datos sin conversion",registroEncontrado.validez_unica, dato.validez_unica  )
+                // console.log("fecha del exel")
+                // console.log(typeof datoValidezUnicaBool);
+
+
+
+        if (registroEncontrado.estatus !== dato.estatus || fechadat !== fech2) {
+          // console.log("Fecha de la base de datos   -"+fechadat+" fecha del exel  -"+fech2)
+          // Agregar los datos al registro para exportar
+          registrosParaExportar.push({
+            nombre_planta: registroEncontrado.nombre_planta,
+            nombre_requerimiento: dato.nombre_requerimiento,
+            estatus_base: registroEncontrado.estatus,
+            estatus_excel: dato.estatus,
+            validez_unica_base: registroValidezUnicaBool,
+            validez_unica_excel: datoValidezUnicaBool,
+            fecha_vencimiento_base: fechadat,
+            fecha_vencimiento_excel: fech2,
+            zona: registroEncontrado.zona,
+            segmento: registroEncontrado.segmento
+            
+          });
+        }
+      }
     }
 
-    console.log("Proceso de inserción de datos completado.");
+    // Crear un nuevo libro de Excel con los registros para exportar
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(registrosParaExportar);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Diferencias");
 
-    res.status(200).json({ message: "Datos insertados correctamente" });
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
+    res.setHeader('Content-Disposition', 'attachment; filename=diferencias.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
+
+    console.log("Recuento de las plantas que no están: " + plan.length);
+    console.log("Recuento de los permisos que no están: " + per.length);
   } catch (error) {
     console.error('Error en el procesamiento del archivo:', error);
     res.status(500).json({ error: 'Ocurrió un error al procesar el archivo' });
   }
 };
 
-
-
-
 module.exports = controllerImportExel;
+
+
 
 
 
